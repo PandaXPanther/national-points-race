@@ -23,6 +23,7 @@
     "test": "node ../../scripts/vitest-runner.mjs"
   },
   "dependencies": {
-    "csv-parse": "7.0.2"
+    "csv-parse": "7.0.2",
+    "zod": "4.4.3"
   }
 }

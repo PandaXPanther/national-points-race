@@ -1,12 +1,10 @@
 export { DiagnosticSchema, DiagnosticSeveritySchema } from "./diagnostic.js";
 export type { Diagnostic, DiagnosticSeverity } from "./diagnostic.js";
 export {
-  DivisionSchema,
   NormalizedEventSchema,
   NormalizedResultSchema,
   NormalizedResultSetSchema,
   PolicyVersionIdSchema,
-  RoundStageSchema,
   TournamentLineageIdSchema,
 } from "./normalized.js";
 export type {
@@ -27,7 +25,11 @@ export type {
   SourceSnapshot,
 } from "./source.js";
 
-export { POLICY_VERSION } from "@points-race/policy";
+export {
+  DivisionSchema,
+  POLICY_VERSION,
+  RoundStageSchema,
+} from "@points-race/policy";
 export type {
   Division,
   PolicyVersionId,

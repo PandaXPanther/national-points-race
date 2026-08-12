@@ -1,8 +1,12 @@
+import type { z } from "zod";
+
+import type { DivisionSchema, RoundStageSchema } from "./result-schemas.js";
+
 export type Tier = 1 | 2 | 3 | 4 | 5;
 
-export type RoundStage = "octafinal" | "quarterfinal" | "semifinal" | "final";
+export type RoundStage = z.infer<typeof RoundStageSchema>;
 
-export type Division = "combined" | "ix" | "usx";
+export type Division = z.infer<typeof DivisionSchema>;
 
 export type TournamentLineageId =
   | "nsda-nationals"

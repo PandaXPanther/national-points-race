@@ -1,8 +1,8 @@
 import {
+  DivisionSchema,
   LEGACY_POLICY,
   POLICY_VERSION,
-  type Division,
-  type RoundStage,
+  RoundStageSchema,
   type TournamentLineageId,
 } from "@points-race/policy";
 import { z } from "zod";
@@ -19,19 +19,6 @@ export const TournamentLineageIdSchema = z.custom<TournamentLineageId>(
   (value) => typeof value === "string" && lineageIds.has(value),
   "Unknown tournament lineage",
 );
-
-export const DivisionSchema: z.ZodType<Division> = z.enum([
-  "combined",
-  "ix",
-  "usx",
-]);
-
-export const RoundStageSchema: z.ZodType<RoundStage> = z.enum([
-  "octafinal",
-  "quarterfinal",
-  "semifinal",
-  "final",
-]);
 
 export const NormalizedEventSchema = z
   .object({

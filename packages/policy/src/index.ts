@@ -3,6 +3,7 @@ export type PolicyVersionId = typeof POLICY_VERSION;
 
 export { getTournamentPolicy, LEGACY_POLICY } from "./legacy-2024-25-v1.js";
 export { classifyRoundLabel } from "./round-classifier.js";
+export { DivisionSchema, RoundStageSchema } from "./result-schemas.js";
 export {
   computeNsdaBonusDivision,
   multiplyHalfUp,

@@ -13,6 +13,8 @@ export default [
       ".wrangler/",
       ".dev.vars*",
       "playwright-report/",
+      "work/",
+      "**/src/worker-configuration.d.ts",
     ],
   },
   js.configs.recommended,

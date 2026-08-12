@@ -1,0 +1,26 @@
+{
+  "name": "@points-race/service",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "cf-typegen": "wrangler types src/worker-configuration.d.ts --env-interface CloudflareBindings --include-runtime false"
+  },
+  "dependencies": {
+    "@points-race/pipeline": "workspace:*",
+    "@points-race/policy": "workspace:*",
+    "hono": "4.13.1",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "0.21.1",
+    "@cloudflare/workers-types": "5.20260811.1",
+    "typescript": "7.0.2",
+    "vitest": "4.1.10",
+    "wrangler": "4.121.0"
+  }
+}

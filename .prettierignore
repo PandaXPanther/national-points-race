@@ -6,3 +6,6 @@ coverage/
 dist/
 .wrangler/
 playwright-report/
+apps/service/migrations/*.sql
+apps/service/src/worker-configuration.d.ts
+work/

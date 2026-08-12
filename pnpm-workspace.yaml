@@ -4,3 +4,9 @@ packages:
 
 allowBuilds:
   esbuild: true
+  workerd: true
+
+minimumReleaseAgeExclude:
+  - "@cloudflare/vitest-pool-workers@0.21.1"
+  - miniflare@5.20260804.1-alpha
+  - wrangler@4.121.0

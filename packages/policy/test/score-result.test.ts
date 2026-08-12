@@ -11,10 +11,12 @@ function resultInput(
   return {
     editionId: "2024-2025",
     competitorId: "alex-example",
+    sourceSnapshotId: "snapshot-default",
     division: "combined",
     lineageId: "california-invitational",
     placement: null,
     furthestStage: "semifinal",
+    wonFinalRound: false,
     ...overrides,
   };
 }
@@ -56,18 +58,22 @@ describe("single-event scoring", () => {
         resultInput({
           editionId: "2023-2024",
           competitorId: "sam-example",
+          sourceSnapshotId: "snapshot-preserved",
           division: "ix",
           placement: 1,
           furthestStage: "final",
+          wonFinalRound: true,
         }),
       ),
     ).toEqual({
       editionId: "2023-2024",
       competitorId: "sam-example",
+      sourceSnapshotId: "snapshot-preserved",
       division: "ix",
       lineageId: "california-invitational",
       placement: 1,
       furthestStage: "final",
+      wonFinalRound: true,
       points: 100,
       ruleId: "placement",
       win: true,

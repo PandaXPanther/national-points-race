@@ -70,10 +70,12 @@ export interface PolicyLedger {
 export interface ScoreResultInput {
   readonly editionId: string;
   readonly competitorId: string;
+  readonly sourceSnapshotId: string;
   readonly division: Division;
   readonly lineageId: TournamentLineageId;
   readonly placement: number | null;
   readonly furthestStage: RoundStage;
+  readonly wonFinalRound: boolean;
 }
 
 export interface ScoredResult extends ScoreResultInput {
@@ -82,6 +84,36 @@ export interface ScoredResult extends ScoreResultInput {
   readonly win: boolean;
   readonly topThree: boolean;
   readonly final: boolean;
+}
+
+export interface Award {
+  readonly editionId: string;
+  readonly competitorId: string;
+  readonly sourceSnapshotId: string;
+  readonly division: Division;
+  readonly lineageId: TournamentLineageId;
+  readonly placement: number | null;
+  readonly furthestStage: RoundStage;
+  readonly wonFinalRound: boolean;
+  readonly points: number;
+  readonly ruleId: string;
+  readonly win: boolean;
+  readonly topThree: boolean;
+  readonly final: boolean;
+}
+
+export type NsdaDivision = Exclude<Division, "combined">;
+
+export interface NsdaBonusInput {
+  readonly ixEntrants: readonly string[];
+  readonly usxEntrants: readonly string[];
+  readonly top25: readonly string[];
+}
+
+export interface NsdaScoreInput extends ScoreResultInput {
+  readonly division: NsdaDivision;
+  readonly lineageId: "nsda-nationals";
+  readonly bonusDivision: NsdaDivision | null;
 }
 
 export type PolicyInputErrorCode =

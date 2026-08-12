@@ -482,6 +482,22 @@ describe("structured official document adapters", () => {
       );
     },
   );
+
+  it.each(["hidden", 'aria-hidden="true"'])(
+    "rejects a selected table with %s",
+    (attribute) => {
+      const html = `<table id="official-results" ${attribute}><thead><tr><th>Competitor</th><th>School</th><th>Place</th><th>Stage</th></tr></thead><tbody><tr><td>Synthetic A</td><td>Example A</td><td>1</td><td>final</td></tr></tbody></table>`;
+      expectDocumentError(
+        () =>
+          parseStructuredOfficialDocument({
+            manifest: manifestFor("text/html"),
+            mediaType: "text/html",
+            bytes: encoder.encode(html),
+          }),
+        "DOCUMENT_HTML_UNSAFE_CONTENT",
+      );
+    },
+  );
 });
 
 describe("shared exact table normalization", () => {

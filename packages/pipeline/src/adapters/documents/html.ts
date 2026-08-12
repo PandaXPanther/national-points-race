@@ -4,6 +4,7 @@ import { DocumentParseError } from "./manifest.js";
 
 const UNSAFE_TABLE_CONTENT =
   "a,script,style,link,meta,form,input,button,textarea,select,iframe,object,embed,table,[hidden],[aria-hidden='true']";
+const HIDDEN_SELECTED_TABLE = "[hidden],[aria-hidden='true']";
 
 export function parseHtmlTable(
   html: string,
@@ -38,7 +39,10 @@ export function parseHtmlTable(
       "Configured HTML selector must identify a table.",
     );
   }
-  if (table.find(UNSAFE_TABLE_CONTENT).length !== 0) {
+  if (
+    table.is(HIDDEN_SELECTED_TABLE) ||
+    table.find(UNSAFE_TABLE_CONTENT).length !== 0
+  ) {
     throw new DocumentParseError(
       "DOCUMENT_HTML_UNSAFE_CONTENT",
       "Selected HTML result table contains unsupported embedded content.",

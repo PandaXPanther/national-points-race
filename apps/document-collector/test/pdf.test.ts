@@ -146,6 +146,7 @@ describe("text-layer PDF adapter", () => {
       "image-only.pdf",
       "encrypted.pdf",
       "multi-table.pdf",
+      "unrelated-table.pdf",
       "overlapping-text.pdf",
       "manifest.json",
     ];
@@ -225,6 +226,18 @@ describe("text-layer PDF adapter", () => {
           manifest,
           mediaType: "application/pdf",
           bytes: fixtureBytes("multi-table.pdf"),
+        }),
+      "PDF_MULTIPLE_TABLES",
+    );
+  });
+
+  it("rejects a second unrelated four-column table after the selected table", async () => {
+    await expectPdfError(
+      () =>
+        parseOfficialDocument({
+          manifest,
+          mediaType: "application/pdf",
+          bytes: fixtureBytes("unrelated-table.pdf"),
         }),
       "PDF_MULTIPLE_TABLES",
     );

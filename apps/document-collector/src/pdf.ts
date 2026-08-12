@@ -14,6 +14,9 @@ import {
 
 export const PDF_ROW_Y_TOLERANCE = 2;
 
+const PDF_SEPARATED_TABLE_GAP_FACTOR = 4;
+const PDF_TABLE_COLUMN_X_TOLERANCE = 4;
+
 export type PdfDocumentErrorCode =
   | "PDF_AMBIGUOUS_ROW"
   | "PDF_ENCRYPTED"
@@ -242,7 +245,47 @@ function selectPdfResultTable(
   const selected = rows
     .slice(headerIndex)
     .filter((row) => row.pageNumber === header.pageNumber);
+  assertNoSeparatedTableBlock(selected, Object.keys(manifest.columns).length);
   return selected.map((row) => row.cells.map(({ text }) => text));
+}
+
+function assertNoSeparatedTableBlock(
+  rows: readonly PositionedPdfRow[],
+  columnCount: number,
+): void {
+  for (let index = 1; index < rows.length - 1; index += 1) {
+    const previous = rows[index - 1]!;
+    const candidateHeader = rows[index]!;
+    const candidateRow = rows[index + 1]!;
+    const height = Math.max(
+      1,
+      ...previous.cells.map((cell) => cell.height),
+      ...candidateHeader.cells.map((cell) => cell.height),
+    );
+    const isSeparated =
+      previous.y - candidateHeader.y > height * PDF_SEPARATED_TABLE_GAP_FACTOR;
+    if (
+      isSeparated &&
+      candidateHeader.cells.length === columnCount &&
+      candidateRow.cells.length === columnCount &&
+      columnsAlign(candidateHeader, candidateRow)
+    ) {
+      throw new PdfDocumentError(
+        "PDF_MULTIPLE_TABLES",
+        "PDF contains multiple or ambiguously separated tabular blocks.",
+      );
+    }
+  }
+}
+
+function columnsAlign(
+  left: PositionedPdfRow,
+  right: PositionedPdfRow,
+): boolean {
+  return left.cells.every(
+    (cell, index) =>
+      Math.abs(cell.x - right.cells[index]!.x) <= PDF_TABLE_COLUMN_X_TOLERANCE,
+  );
 }
 
 function isConfiguredHeader(

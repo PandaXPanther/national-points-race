@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "example-official-results-v1",
+  "lineageId": "uk-season-opener",
+  "mediaType": "application/pdf",
+  "sourcePath": "results.pdf",
+  "editionId": "2026-example-invitational",
+  "event": {
+    "id": "example-extemp",
+    "name": "Open Extemporaneous Speaking",
+    "division": "combined",
+    "eligible": true
+  },
+  "publishedAt": "2026-08-10T18:30:00.000Z",
+  "explicitFinal": true,
+  "correction": false,
+  "parserVersion": "document-table-v1",
+  "eventSelector": "$",
+  "columns": {
+    "name": ["Competitor", "Name"],
+    "school": ["School", "Institution"],
+    "placement": ["Place", "Placement"],
+    "stage": ["Stage", "Round"]
+  }
+}

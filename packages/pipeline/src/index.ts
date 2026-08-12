@@ -51,6 +51,25 @@ export type {
   FetchContext,
   SourceSnapshotPayload,
 } from "./adapters/tabroom/fetch.js";
+export {
+  decodeOfficialDocumentUtf8,
+  DOCUMENT_PARSER_VERSION,
+  DocumentManifestError,
+  DocumentManifestSchema,
+  DocumentMediaTypeSchema,
+  DocumentParseError,
+  normalizeOfficialDocumentTable,
+  parseDocumentManifest,
+  parseStructuredOfficialDocument,
+} from "./adapters/documents/manifest.js";
+export type {
+  DocumentManifest,
+  DocumentManifestErrorCode,
+  DocumentMediaType,
+  DocumentParseErrorCode,
+  OfficialDocumentTableInput,
+  StructuredOfficialDocumentInput,
+} from "./adapters/documents/manifest.js";
 
 export {
   DivisionSchema,

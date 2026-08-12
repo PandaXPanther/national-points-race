@@ -1,0 +1,36 @@
+{
+  "name": "@points-race/document-collector",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "points-race-collect": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "pnpm --filter @points-race/pipeline build && pnpm run clean && tsc -p tsconfig.build.json",
+    "clean": "node --eval \"require('node:fs').rmSync('dist', { force: true, recursive: true })\"",
+    "pretest": "pnpm run build",
+    "test": "vitest run",
+    "test:clean-lifecycle": "node test/clean-lifecycle.mjs",
+    "pretypecheck": "pnpm run build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@points-race/pipeline": "workspace:*",
+    "pdfjs-dist": "6.2.108"
+  },
+  "devDependencies": {
+    "tsx": "4.23.12"
+  }
+}

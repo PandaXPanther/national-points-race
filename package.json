@@ -15,6 +15,7 @@
     "test": "pnpm -r test"
   },
   "devDependencies": {
+    "@points-race/document-collector": "workspace:*",
     "@vitest/coverage-v8": "4.1.10",
     "@eslint/js": "10.0.1",
     "@types/node": "26.2.0",

@@ -1,0 +1,79 @@
+[
+  {
+    "editionId": "2026-example-invitational",
+    "lineageId": "uk-season-opener",
+    "event": {
+      "id": "example-extemp",
+      "name": "Open Extemporaneous Speaking",
+      "division": "combined",
+      "eligible": true
+    },
+    "results": [
+      {
+        "sourceEntryId": "document:example-official-results-v1:2026-example-invitational:example-extemp:1",
+        "sourcePersonId": null,
+        "publishedName": "Synthetic Competitor One",
+        "publishedSchool": "Example Academy One",
+        "division": "combined",
+        "placement": 1,
+        "furthestStage": "final",
+        "wonFinalRound": true
+      },
+      {
+        "sourceEntryId": "document:example-official-results-v1:2026-example-invitational:example-extemp:2",
+        "sourcePersonId": null,
+        "publishedName": "Synthetic Competitor Two",
+        "publishedSchool": "Example Academy Two",
+        "division": "combined",
+        "placement": 2,
+        "furthestStage": "final",
+        "wonFinalRound": false
+      },
+      {
+        "sourceEntryId": "document:example-official-results-v1:2026-example-invitational:example-extemp:3",
+        "sourcePersonId": null,
+        "publishedName": "Synthetic Competitor Three",
+        "publishedSchool": "Example Academy Three",
+        "division": "combined",
+        "placement": 3,
+        "furthestStage": "final",
+        "wonFinalRound": false
+      },
+      {
+        "sourceEntryId": "document:example-official-results-v1:2026-example-invitational:example-extemp:4",
+        "sourcePersonId": null,
+        "publishedName": "Synthetic Competitor Four",
+        "publishedSchool": "Example Academy Four",
+        "division": "combined",
+        "placement": 4,
+        "furthestStage": "final",
+        "wonFinalRound": false
+      },
+      {
+        "sourceEntryId": "document:example-official-results-v1:2026-example-invitational:example-extemp:5",
+        "sourcePersonId": null,
+        "publishedName": "Synthetic Competitor Five",
+        "publishedSchool": "Example Academy Five",
+        "division": "combined",
+        "placement": 5,
+        "furthestStage": "final",
+        "wonFinalRound": false
+      },
+      {
+        "sourceEntryId": "document:example-official-results-v1:2026-example-invitational:example-extemp:6",
+        "sourcePersonId": null,
+        "publishedName": "Synthetic Competitor Six",
+        "publishedSchool": "Example Academy Six",
+        "division": "combined",
+        "placement": 6,
+        "furthestStage": "final",
+        "wonFinalRound": false
+      }
+    ],
+    "publishedAt": "2026-08-10T18:30:00.000Z",
+    "explicitFinal": true,
+    "correction": false,
+    "manifestRuleId": "example-official-results-v1",
+    "parserDiagnostics": []
+  }
+]

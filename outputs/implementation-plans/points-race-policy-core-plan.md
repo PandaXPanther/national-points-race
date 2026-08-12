@@ -704,5 +704,5 @@ git commit -m "test: replay authoritative 2024-25 standings"
 
 ## Authoritative policy precedent
 
-- MBA Exhibition Round finals-credit precedent: <https://extemp.com/2024-montgomery-bell-academy-extemp-round-robin-zhang-closes-out-peddi-for-illinois-first-round-robin-championship/>
+- MBA Exhibition Round finals-credit precedent: <https://extemp.com/2024-montgomery-bell-academy-extemp-round-robin/>
 - 2025 MBA sixth-place points confirmation: <https://extemp.com/2025-montgomery-bell-academy-extemp-round-robin-haider-wins-convincing-victory-over-star-studded-field/>

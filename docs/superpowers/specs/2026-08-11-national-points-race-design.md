@@ -413,7 +413,7 @@ The implementation is ready to launch only when:
 - Extemp Central, 2024–2025 structure and point tables: <https://extemp.com/2024-2025-extemp-central-national-points-race-the-structure-of-this-years-competition/>
 - Extemp Central, final 2024–2025 standings: <https://extemp.com/natl-points-race/>
 - Authoritative 2024–2025 spreadsheet: <https://docs.google.com/spreadsheets/d/1zKg4DMD9OwQaBFVPBPRIkgsTueH86TQV/edit?gid=508191381>
-- MBA Exhibition Round finals-credit precedent: <https://extemp.com/2024-montgomery-bell-academy-extemp-round-robin-zhang-closes-out-peddi-for-illinois-first-round-robin-championship/>
+- MBA Exhibition Round finals-credit precedent: <https://extemp.com/2024-montgomery-bell-academy-extemp-round-robin/>
 - 2025 MBA sixth-place points confirmation: <https://extemp.com/2025-montgomery-bell-academy-extemp-round-robin-haider-wins-convincing-victory-over-star-studded-field/>
 - Oversized Tier 3 final precedent: <https://extemp.com/2023-california-invitational-vakkalagadda-notches-another-win-for-bellarmine-college-preparatory-trivedi-takes-second-after-winning-final-round/>
 - Oversized Tier 5 final and multi-division precedent: <https://extemp.com/2023-james-logan-mlk-invitational-gercken-sweeps-ix-olakangils-title-defense-in-ix-falls-short/>

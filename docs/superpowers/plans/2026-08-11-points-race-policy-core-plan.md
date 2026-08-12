@@ -77,7 +77,7 @@ Use this root `package.json` dependency set:
     "test": "pnpm -r test"
   },
   "devDependencies": {
-    "@eslint/js": "10.8.1",
+    "@eslint/js": "10.0.1",
     "@types/node": "26.2.0",
     "eslint": "10.8.1",
     "eslint-config-prettier": "10.1.8",

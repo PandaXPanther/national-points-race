@@ -1,1 +1,8 @@
 .worktrees/
+.pnpm-store/
+node_modules/
+dist/
+coverage/
+.wrangler/
+.dev.vars*
+playwright-report/

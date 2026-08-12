@@ -1,0 +1,9 @@
+{
+  "name": "@points-race/policy",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  }
+}

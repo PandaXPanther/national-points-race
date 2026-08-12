@@ -62,6 +62,47 @@ export {
   parseDocumentManifest,
   parseStructuredOfficialDocument,
 } from "./adapters/documents/manifest.js";
+export {
+  IdentityNormalizationError,
+  normalizePersonName,
+} from "./identity/normalize.js";
+export type { IdentityNormalizationErrorCode } from "./identity/normalize.js";
+export { canonicalizeSchool } from "./identity/school.js";
+export {
+  IdentityResolutionError,
+  resolveIdentities,
+} from "./identity/resolve.js";
+export type { IdentityResolutionErrorCode } from "./identity/resolve.js";
+export {
+  CanonicalSchoolSchema,
+  CompetitorSchema,
+  ExplicitIdentityEdgeSchema,
+  IdentityDiagnosticCodeSchema,
+  IdentityDiagnosticSchema,
+  IdentityEvidenceSchema,
+  IdentityMappingSchema,
+  IdentityResolutionInputSchema,
+  IdentityResolutionOutputSchema,
+  SchoolAliasRecordSchema,
+  SchoolAliasRegistrySchema,
+  SchoolCanonicalRecordSchema,
+  SourcePersonSchema,
+} from "./identity/types.js";
+export type {
+  CanonicalSchool,
+  Competitor,
+  ExplicitIdentityEdge,
+  IdentityDiagnostic,
+  IdentityDiagnosticCode,
+  IdentityEvidence,
+  IdentityMapping,
+  IdentityResolutionInput,
+  IdentityResolutionOutput,
+  SchoolAliasRecord,
+  SchoolAliasRegistry,
+  SchoolCanonicalRecord,
+  SourcePerson,
+} from "./identity/types.js";
 export type {
   DocumentManifest,
   DocumentManifestErrorCode,

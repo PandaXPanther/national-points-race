@@ -95,6 +95,48 @@ describe("NSDA scoring", () => {
     },
   );
 
+  it.each([
+    {
+      stage: "quarterfinal",
+      bonusDivision: null,
+      points: 30,
+    },
+    {
+      stage: "quarterfinal",
+      bonusDivision: "ix",
+      points: 38,
+    },
+    {
+      stage: "octafinal",
+      bonusDivision: null,
+      points: 10,
+    },
+    {
+      stage: "octafinal",
+      bonusDivision: "ix",
+      points: 13,
+    },
+  ] as const)(
+    "scores non-null out-of-table $stage placement in $bonusDivision mode",
+    ({ stage, bonusDivision, points }) => {
+      expect(
+        scoreNsdaResult(
+          nsdaFixture({
+            placement: 15,
+            furthestStage: stage,
+            bonusDivision,
+          }),
+        ).points,
+      ).toBe(points);
+    },
+  );
+
+  it.each([0, -1, 1.5])("rejects invalid placement %s", (placement) => {
+    expect(() => scoreNsdaResult(nsdaFixture({ placement }))).toThrowError(
+      expect.objectContaining({ code: "INVALID_PLACEMENT" }),
+    );
+  });
+
   it("rounds exact halves up", () => {
     expect(multiplyHalfUp(1)).toBe(1);
     expect(multiplyHalfUp(2)).toBe(3);

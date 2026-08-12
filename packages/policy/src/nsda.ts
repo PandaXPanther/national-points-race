@@ -1,4 +1,5 @@
 import { LEGACY_POLICY } from "./legacy-2024-25-v1.js";
+import { PolicyInputError } from "./score-result.js";
 import type {
   Award,
   NsdaBonusInput,
@@ -26,7 +27,10 @@ export function multiplyHalfUp(
 }
 
 function basePoints(input: NsdaScoreInput): number {
-  if (input.placement !== null) {
+  if (
+    input.placement !== null &&
+    input.placement <= LEGACY_POLICY.nsda.basePlacements.length
+  ) {
     return LEGACY_POLICY.nsda.basePlacements[input.placement - 1] ?? 0;
   }
 
@@ -39,6 +43,16 @@ function basePoints(input: NsdaScoreInput): number {
 }
 
 export function scoreNsdaResult(input: NsdaScoreInput): Award {
+  if (
+    input.placement !== null &&
+    (!Number.isInteger(input.placement) || input.placement < 1)
+  ) {
+    throw new PolicyInputError(
+      "INVALID_PLACEMENT",
+      `Invalid placement: ${input.placement}`,
+    );
+  }
+
   const strongField = input.bonusDivision === input.division;
   const base = basePoints(input);
   const score = strongField ? multiplyHalfUp(base) : base;

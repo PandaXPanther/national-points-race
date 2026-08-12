@@ -98,3 +98,35 @@ The final line-by-line review of Controller Addendum items 1–14 found each req
 - The Workers test runner emits upstream dependency sourcemap warnings. They do not change exit codes or test results.
 - Serial root tests trade some runtime for deterministic package lifecycle isolation. Package-focused commands remain parallelizable outside the root recursive test script.
 - No Cloudflare deployment was performed.
+
+## Independent review fix round 1
+
+### Technical disposition
+
+- The reviewer proposed changing award uniqueness to allow multiple event awards for one competitor/edition. That proposal was rejected because the frozen scoring contract applies the per-tournament maximum and Task 8 explicitly requires one award per competitor/edition. The database `UNIQUE(standings_version_id, edition_id, competitor_id)` invariant remains. The public boundary now detects a duplicate edition/competitor award and rejects it before D1, so a schema-valid-looking second event cannot fail later as an opaque transaction conflict.
+- The remaining review findings were verified: version children could reference an unrelated globally canonical competitor; one provenance fixture could fail for the wrong lineage reason; focused service tests depended on prebuilt pipeline output; and concurrent R2/complete rollback branches lacked direct assertions.
+
+### Regression RED evidence
+
+- Command: `pnpm --filter @points-race/service exec vitest run test/storage.test.ts test/schema.test.ts`
+- Exit code: `1`; 3 failed and 37 passed.
+- Intended failures: all three version-local composite foreign-key mappings were absent; a top-25 member outside `input.competitors` published successfully; and a second event award for the same edition/competitor reached D1 and returned `StorageError` instead of boundary `ZodError`.
+- Clean standalone lifecycle RED: after resolving and verifying that `packages/pipeline/dist` was inside the worktree, `pnpm --filter @points-race/pipeline run clean` removed it. A direct focused service Vitest command exited `1` before collection with `Failed to resolve entry for package "@points-race/pipeline"`.
+
+### Fixes and GREEN evidence
+
+- Added version-local composite foreign keys from `standings_top25_members`, `awards`, and `standings_rows` to `standings_competitors`.
+- Added strict standings-boundary checks for unique version competitors, unique top-25 members, unique standings rows, membership of every top-25/award/row competitor in the same version, and exactly one maximum award per edition/competitor.
+- Corrected the schema fixtures to bind the seeded lineage and insert the same-version competitor, so the cross-edition snapshot assertion now varies only snapshot provenance and metric assertions isolate their CHECK constraints.
+- Added a concurrent first-writer R2 test proving one object and two D1 provenance rows, and extended transaction rollback proof to include the newly inserted canonical competitor.
+- Added service `pretest` pipeline build plus `test:clean-lifecycle`; root test serialization remains because sibling package pretests still rebuild/delete shared distribution output.
+- Focused GREEN: `pnpm --filter @points-race/service test -- storage.test.ts schema.test.ts` exited `0`; 2 files and 40 tests passed.
+- Clean standalone GREEN: `pnpm --filter @points-race/service run test:clean-lifecycle` exited `0`; it deleted pipeline output, ran the service package test through its normal lifecycle, rebuilt pipeline output, passed 40 tests, and preserved tracked status.
+
+### Fresh verification after fixes
+
+- Frozen install, full service tests (40/40), service clean lifecycle, service typecheck, Wrangler generated-type check, and `wrangler deploy --dry-run` all exited `0`.
+- Root `typecheck`, `build`, serialized `test` (policy 120, pipeline 206, document collector 24, service 40), `lint`, and `format:check` all exited `0`.
+- Pipeline and document-collector clean lifecycle gates both exited `0`.
+- `git diff --check a395e66` exited `0`; changed-file explicit-any, Worker-effect, and non-echoing credential-pattern scans reported zero findings (the scan reports paths only on failure).
+- No deployment, provisioning, dependency relaxation, or Task 3 code was added.

@@ -260,6 +260,86 @@ export const StandingsVersionInputSchema = z
     standings: z.array(StandingSchema).readonly(),
   })
   .strict()
+  .superRefine((input, context) => {
+    const competitorIds = new Set<string>();
+    input.competitors.forEach((competitor, index) => {
+      if (competitorIds.has(competitor.competitorId)) {
+        context.addIssue({
+          code: "custom",
+          path: ["competitors", index, "competitorId"],
+          message: "A standings version cannot repeat a competitor.",
+        });
+      }
+      competitorIds.add(competitor.competitorId);
+    });
+
+    const requireVersionCompetitor = (
+      competitorId: string,
+      path: PropertyKey[],
+    ): void => {
+      if (!competitorIds.has(competitorId)) {
+        context.addIssue({
+          code: "custom",
+          path,
+          message:
+            "Every standings child must reference a competitor in the same version.",
+        });
+      }
+    };
+
+    const top25Ids = new Set<string>();
+    input.top25Snapshot.competitorIds.forEach((competitorId, index) => {
+      requireVersionCompetitor(competitorId, [
+        "top25Snapshot",
+        "competitorIds",
+        index,
+      ]);
+      if (top25Ids.has(competitorId)) {
+        context.addIssue({
+          code: "custom",
+          path: ["top25Snapshot", "competitorIds", index],
+          message: "The top-25 snapshot cannot repeat a competitor.",
+        });
+      }
+      top25Ids.add(competitorId);
+    });
+
+    const awardKeys = new Set<string>();
+    input.awards.forEach((award, index) => {
+      requireVersionCompetitor(award.competitorId, [
+        "awards",
+        index,
+        "competitorId",
+      ]);
+      const awardKey = JSON.stringify([award.editionId, award.competitorId]);
+      if (awardKeys.has(awardKey)) {
+        context.addIssue({
+          code: "custom",
+          path: ["awards", index],
+          message:
+            "A competitor can receive only one maximum award per edition.",
+        });
+      }
+      awardKeys.add(awardKey);
+    });
+
+    const standingIds = new Set<string>();
+    input.standings.forEach((standing, index) => {
+      requireVersionCompetitor(standing.competitorId, [
+        "standings",
+        index,
+        "competitorId",
+      ]);
+      if (standingIds.has(standing.competitorId)) {
+        context.addIssue({
+          code: "custom",
+          path: ["standings", index, "competitorId"],
+          message: "A standings version cannot repeat a standings row.",
+        });
+      }
+      standingIds.add(standing.competitorId);
+    });
+  })
   .readonly();
 
 export const StandingsVersionRecordSchema = StandingsVersionInputSchema;

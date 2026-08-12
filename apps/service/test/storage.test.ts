@@ -561,6 +561,41 @@ describe("SnapshotRepository", () => {
     expect(rows.results).toHaveLength(2);
   });
 
+  it("handles concurrent first writers without overwriting content", async () => {
+    const firstEdition = await seedEdition("snapshot-race-a");
+    const secondEdition = await seedEdition("snapshot-race-b");
+    const sharedBytes = ownedBytes("concurrent-first-writer-snapshot");
+    const firstInput = await snapshotInput(
+      "snapshot-race-a",
+      firstEdition.id,
+      sharedBytes,
+    );
+    const secondInput = await snapshotInput(
+      "snapshot-race-b",
+      secondEdition.id,
+      sharedBytes,
+    );
+
+    const [first, second] = await Promise.all([
+      snapshots.persist(firstInput),
+      snapshots.persist(secondInput),
+    ]);
+
+    expect(second.r2Key).toBe(first.r2Key);
+    expect(
+      (await env.RAW_SNAPSHOTS.list({ prefix: first.r2Key })).objects.filter(
+        ({ key }) => key === first.r2Key,
+      ),
+    ).toHaveLength(1);
+    expect(
+      await env.DB.prepare(
+        "SELECT COUNT(*) AS count FROM source_snapshots WHERE r2_key = ?1",
+      )
+        .bind(first.r2Key)
+        .first<number>("count"),
+    ).toBe(2);
+  });
+
   it("rejects a caller-observed hash mismatch without writing D1 or R2", async () => {
     const edition = await seedEdition("snapshot-hash-mismatch");
     const input = await snapshotInput("snapshot-hash-mismatch", edition.id);
@@ -881,6 +916,77 @@ describe("StandingsRepository", () => {
         .bind(input.id)
         .first<number>("count"),
     ).toBe(0);
+    expect(
+      await env.DB.prepare(
+        "SELECT COUNT(*) AS count FROM canonical_competitors WHERE id = ?1",
+      )
+        .bind(input.competitors[0]!.competitorId)
+        .first<number>("count"),
+    ).toBe(0);
+  });
+
+  it("rejects children that reference competitors outside the version", async () => {
+    const historical = await standingsFixture("membership-historical");
+    await standings.publish(historical);
+    const historicalCompetitor = historical.competitors[0]!;
+
+    const top25 = await standingsFixture("membership-top25");
+    await expect(
+      standings.publish({
+        ...top25,
+        top25Snapshot: {
+          ...top25.top25Snapshot,
+          competitorIds: [historicalCompetitor.competitorId],
+        },
+      }),
+    ).rejects.toMatchObject({ name: "ZodError" });
+
+    const award = await standingsFixture("membership-award");
+    await expect(
+      standings.publish({
+        ...award,
+        awards: [
+          {
+            ...award.awards[0]!,
+            competitorId: historicalCompetitor.competitorId,
+            displayName: historicalCompetitor.displayName,
+          },
+        ],
+      }),
+    ).rejects.toMatchObject({ name: "ZodError" });
+
+    const row = await standingsFixture("membership-row");
+    await expect(
+      standings.publish({
+        ...row,
+        standings: [
+          {
+            ...row.standings[0]!,
+            competitorId: historicalCompetitor.competitorId,
+            displayName: historicalCompetitor.displayName,
+          },
+        ],
+      }),
+    ).rejects.toMatchObject({ name: "ZodError" });
+  });
+
+  it("rejects multiple event awards for one competitor and edition", async () => {
+    const input = await standingsFixture("duplicate-tournament-award");
+    const firstAward = input.awards[0]!;
+
+    await expect(
+      standings.publish({
+        ...input,
+        awards: [
+          firstAward,
+          {
+            ...firstAward,
+            eventId: "event-secondary",
+            ruleId: "tier-2-secondary-event",
+          },
+        ],
+      }),
+    ).rejects.toMatchObject({ name: "ZodError" });
   });
 
   it("rejects reused version ids or hashes with different semantic content", async () => {

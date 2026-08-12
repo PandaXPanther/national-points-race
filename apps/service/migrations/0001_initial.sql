@@ -251,6 +251,8 @@ CREATE TABLE standings_top25_members (
     typeof(position) = 'integer' AND position BETWEEN 1 AND 25
   ),
   competitor_id TEXT NOT NULL REFERENCES canonical_competitors(id),
+  FOREIGN KEY (standings_version_id, competitor_id)
+    REFERENCES standings_competitors(standings_version_id, competitor_id),
   PRIMARY KEY(standings_version_id, position),
   UNIQUE(standings_version_id, competitor_id)
 );
@@ -325,6 +327,8 @@ CREATE TABLE awards (
     source_descriptor_id,
     snapshot_sha256
   ) REFERENCES source_snapshots(id, edition_id, descriptor_id, sha256),
+  FOREIGN KEY (standings_version_id, competitor_id)
+    REFERENCES standings_competitors(standings_version_id, competitor_id),
   UNIQUE(standings_version_id, edition_id, competitor_id)
 );
 
@@ -341,6 +345,8 @@ CREATE TABLE standings_rows (
     typeof(top_threes) = 'integer' AND top_threes >= 0
   ),
   finals INTEGER NOT NULL CHECK (typeof(finals) = 'integer' AND finals >= 0),
+  FOREIGN KEY (standings_version_id, competitor_id)
+    REFERENCES standings_competitors(standings_version_id, competitor_id),
   PRIMARY KEY(standings_version_id, competitor_id)
 );
 

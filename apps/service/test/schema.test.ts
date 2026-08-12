@@ -84,6 +84,7 @@ async function foreignKeyMappings(tableName: string): Promise<string[]> {
 
 async function seedResultParents(prefix: string): Promise<{
   policyId: string;
+  lineageId: string;
   editionId: string;
   snapshotId: string;
   descriptorId: string;
@@ -134,6 +135,7 @@ async function seedResultParents(prefix: string): Promise<{
 
   return {
     policyId,
+    lineageId,
     editionId,
     snapshotId,
     descriptorId,
@@ -407,6 +409,7 @@ it("declares every required foreign-key column mapping", async () => {
     ],
     standings_top25_members: [
       "canonical_competitors:competitor_id->id",
+      "standings_competitors:standings_version_id,competitor_id->standings_version_id,competitor_id",
       "standings_versions:standings_version_id->id",
     ],
     standings_diagnostics: ["standings_versions:standings_version_id->id"],
@@ -415,12 +418,14 @@ it("declares every required foreign-key column mapping", async () => {
       "source_snapshots:snapshot_id->id",
       "source_snapshots:snapshot_id,edition_id->id,edition_id",
       "source_snapshots:snapshot_id,edition_id,source_descriptor_id,snapshot_sha256->id,edition_id,descriptor_id,sha256",
+      "standings_competitors:standings_version_id,competitor_id->standings_version_id,competitor_id",
       "standings_versions:standings_version_id->id",
       "tournament_editions:edition_id->id",
       "tournament_editions:edition_id,lineage_id->id,lineage_id",
     ],
     standings_rows: [
       "canonical_competitors:competitor_id->id",
+      "standings_competitors:standings_version_id,competitor_id->standings_version_id,competitor_id",
       "standings_versions:standings_version_id->id",
     ],
     job_runs: [],
@@ -634,8 +639,14 @@ it("accepts the complete job state contract and rejects an unknown state", async
 });
 
 it("rejects invalid award and standings metrics", async () => {
-  const { policyId, editionId, snapshotId, descriptorId, snapshotSha256 } =
-    await seedResultParents("awards");
+  const {
+    policyId,
+    lineageId,
+    editionId,
+    snapshotId,
+    descriptorId,
+    snapshotSha256,
+  } = await seedResultParents("awards");
   const competitorId = "awards-competitor";
   const standingsVersionId = "awards-standings";
   await env.DB.batch([
@@ -645,6 +656,9 @@ it("rejects invalid award and standings metrics", async () => {
     env.DB.prepare(
       "INSERT INTO standings_versions (id, season_id, created_at, input_sha256, status, policy_version_id, version_sha256, top25_standings_sha256, cutoff_key, cutoff_tournament_order, cutoff_date) VALUES (?1, 'awards-season', '2026-08-11T00:00:00Z', 'awards-input', 'provisional', ?2, 'awards-version', 'awards-top25', 'awards-cutoff', 1, '2026-05-01T00:00:00Z')",
     ).bind(standingsVersionId, policyId),
+    env.DB.prepare(
+      "INSERT INTO standings_competitors (standings_version_id, competitor_id, display_name, display_school, registry_version, canonical_school_id, canonical_school_name, verified_source_person_keys_json, identity_evidence_json) VALUES (?1, ?2, 'Speaker', 'School', 'schools-1', 'school-1', 'School', '[]', '[]')",
+    ).bind(standingsVersionId, competitorId),
   ]);
 
   const invalidAwards = [
@@ -658,7 +672,7 @@ it("rejects invalid award and standings metrics", async () => {
   for (const [id, points, win, topThree, final] of invalidAwards) {
     await expect(
       env.DB.prepare(
-        "INSERT INTO awards (id, standings_version_id, edition_id, event_id, competitor_id, display_name, snapshot_id, source_descriptor_id, source_class, snapshot_sha256, parser_version, permission, published_at, division, lineage_id, placement, furthest_stage, won_final_round, rule_id, points, win, top_three, final) VALUES (?1, ?2, ?3, 'extemp', ?4, 'Speaker', ?5, ?6, 'organizer-html-pdf', ?7, 'parser-1', 'official-public-document', '2026-08-11T00:00:00Z', 'combined', 'harvard', 1, 'final', 1, 'rule-1', ?8, ?9, ?10, ?11)",
+        "INSERT INTO awards (id, standings_version_id, edition_id, event_id, competitor_id, display_name, snapshot_id, source_descriptor_id, source_class, snapshot_sha256, parser_version, permission, published_at, division, lineage_id, placement, furthest_stage, won_final_round, rule_id, points, win, top_three, final) VALUES (?1, ?2, ?3, 'extemp', ?4, 'Speaker', ?5, ?6, 'organizer-html-pdf', ?7, 'parser-1', 'official-public-document', '2026-08-11T00:00:00Z', 'combined', ?8, 1, 'final', 1, 'rule-1', ?9, ?10, ?11, ?12)",
       )
         .bind(
           id,
@@ -668,6 +682,7 @@ it("rejects invalid award and standings metrics", async () => {
           snapshotId,
           descriptorId,
           snapshotSha256,
+          lineageId,
           points,
           win,
           topThree,
@@ -704,17 +719,21 @@ it("rejects an award whose snapshot belongs to another edition", async () => {
     env.DB.prepare(
       "INSERT INTO standings_versions (id, season_id, created_at, input_sha256, status, policy_version_id, version_sha256, top25_standings_sha256, cutoff_key, cutoff_tournament_order, cutoff_date) VALUES ('award-provenance-standings', 'award-provenance-season', '2026-08-11T00:00:00Z', 'award-provenance-input', 'provisional', ?1, 'award-provenance-version', 'award-provenance-top25', 'award-provenance-cutoff', 1, '2026-05-01T00:00:00Z')",
     ).bind(expectedEdition.policyId),
+    env.DB.prepare(
+      "INSERT INTO standings_competitors (standings_version_id, competitor_id, display_name, display_school, registry_version, canonical_school_id, canonical_school_name, verified_source_person_keys_json, identity_evidence_json) VALUES ('award-provenance-standings', 'award-provenance-competitor', 'Speaker', 'School', 'schools-1', 'school-1', 'School', '[]', '[]')",
+    ),
   ]);
 
   await expect(
     env.DB.prepare(
-      "INSERT INTO awards (id, standings_version_id, edition_id, event_id, competitor_id, display_name, snapshot_id, source_descriptor_id, source_class, snapshot_sha256, parser_version, permission, published_at, division, lineage_id, placement, furthest_stage, won_final_round, rule_id, points, win, top_three, final) VALUES ('award-provenance-mismatch', 'award-provenance-standings', ?1, 'extemp', 'award-provenance-competitor', 'Speaker', ?2, ?3, 'organizer-html-pdf', ?4, 'parser-1', 'official-public-document', '2026-08-11T00:00:00Z', 'combined', 'harvard', 1, 'final', 1, 'rule-1', 10, 1, 1, 1)",
+      "INSERT INTO awards (id, standings_version_id, edition_id, event_id, competitor_id, display_name, snapshot_id, source_descriptor_id, source_class, snapshot_sha256, parser_version, permission, published_at, division, lineage_id, placement, furthest_stage, won_final_round, rule_id, points, win, top_three, final) VALUES ('award-provenance-mismatch', 'award-provenance-standings', ?1, 'extemp', 'award-provenance-competitor', 'Speaker', ?2, ?3, 'organizer-html-pdf', ?4, 'parser-1', 'official-public-document', '2026-08-11T00:00:00Z', 'combined', ?5, 1, 'final', 1, 'rule-1', 10, 1, 1, 1)",
     )
       .bind(
         expectedEdition.editionId,
         otherEdition.snapshotId,
         otherEdition.descriptorId,
         otherEdition.snapshotSha256,
+        expectedEdition.lineageId,
       )
       .run(),
   ).rejects.toThrow(/FOREIGN KEY constraint failed/);

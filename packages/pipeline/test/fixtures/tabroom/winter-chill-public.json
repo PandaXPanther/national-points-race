@@ -1,0 +1,86 @@
+{
+  "id": "38186",
+  "categories": [
+    {
+      "id": "102374",
+      "name": "High School Speech",
+      "events": [
+        {
+          "id": "362285",
+          "name": "Extemporaneous Speaking",
+          "rounds": [
+            {
+              "id": "1463288",
+              "name": 6,
+              "label": "sf",
+              "type": "elim",
+              "sections": []
+            },
+            {
+              "id": "1442590",
+              "name": 7,
+              "label": "f",
+              "type": "final",
+              "sections": []
+            }
+          ],
+          "result_sets": [
+            {
+              "label": "Final Places",
+              "tag": "final",
+              "bracket": 0,
+              "published": 1,
+              "generated": "2026-01-03T19:39:48.000Z",
+              "results": [
+                {
+                  "entry": "entry-1",
+                  "place": "1st",
+                  "round": "1442590",
+                  "values": []
+                },
+                {
+                  "entry": "entry-2",
+                  "place": "2nd",
+                  "round": "1442590",
+                  "values": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "schools": [
+    {
+      "id": "school-1",
+      "name": "Example High School",
+      "entries": [
+        {
+          "id": "entry-1",
+          "event": "362285",
+          "students": ["person-1"],
+          "name": "Competitor One"
+        },
+        {
+          "id": "entry-2",
+          "event": "362285",
+          "students": ["person-2"],
+          "name": "Competitor Two"
+        }
+      ],
+      "students": [
+        {
+          "id": "person-1",
+          "first": "Competitor",
+          "last": "One"
+        },
+        {
+          "id": "person-2",
+          "first": "Competitor",
+          "last": "Two"
+        }
+      ]
+    }
+  ]
+}

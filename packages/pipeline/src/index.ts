@@ -32,6 +32,25 @@ export type {
 } from "./http/bounded-fetch.js";
 export { assertAllowedSource, SourceFetchError } from "./http/source-policy.js";
 export type { SourceFetchErrorCode } from "./http/source-policy.js";
+export { TabroomExportSchema } from "./adapters/tabroom/schema.js";
+export type { TabroomExport } from "./adapters/tabroom/schema.js";
+export {
+  normalizeTabroomExport,
+  TabroomParseError,
+} from "./adapters/tabroom/normalize.js";
+export type {
+  TabroomEventRule,
+  TabroomNormalizeInput,
+} from "./adapters/tabroom/normalize.js";
+export {
+  fetchTabroomExport,
+  TABROOM_PUBLIC_EXPORT_DESCRIPTOR,
+  TabroomFetchError,
+} from "./adapters/tabroom/fetch.js";
+export type {
+  FetchContext,
+  SourceSnapshotPayload,
+} from "./adapters/tabroom/fetch.js";
 
 export {
   DivisionSchema,

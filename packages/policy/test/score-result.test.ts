@@ -11,6 +11,7 @@ function resultInput(
   return {
     editionId: "2024-2025",
     competitorId: "alex-example",
+    displayName: "Alex Example",
     sourceSnapshotId: "snapshot-default",
     division: "combined",
     lineageId: "california-invitational",
@@ -58,6 +59,7 @@ describe("single-event scoring", () => {
         resultInput({
           editionId: "2023-2024",
           competitorId: "sam-example",
+          displayName: "Sam Example",
           sourceSnapshotId: "snapshot-preserved",
           division: "ix",
           placement: 1,
@@ -68,6 +70,7 @@ describe("single-event scoring", () => {
     ).toEqual({
       editionId: "2023-2024",
       competitorId: "sam-example",
+      displayName: "Sam Example",
       sourceSnapshotId: "snapshot-preserved",
       division: "ix",
       lineageId: "california-invitational",

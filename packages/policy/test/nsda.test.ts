@@ -10,6 +10,7 @@ function nsdaFixture(overrides: Partial<NsdaScoreInput> = {}): NsdaScoreInput {
   return {
     editionId: "2025-nsda",
     competitorId: "competitor-one",
+    displayName: "Competitor One",
     sourceSnapshotId: "snapshot-nsda",
     division: "ix",
     lineageId: "nsda-nationals",
@@ -217,6 +218,7 @@ describe("NSDA scoring", () => {
         nsdaFixture({
           editionId: "2026-nsda",
           competitorId: "casey-example",
+          displayName: "Casey Example",
           sourceSnapshotId: "snapshot-99",
           division: "usx",
           placement: null,
@@ -228,6 +230,7 @@ describe("NSDA scoring", () => {
     ).toEqual({
       editionId: "2026-nsda",
       competitorId: "casey-example",
+      displayName: "Casey Example",
       sourceSnapshotId: "snapshot-99",
       division: "usx",
       lineageId: "nsda-nationals",

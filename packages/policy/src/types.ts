@@ -70,6 +70,7 @@ export interface PolicyLedger {
 export interface ScoreResultInput {
   readonly editionId: string;
   readonly competitorId: string;
+  readonly displayName: string;
   readonly sourceSnapshotId: string;
   readonly division: Division;
   readonly lineageId: TournamentLineageId;
@@ -89,6 +90,7 @@ export interface ScoredResult extends ScoreResultInput {
 export interface Award {
   readonly editionId: string;
   readonly competitorId: string;
+  readonly displayName: string;
   readonly sourceSnapshotId: string;
   readonly division: Division;
   readonly lineageId: TournamentLineageId;
@@ -116,5 +118,18 @@ export interface NsdaScoreInput extends ScoreResultInput {
   readonly bonusDivision: NsdaDivision | null;
 }
 
+export interface Standing {
+  readonly competitorId: string;
+  readonly displayName: string;
+  readonly rank: number;
+  readonly points: number;
+  readonly wins: number;
+  readonly topThrees: number;
+  readonly finals: number;
+}
+
 export type PolicyInputErrorCode =
-  "INVALID_PLACEMENT" | "CONTRADICTORY_STAGE" | "UNKNOWN_TOURNAMENT";
+  | "INVALID_PLACEMENT"
+  | "CONTRADICTORY_STAGE"
+  | "UNKNOWN_TOURNAMENT"
+  | "INVALID_DISPLAY_NAME";

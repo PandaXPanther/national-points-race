@@ -5,6 +5,7 @@ function scoredFixture(overrides: Partial<ScoredResult> = {}): ScoredResult {
   return {
     editionId: "2025-nsda",
     competitorId: "competitor-one",
+    displayName: "Competitor One",
     sourceSnapshotId: "snapshot-default",
     division: "ix",
     lineageId: "nsda-nationals",

@@ -10,6 +10,7 @@ export {
 } from "./nsda.js";
 export { PolicyInputError, scoreResult } from "./score-result.js";
 export { selectTournamentAwards } from "./score-tournament.js";
+export { buildStandings } from "./standings.js";
 export type {
   Award,
   Division,
@@ -22,6 +23,7 @@ export type {
   RoundStage,
   ScoredResult,
   ScoreResultInput,
+  Standing,
   Tier,
   TierPolicy,
   TournamentLineage,

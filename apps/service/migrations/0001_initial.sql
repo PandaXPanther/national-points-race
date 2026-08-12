@@ -368,6 +368,8 @@ CREATE TABLE job_runs (
     typeof(attempts) = 'integer' AND attempts >= 0
   ),
   scheduled_for TEXT NOT NULL,
+  message_json TEXT NOT NULL DEFAULT '{}',
+  dispatched_at TEXT,
   started_at TEXT,
   finished_at TEXT,
   diagnostic_json TEXT,

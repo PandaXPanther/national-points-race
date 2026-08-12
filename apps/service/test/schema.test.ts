@@ -355,6 +355,7 @@ it("declares every lossless storage column added for repository round trips", as
       "won_final_round",
     ],
     standings_rows: ["display_name"],
+    job_runs: ["message_json", "dispatched_at"],
   } as const;
 
   for (const [table, expected] of Object.entries(expectedColumns)) {

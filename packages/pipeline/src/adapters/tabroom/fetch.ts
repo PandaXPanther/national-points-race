@@ -15,7 +15,6 @@ export const TABROOM_PUBLIC_EXPORT_DESCRIPTOR: SourceDescriptor = {
 
 export interface FetchContext {
   readonly userAgent: string;
-  readonly boundedFetch?: typeof fetchBounded;
   readonly signal?: AbortSignal;
   readonly fetchImpl?: typeof fetch;
   readonly now?: () => Date;
@@ -65,7 +64,7 @@ export async function fetchTabroomExport(
   const url = new URL(TABROOM_EXPORT_URL);
   url.searchParams.set("tourn_id", String(tournamentId));
   const baseFetch = context.fetchImpl ?? fetch;
-  const response = await (context.boundedFetch ?? fetchBounded)({
+  const response = await fetchBounded({
     url,
     descriptor: TABROOM_PUBLIC_EXPORT_DESCRIPTOR,
     maxBytes: 25 * 1024 * 1024,

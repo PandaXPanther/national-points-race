@@ -1,13 +1,13 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
-  fetchBounded,
   fetchTabroomExport,
   normalizeTabroomExport,
   TabroomParseError,
   type BoundedFetchInput,
+  type BoundedResponse,
   type TabroomNormalizeInput,
 } from "../src/index.js";
 
@@ -50,11 +50,6 @@ function expectTabroomError(action: () => unknown, code: string): void {
 describe("Tabroom public export adapter", () => {
   it("fetches the exact public export with only the caller-configured user agent", async () => {
     const requests: Array<{ url: string; userAgent: string | null }> = [];
-    let boundedInput: BoundedFetchInput | undefined;
-    const boundedFetch: typeof fetchBounded = async (input) => {
-      boundedInput = input;
-      return fetchBounded(input);
-    };
     const fetchImpl: typeof fetch = async (request, init) => {
       requests.push({
         url: String(request),
@@ -67,7 +62,6 @@ describe("Tabroom public export adapter", () => {
 
     const snapshot = await fetchTabroomExport(38186, {
       userAgent: "PointsRaceFixtureTest/1.0",
-      boundedFetch,
       fetchImpl,
       now: () => new Date("2026-08-11T12:00:00.000Z"),
     });
@@ -78,11 +72,6 @@ describe("Tabroom public export adapter", () => {
         userAgent: "PointsRaceFixtureTest/1.0",
       },
     ]);
-    expect(boundedInput).toMatchObject({
-      maxBytes: 26_214_400,
-      timeoutMs: 45_000,
-      acceptedTypes: ["application/json"],
-    });
     expect(snapshot).toMatchObject({
       finalUrl:
         "https://www.tabroom.com/api/download_data.mhtml?tourn_id=38186",
@@ -95,6 +84,87 @@ describe("Tabroom public export adapter", () => {
       parserVersion: "tabroom-v1",
     });
     expect(snapshot.body).toEqual(new Uint8Array([123, 125]));
+  });
+
+  it("does not permit an extra context property to replace the bounded reader", async () => {
+    const replacement = async (
+      _input: BoundedFetchInput,
+    ): Promise<BoundedResponse> => ({
+      finalUrl:
+        "https://www.tabroom.com/api/download_data.mhtml?tourn_id=38186",
+      status: 200,
+      mediaType: "application/json",
+      body: new Uint8Array([123, 125]),
+      retrievedAt: "2026-08-11T12:00:00.000Z",
+      sha256:
+        "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    });
+    const context = {
+      userAgent: "PointsRaceFixtureTest/1.0",
+      boundedFetch: replacement,
+      fetchImpl: async () =>
+        new Response(null, {
+          headers: {
+            "content-length": "26214401",
+            "content-type": "application/json",
+          },
+        }),
+    };
+
+    await expect(fetchTabroomExport(38186, context)).rejects.toMatchObject({
+      code: "SOURCE_TOO_LARGE",
+    });
+  });
+
+  it.each([
+    { contentLength: "26214401", code: "SOURCE_TOO_LARGE" },
+    { contentLength: "26214400", code: "SOURCE_MISSING_BODY" },
+  ] as const)(
+    "enforces the 25 MiB boundary at content-length $contentLength",
+    async ({ contentLength, code }) => {
+      await expect(
+        fetchTabroomExport(38186, {
+          userAgent: "PointsRaceFixtureTest/1.0",
+          fetchImpl: async () =>
+            new Response(null, {
+              headers: {
+                "content-length": contentLength,
+                "content-type": "application/json",
+              },
+            }),
+        }),
+      ).rejects.toMatchObject({ code });
+    },
+  );
+
+  it("times out through the bounded reader at exactly 45 seconds", async () => {
+    vi.useFakeTimers();
+    try {
+      let requestSignal: AbortSignal | undefined;
+      const pending = fetchTabroomExport(38186, {
+        userAgent: "PointsRaceFixtureTest/1.0",
+        fetchImpl: (_request, init) =>
+          new Promise((_resolve, reject) => {
+            requestSignal = init?.signal ?? undefined;
+            requestSignal?.addEventListener(
+              "abort",
+              () => reject(requestSignal?.reason),
+              { once: true },
+            );
+          }),
+      });
+      const rejection = expect(pending).rejects.toMatchObject({
+        code: "SOURCE_TIMEOUT",
+      });
+
+      await vi.advanceTimersByTimeAsync(44_999);
+      expect(requestSignal?.aborted).toBe(false);
+      await vi.advanceTimersByTimeAsync(1);
+      await rejection;
+      expect(requestSignal?.aborted).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("rejects non-positive or unsafe tournament IDs before fetching", async () => {

@@ -266,6 +266,9 @@ describe("Unicode normalization and school provenance", () => {
     expect(normalizePersonName("\u3000ＡLÉX\tD’ARC\nO'NEIL\u2003")).toBe(
       "aléx darc o'neil",
     );
+    expect(normalizePersonName("Alex\u0085Smith\u2003Jones")).toBe(
+      "alex smith jones",
+    );
   });
 
   it("preserves diacritics and token order", () => {
@@ -343,6 +346,43 @@ describe("stable identity evidence", () => {
     expect(result.diagnostics).toContainEqual(
       expect.objectContaining({ code: "IDENTITY_STABLE_ID_CONFLICT" }),
     );
+  });
+
+  it("reports a repeated stable-ID conflict introduced only by a later pair", () => {
+    const people = [
+      person({
+        eventId: "event-anchor",
+        sourcePersonId: "same",
+        sourceSnapshotId: "snapshot-0",
+        sourceEntryId: "entry-anchor",
+      }),
+      person({
+        eventId: "event-conflict",
+        sourcePersonId: "same",
+        sourceSnapshotId: "snapshot-1",
+        sourceEntryId: "entry-later-a",
+      }),
+      person({
+        eventId: "event-conflict",
+        sourcePersonId: "same",
+        sourceSnapshotId: "snapshot-2",
+        sourceEntryId: "entry-later-b",
+      }),
+    ];
+
+    const forward = resolveIdentities(input(people));
+    const reversed = resolveIdentities(input([...people].reverse()));
+
+    expect(forward).toEqual(reversed);
+    expect(forward.competitors).toHaveLength(1);
+    expect(forward.diagnostics).toContainEqual({
+      code: "IDENTITY_STABLE_ID_CONFLICT",
+      severity: "error",
+      sourcePersonKeys: ["tabroom:same"],
+      sourceEntryIds: ["entry-later-a", "entry-later-b"],
+      explanation:
+        "Repeated provider person ID has contradictory published identity evidence.",
+    });
   });
 
   it("derives the exact fallback SHA from sorted canonical identity evidence", () => {
@@ -607,6 +647,82 @@ describe("fuzzy evidence is bounded and reciprocal", () => {
     ];
 
     expect(resolveIdentities(input(people)).competitors).toHaveLength(3);
+  });
+
+  it("does not fuzzy-merge through an internally contradictory stable-ID component", () => {
+    const baseName = "a".repeat(50);
+    const fuzzyName = `${"a".repeat(49)}b`;
+    const people = [
+      person({
+        sourcePersonId: "same",
+        sourceSnapshotId: "snapshot-a",
+        sourceEntryId: "entry-a",
+        publishedName: baseName,
+      }),
+      person({
+        sourcePersonId: "same",
+        sourceSnapshotId: "snapshot-b",
+        sourceEntryId: "entry-b",
+        publishedName: baseName,
+      }),
+      person({
+        provider: "pdf",
+        eventId: "event-external",
+        sourcePersonId: "external",
+        sourceSnapshotId: "snapshot-external",
+        sourceEntryId: "entry-external",
+        publishedName: fuzzyName,
+      }),
+    ];
+
+    const result = resolveIdentities(input(people));
+
+    expect(result.competitors).toHaveLength(2);
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "IDENTITY_STABLE_ID_CONFLICT" }),
+    );
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "IDENTITY_AMBIGUOUS",
+        sourcePersonKeys: ["pdf:external", "tabroom:same"],
+        sourceEntryIds: ["entry-a", "entry-b", "entry-external"],
+      }),
+    );
+  });
+
+  it("diagnoses a same-school fuzzy candidate blocked by simultaneous participation", () => {
+    const leftName = "c".repeat(50);
+    const rightName = `${"c".repeat(49)}d`;
+    const people = [
+      person({
+        provider: "pdf",
+        sourcePersonId: "left",
+        sourceSnapshotId: "snapshot-left",
+        sourceEntryId: "entry-left",
+        publishedName: leftName,
+      }),
+      person({
+        provider: "tabroom",
+        sourcePersonId: "right",
+        sourceSnapshotId: "snapshot-right",
+        sourceEntryId: "entry-right",
+        publishedName: rightName,
+      }),
+    ];
+
+    const forward = resolveIdentities(input(people));
+    const reversed = resolveIdentities(input([...people].reverse()));
+
+    expect(forward).toEqual(reversed);
+    expect(forward.competitors).toHaveLength(2);
+    expect(forward.diagnostics).toContainEqual({
+      code: "IDENTITY_AMBIGUOUS",
+      severity: "warning",
+      sourcePersonKeys: ["pdf:left", "tabroom:right"],
+      sourceEntryIds: ["entry-left", "entry-right"],
+      explanation:
+        "Fuzzy name and school evidence is contradicted by simultaneous participation.",
+    });
   });
 
   it("does not bridge a contradiction through an exact evidence component", () => {

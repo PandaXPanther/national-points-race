@@ -13,7 +13,7 @@ export class IdentityNormalizationError extends Error {
 
 const LETTER = /\p{L}/u;
 const PUNCTUATION = /\p{P}/u;
-const WHITESPACE = /\s/u;
+const WHITESPACE = /\p{White_Space}/u;
 
 export function normalizePersonName(value: string): string {
   const normalized = normalizeIdentityText(value);
@@ -57,5 +57,5 @@ function normalizeIdentityText(value: string): string {
       output += character;
     }
   }
-  return output.replace(/\s+/gu, " ").trim();
+  return output.replace(/\p{White_Space}+/gu, " ").trim();
 }

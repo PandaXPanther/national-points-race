@@ -260,19 +260,26 @@ function mergeStableIds(
   }
   for (const key of [...byKey.keys()].sort(compareStrings)) {
     const ids = byKey.get(key)!;
-    const first = ids[0]!;
-    for (const id of ids.slice(1)) {
-      if (hasStableConflict(evidence[first]!, evidence[id]!)) {
+    for (let leftIndex = 0; leftIndex < ids.length; leftIndex += 1) {
+      for (
+        let rightIndex = leftIndex + 1;
+        rightIndex < ids.length;
+        rightIndex += 1
+      ) {
+        const left = evidence[ids[leftIndex]!]!;
+        const right = evidence[ids[rightIndex]!]!;
+        if (!hasStableConflict(left, right)) continue;
         diagnostics.push(
           diagnostic(
             "IDENTITY_STABLE_ID_CONFLICT",
-            [evidence[first]!, evidence[id]!],
+            [left, right],
             "Repeated provider person ID has contradictory published identity evidence.",
           ),
         );
       }
-      components.union(first, id);
     }
+    const first = ids[0]!;
+    for (const id of ids.slice(1)) components.union(first, id);
   }
 }
 
@@ -416,6 +423,11 @@ function mergeFuzzyEvidence(
   const candidateMap = new Map<number, Set<number>>(
     roots.map((root) => [root, new Set<number>()]),
   );
+  const internallyContradictoryRoots = new Set(
+    roots.filter((root) =>
+      componentHasInternalContradiction(components.component(root), evidence),
+    ),
+  );
   for (let leftIndex = 0; leftIndex < roots.length; leftIndex += 1) {
     for (
       let rightIndex = leftIndex + 1;
@@ -424,6 +436,25 @@ function mergeFuzzyEvidence(
     ) {
       const left = roots[leftIndex]!;
       const right = roots[rightIndex]!;
+      if (!componentsHaveFuzzyEvidence(left, right, components, evidence))
+        continue;
+      const pairEvidence = [
+        ...components.component(left),
+        ...components.component(right),
+      ].map((id) => evidence[id]!);
+      if (
+        internallyContradictoryRoots.has(left) ||
+        internallyContradictoryRoots.has(right)
+      ) {
+        diagnostics.push(
+          diagnostic(
+            "IDENTITY_AMBIGUOUS",
+            pairEvidence,
+            "Fuzzy identity evidence cannot merge an internally contradictory component.",
+          ),
+        );
+        continue;
+      }
       if (
         componentsContradict(
           components.component(left),
@@ -431,10 +462,15 @@ function mergeFuzzyEvidence(
           evidence,
         )
       ) {
+        diagnostics.push(
+          diagnostic(
+            "IDENTITY_AMBIGUOUS",
+            pairEvidence,
+            "Fuzzy name and school evidence is contradicted by simultaneous participation.",
+          ),
+        );
         continue;
       }
-      if (!componentsHaveFuzzyEvidence(left, right, components, evidence))
-        continue;
       candidateMap.get(left)!.add(right);
       candidateMap.get(right)!.add(left);
     }

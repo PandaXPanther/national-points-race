@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "test:golden": "pnpm --filter @points-race/policy test -- golden-replay.test.ts",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test"
+    "test": "pnpm -r --workspace-concurrency=1 test"
   },
   "devDependencies": {
     "@points-race/document-collector": "workspace:*",

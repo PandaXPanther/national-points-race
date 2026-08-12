@@ -27,12 +27,21 @@ interface IndexXInfoRow {
   key: number;
 }
 
+interface TableInfoRow {
+  name: string;
+}
+
 function quotePragmaIdentifier(identifier: string): string {
   return `"${identifier.replaceAll('"', '""')}"`;
 }
 
 async function pragmaRows<Row>(
-  pragma: "foreign_key_list" | "index_info" | "index_list" | "index_xinfo",
+  pragma:
+    | "foreign_key_list"
+    | "index_info"
+    | "index_list"
+    | "index_xinfo"
+    | "table_info",
   identifier: string,
 ): Promise<Row[]> {
   const result = await env.DB.prepare(
@@ -74,13 +83,24 @@ async function foreignKeyMappings(tableName: string): Promise<string[]> {
 }
 
 async function seedResultParents(prefix: string): Promise<{
+  policyId: string;
   editionId: string;
   snapshotId: string;
+  descriptorId: string;
+  descriptorSha256: string;
+  snapshotSha256: string;
+  evidenceGroupId: string;
+  resultSetId: string;
 }> {
   const policyId = `${prefix}-policy`;
   const lineageId = `${prefix}-lineage`;
   const editionId = `${prefix}-edition`;
   const snapshotId = `${prefix}-snapshot`;
+  const descriptorId = `${prefix}-descriptor`;
+  const descriptorSha256 = `${prefix}-descriptor-sha`;
+  const snapshotSha256 = `${prefix}-snapshot-sha`;
+  const evidenceGroupId = `${prefix}-evidence`;
+  const resultSetId = `${prefix}-result-set`;
   await env.DB.batch([
     env.DB.prepare(
       "INSERT INTO policy_versions (id, created_at, ledger_sha256) VALUES (?1, '2026-08-11T00:00:00Z', ?2)",
@@ -92,17 +112,36 @@ async function seedResultParents(prefix: string): Promise<{
       "INSERT INTO tournament_editions (id, lineage_id, season_id, status) VALUES (?1, ?2, ?3, 'upcoming')",
     ).bind(editionId, lineageId, `${prefix}-season`),
     env.DB.prepare(
-      "INSERT INTO source_snapshots (id, edition_id, descriptor_id, url, retrieved_at, sha256, media_type, parser_version, permission, r2_key) VALUES (?1, ?2, ?3, 'https://example.test/results', '2026-08-11T00:00:00Z', ?4, 'text/html', 'parser-1', 'public', ?5)",
+      "INSERT INTO source_descriptors (id, source_class, allowlisted_hostnames_json, allowed_media_types_json, permission, semantic_sha256) VALUES (?1, 'organizer-html-pdf', '[\"example.test\"]', '[\"text/html\"]', 'official-public-document', ?2)",
+    ).bind(descriptorId, descriptorSha256),
+    env.DB.prepare(
+      "INSERT INTO source_snapshots (id, edition_id, descriptor_id, descriptor_sha256, url, retrieved_at, sha256, media_type, parser_version, permission, r2_key) VALUES (?1, ?2, ?3, ?4, 'https://example.test/results', '2026-08-11T00:00:00Z', ?5, 'text/html', 'parser-1', 'official-public-document', ?6)",
     ).bind(
       snapshotId,
       editionId,
-      `${prefix}-descriptor`,
-      `${prefix}-snapshot-sha`,
+      descriptorId,
+      descriptorSha256,
+      snapshotSha256,
       `snapshots/${prefix}`,
     ),
+    env.DB.prepare(
+      "INSERT INTO normalized_evidence_groups (id, edition_id, snapshot_id, semantic_sha256) VALUES (?1, ?2, ?3, ?4)",
+    ).bind(evidenceGroupId, editionId, snapshotId, `${prefix}-evidence-sha`),
+    env.DB.prepare(
+      "INSERT INTO normalized_result_sets (id, evidence_group_id, edition_id, snapshot_id, lineage_id, event_id, event_name, event_division, event_eligible, published_at, explicit_final, correction, manifest_rule_id) VALUES (?1, ?2, ?3, ?4, ?5, 'extemp', 'Extemporaneous Speaking', 'combined', 1, '2026-08-11T00:00:00Z', 1, 0, NULL)",
+    ).bind(resultSetId, evidenceGroupId, editionId, snapshotId, lineageId),
   ]);
 
-  return { editionId, snapshotId };
+  return {
+    policyId,
+    editionId,
+    snapshotId,
+    descriptorId,
+    descriptorSha256,
+    snapshotSha256,
+    evidenceGroupId,
+    resultSetId,
+  };
 }
 
 it("creates every versioned domain table", async () => {
@@ -114,13 +153,22 @@ it("creates every versioned domain table", async () => {
     expect.arrayContaining([
       "awards",
       "canonical_competitors",
+      "explicit_identity_edges",
       "identity_edges",
       "job_leases",
       "job_runs",
+      "normalized_evidence_groups",
       "normalized_results",
+      "normalized_result_sets",
+      "parser_diagnostics",
       "policy_versions",
+      "source_descriptors",
+      "source_people",
       "source_snapshots",
+      "standings_competitors",
+      "standings_diagnostics",
       "standings_rows",
+      "standings_top25_members",
       "standings_versions",
       "tournament_editions",
       "tournament_lineages",
@@ -146,9 +194,24 @@ it("creates every required operational index", async () => {
       columns: ["edition_id"],
     },
     {
+      table: "normalized_result_sets",
+      name: "idx_normalized_result_sets_edition",
+      columns: ["edition_id", "published_at"],
+    },
+    {
       table: "source_snapshots",
       name: "idx_source_snapshots_edition_retrieved_at",
       columns: ["edition_id", "retrieved_at"],
+    },
+    {
+      table: "source_snapshots",
+      name: "idx_source_snapshots_r2_key",
+      columns: ["r2_key"],
+    },
+    {
+      table: "standings_versions",
+      name: "idx_standings_versions_season_created",
+      columns: ["season_id", "created_at", "id"],
     },
     {
       table: "tournament_editions",
@@ -174,26 +237,187 @@ it("creates every required operational index", async () => {
   }
 });
 
+it("declares every lossless storage column added for repository round trips", async () => {
+  const expectedColumns = {
+    source_descriptors: [
+      "id",
+      "source_class",
+      "allowlisted_hostnames_json",
+      "allowed_media_types_json",
+      "permission",
+      "semantic_sha256",
+    ],
+    source_snapshots: ["descriptor_sha256", "r2_key"],
+    normalized_evidence_groups: [
+      "id",
+      "edition_id",
+      "snapshot_id",
+      "semantic_sha256",
+    ],
+    normalized_result_sets: [
+      "id",
+      "evidence_group_id",
+      "edition_id",
+      "snapshot_id",
+      "lineage_id",
+      "event_id",
+      "event_name",
+      "event_division",
+      "event_eligible",
+      "published_at",
+      "explicit_final",
+      "correction",
+      "manifest_rule_id",
+    ],
+    normalized_results: ["evidence_group_id", "result_set_id"],
+    parser_diagnostics: [
+      "result_set_id",
+      "ordinal",
+      "code",
+      "severity",
+      "edition_id",
+      "snapshot_id",
+      "explanation",
+    ],
+    source_people: [
+      "evidence_group_id",
+      "ordinal",
+      "edition_id",
+      "event_id",
+      "division",
+      "snapshot_id",
+      "provider",
+      "source_person_id",
+      "source_entry_id",
+      "published_name",
+      "published_school",
+      "simultaneous_entry_context",
+    ],
+    explicit_identity_edges: [
+      "evidence_group_id",
+      "ordinal",
+      "left_source_person_key",
+      "right_source_person_key",
+    ],
+    standings_versions: [
+      "policy_version_id",
+      "version_sha256",
+      "top25_standings_sha256",
+      "cutoff_key",
+      "cutoff_tournament_order",
+      "cutoff_date",
+    ],
+    standings_competitors: [
+      "standings_version_id",
+      "competitor_id",
+      "display_name",
+      "display_school",
+      "registry_version",
+      "matched_alias",
+      "canonical_school_id",
+      "canonical_school_name",
+      "verified_source_person_keys_json",
+      "identity_evidence_json",
+    ],
+    standings_top25_members: [
+      "standings_version_id",
+      "position",
+      "competitor_id",
+    ],
+    standings_diagnostics: [
+      "standings_version_id",
+      "ordinal",
+      "code",
+      "severity",
+      "edition_id",
+      "lineage_id",
+      "event_id",
+      "division",
+      "source_snapshot_ids_json",
+      "source_entry_ids_json",
+      "explanation",
+    ],
+    awards: [
+      "event_id",
+      "display_name",
+      "source_descriptor_id",
+      "source_class",
+      "snapshot_sha256",
+      "parser_version",
+      "permission",
+      "published_at",
+      "division",
+      "lineage_id",
+      "placement",
+      "furthest_stage",
+      "won_final_round",
+    ],
+    standings_rows: ["display_name"],
+  } as const;
+
+  for (const [table, expected] of Object.entries(expectedColumns)) {
+    const columns = await pragmaRows<TableInfoRow>("table_info", table);
+    expect(columns.map(({ name }) => name)).toEqual(
+      expect.arrayContaining([...expected]),
+    );
+  }
+});
+
 it("declares every required foreign-key column mapping", async () => {
   const expectedMappings = {
     policy_versions: [],
     tournament_lineages: ["policy_versions:policy_version_id->id"],
     tournament_editions: ["tournament_lineages:lineage_id->id"],
-    source_snapshots: ["tournament_editions:edition_id->id"],
-    normalized_results: [
+    source_descriptors: [],
+    source_snapshots: [
+      "source_descriptors:descriptor_id,descriptor_sha256->id,semantic_sha256",
+      "tournament_editions:edition_id->id",
+    ],
+    normalized_evidence_groups: [
       "source_snapshots:snapshot_id->id",
       "source_snapshots:snapshot_id,edition_id->id,edition_id",
       "tournament_editions:edition_id->id",
     ],
+    normalized_result_sets: [
+      "normalized_evidence_groups:evidence_group_id,edition_id,snapshot_id->id,edition_id,snapshot_id",
+      "tournament_editions:edition_id,lineage_id->id,lineage_id",
+    ],
+    normalized_results: [
+      "normalized_result_sets:result_set_id,evidence_group_id,edition_id,snapshot_id->id,evidence_group_id,edition_id,snapshot_id",
+      "source_snapshots:snapshot_id->id",
+      "source_snapshots:snapshot_id,edition_id->id,edition_id",
+      "tournament_editions:edition_id->id",
+    ],
+    parser_diagnostics: [
+      "normalized_result_sets:result_set_id->id",
+      "normalized_result_sets:result_set_id,edition_id,snapshot_id->id,edition_id,snapshot_id",
+    ],
+    source_people: [
+      "normalized_evidence_groups:evidence_group_id,edition_id,snapshot_id->id,edition_id,snapshot_id",
+    ],
+    explicit_identity_edges: [
+      "normalized_evidence_groups:evidence_group_id->id",
+    ],
     canonical_competitors: [],
     identity_edges: ["canonical_competitors:competitor_id->id"],
-    standings_versions: [],
+    standings_versions: ["policy_versions:policy_version_id->id"],
+    standings_competitors: [
+      "canonical_competitors:competitor_id->id",
+      "standings_versions:standings_version_id->id",
+    ],
+    standings_top25_members: [
+      "canonical_competitors:competitor_id->id",
+      "standings_versions:standings_version_id->id",
+    ],
+    standings_diagnostics: ["standings_versions:standings_version_id->id"],
     awards: [
       "canonical_competitors:competitor_id->id",
       "source_snapshots:snapshot_id->id",
       "source_snapshots:snapshot_id,edition_id->id,edition_id",
+      "source_snapshots:snapshot_id,edition_id,source_descriptor_id,snapshot_sha256->id,edition_id,descriptor_id,sha256",
       "standings_versions:standings_version_id->id",
       "tournament_editions:edition_id->id",
+      "tournament_editions:edition_id,lineage_id->id,lineage_id",
     ],
     standings_rows: [
       "canonical_competitors:competitor_id->id",
@@ -212,17 +436,42 @@ it("declares every required primary and unique-key contract", async () => {
   const expectedUniqueColumns = {
     policy_versions: ["id", "ledger_sha256"],
     tournament_lineages: ["id"],
-    tournament_editions: ["id", "lineage_id,season_id"],
+    tournament_editions: ["id", "id,lineage_id", "lineage_id,season_id"],
+    source_descriptors: ["id", "id,semantic_sha256"],
     source_snapshots: [
       "edition_id,descriptor_id,sha256",
       "id",
       "id,edition_id",
-      "r2_key",
+      "id,edition_id,descriptor_id,sha256",
     ],
-    normalized_results: ["id", "snapshot_id,event_key,source_entry_id"],
+    normalized_evidence_groups: ["id", "id,edition_id,snapshot_id"],
+    normalized_result_sets: [
+      "id",
+      "id,evidence_group_id,edition_id,snapshot_id",
+      "id,edition_id,snapshot_id",
+      "snapshot_id,event_id,event_division",
+    ],
+    normalized_results: [
+      "id",
+      "result_set_id,source_entry_id",
+      "snapshot_id,event_key,source_entry_id",
+    ],
+    parser_diagnostics: ["result_set_id,ordinal"],
+    source_people: ["evidence_group_id,ordinal"],
+    explicit_identity_edges: ["evidence_group_id,ordinal"],
     canonical_competitors: ["id"],
     identity_edges: ["source_person_key"],
-    standings_versions: ["id", "season_id,input_sha256"],
+    standings_versions: [
+      "id",
+      "season_id,input_sha256",
+      "season_id,version_sha256",
+    ],
+    standings_competitors: ["standings_version_id,competitor_id"],
+    standings_top25_members: [
+      "standings_version_id,competitor_id",
+      "standings_version_id,position",
+    ],
+    standings_diagnostics: ["standings_version_id,ordinal"],
     awards: ["id", "standings_version_id,edition_id,competitor_id"],
     standings_rows: ["standings_version_id,competitor_id"],
     job_runs: ["id", "job_type,natural_key,scheduled_for"],
@@ -283,13 +532,14 @@ it("rejects invalid lineage, edition, and standings states", async () => {
 
   await expect(
     env.DB.prepare(
-      "INSERT INTO standings_versions (id, season_id, created_at, input_sha256, status) VALUES ('standings-state', 'state-season', '2026-08-11T00:00:00Z', 'input-state', 'unknown')",
+      "INSERT INTO standings_versions (id, season_id, created_at, input_sha256, status, policy_version_id, version_sha256, top25_standings_sha256, cutoff_key, cutoff_tournament_order, cutoff_date) VALUES ('standings-state', 'state-season', '2026-08-11T00:00:00Z', 'input-state', 'unknown', 'policy-state', 'version-state', 'top25-state', 'cutoff-state', 1, '2026-05-01T00:00:00Z')",
     ).run(),
   ).rejects.toThrow(/CHECK constraint failed/);
 });
 
 it("rejects invalid normalized-result domain values", async () => {
-  const { editionId, snapshotId } = await seedResultParents("normalized");
+  const { editionId, snapshotId, evidenceGroupId, resultSetId } =
+    await seedResultParents("normalized");
   const invalidRows = [
     ["bad-division", "worlds", 1, "final", 0, 0],
     ["bad-placement", "combined", 0, "final", 0, 0],
@@ -309,10 +559,12 @@ it("rejects invalid normalized-result domain values", async () => {
   ] of invalidRows) {
     await expect(
       env.DB.prepare(
-        "INSERT INTO normalized_results (id, edition_id, snapshot_id, event_key, source_entry_id, published_name, published_school, division, placement, furthest_stage, won_final_round, explicitly_final) VALUES (?1, ?2, ?3, 'extemp', ?1, 'Speaker', 'School', ?4, ?5, ?6, ?7, ?8)",
+        "INSERT INTO normalized_results (id, evidence_group_id, result_set_id, edition_id, snapshot_id, event_key, source_entry_id, published_name, published_school, division, placement, furthest_stage, won_final_round, explicitly_final) VALUES (?1, ?2, ?3, ?4, ?5, 'extemp', ?1, 'Speaker', 'School', ?6, ?7, ?8, ?9, ?10)",
       )
         .bind(
           id,
+          evidenceGroupId,
+          resultSetId,
           editionId,
           snapshotId,
           division,
@@ -332,9 +584,14 @@ it("rejects a normalized result whose snapshot belongs to another edition", asyn
 
   await expect(
     env.DB.prepare(
-      "INSERT INTO normalized_results (id, edition_id, snapshot_id, event_key, source_entry_id, published_name, published_school, division, placement, furthest_stage, won_final_round, explicitly_final) VALUES ('normalized-provenance-mismatch', ?1, ?2, 'extemp', 'entry-1', 'Speaker', 'School', 'combined', 1, 'final', 1, 1)",
+      "INSERT INTO normalized_results (id, evidence_group_id, result_set_id, edition_id, snapshot_id, event_key, source_entry_id, published_name, published_school, division, placement, furthest_stage, won_final_round, explicitly_final) VALUES ('normalized-provenance-mismatch', ?1, ?2, ?3, ?4, 'extemp', 'entry-1', 'Speaker', 'School', 'combined', 1, 'final', 1, 1)",
     )
-      .bind(expectedEdition.editionId, otherEdition.snapshotId)
+      .bind(
+        expectedEdition.evidenceGroupId,
+        expectedEdition.resultSetId,
+        expectedEdition.editionId,
+        otherEdition.snapshotId,
+      )
       .run(),
   ).rejects.toThrow(/FOREIGN KEY constraint failed/);
 });
@@ -377,7 +634,8 @@ it("accepts the complete job state contract and rejects an unknown state", async
 });
 
 it("rejects invalid award and standings metrics", async () => {
-  const { editionId, snapshotId } = await seedResultParents("awards");
+  const { policyId, editionId, snapshotId, descriptorId, snapshotSha256 } =
+    await seedResultParents("awards");
   const competitorId = "awards-competitor";
   const standingsVersionId = "awards-standings";
   await env.DB.batch([
@@ -385,8 +643,8 @@ it("rejects invalid award and standings metrics", async () => {
       "INSERT INTO canonical_competitors (id, display_name, created_at) VALUES (?1, 'Speaker', '2026-08-11T00:00:00Z')",
     ).bind(competitorId),
     env.DB.prepare(
-      "INSERT INTO standings_versions (id, season_id, created_at, input_sha256, status) VALUES (?1, 'awards-season', '2026-08-11T00:00:00Z', 'awards-input', 'provisional')",
-    ).bind(standingsVersionId),
+      "INSERT INTO standings_versions (id, season_id, created_at, input_sha256, status, policy_version_id, version_sha256, top25_standings_sha256, cutoff_key, cutoff_tournament_order, cutoff_date) VALUES (?1, 'awards-season', '2026-08-11T00:00:00Z', 'awards-input', 'provisional', ?2, 'awards-version', 'awards-top25', 'awards-cutoff', 1, '2026-05-01T00:00:00Z')",
+    ).bind(standingsVersionId, policyId),
   ]);
 
   const invalidAwards = [
@@ -400,7 +658,7 @@ it("rejects invalid award and standings metrics", async () => {
   for (const [id, points, win, topThree, final] of invalidAwards) {
     await expect(
       env.DB.prepare(
-        "INSERT INTO awards (id, standings_version_id, edition_id, competitor_id, snapshot_id, rule_id, points, win, top_three, final) VALUES (?1, ?2, ?3, ?4, ?5, 'rule-1', ?6, ?7, ?8, ?9)",
+        "INSERT INTO awards (id, standings_version_id, edition_id, event_id, competitor_id, display_name, snapshot_id, source_descriptor_id, source_class, snapshot_sha256, parser_version, permission, published_at, division, lineage_id, placement, furthest_stage, won_final_round, rule_id, points, win, top_three, final) VALUES (?1, ?2, ?3, 'extemp', ?4, 'Speaker', ?5, ?6, 'organizer-html-pdf', ?7, 'parser-1', 'official-public-document', '2026-08-11T00:00:00Z', 'combined', 'harvard', 1, 'final', 1, 'rule-1', ?8, ?9, ?10, ?11)",
       )
         .bind(
           id,
@@ -408,6 +666,8 @@ it("rejects invalid award and standings metrics", async () => {
           editionId,
           competitorId,
           snapshotId,
+          descriptorId,
+          snapshotSha256,
           points,
           win,
           topThree,
@@ -419,7 +679,7 @@ it("rejects invalid award and standings metrics", async () => {
 
   await expect(
     env.DB.prepare(
-      "INSERT INTO standings_rows (standings_version_id, competitor_id, rank, points, wins, top_threes, finals) VALUES (?1, ?2, 0, -1, -1, -1, -1)",
+      "INSERT INTO standings_rows (standings_version_id, competitor_id, display_name, rank, points, wins, top_threes, finals) VALUES (?1, ?2, 'Speaker', 0, -1, -1, -1, -1)",
     )
       .bind(standingsVersionId, competitorId)
       .run(),
@@ -427,7 +687,7 @@ it("rejects invalid award and standings metrics", async () => {
 
   await expect(
     env.DB.prepare(
-      "INSERT INTO standings_rows (standings_version_id, competitor_id, rank, points, wins, top_threes, finals) VALUES (?1, ?2, 1.5, 0.5, 0.5, 0.5, 0.5)",
+      "INSERT INTO standings_rows (standings_version_id, competitor_id, display_name, rank, points, wins, top_threes, finals) VALUES (?1, ?2, 'Speaker', 1.5, 0.5, 0.5, 0.5, 0.5)",
     )
       .bind(standingsVersionId, competitorId)
       .run(),
@@ -442,15 +702,20 @@ it("rejects an award whose snapshot belongs to another edition", async () => {
       "INSERT INTO canonical_competitors (id, display_name, created_at) VALUES ('award-provenance-competitor', 'Speaker', '2026-08-11T00:00:00Z')",
     ),
     env.DB.prepare(
-      "INSERT INTO standings_versions (id, season_id, created_at, input_sha256, status) VALUES ('award-provenance-standings', 'award-provenance-season', '2026-08-11T00:00:00Z', 'award-provenance-input', 'provisional')",
-    ),
+      "INSERT INTO standings_versions (id, season_id, created_at, input_sha256, status, policy_version_id, version_sha256, top25_standings_sha256, cutoff_key, cutoff_tournament_order, cutoff_date) VALUES ('award-provenance-standings', 'award-provenance-season', '2026-08-11T00:00:00Z', 'award-provenance-input', 'provisional', ?1, 'award-provenance-version', 'award-provenance-top25', 'award-provenance-cutoff', 1, '2026-05-01T00:00:00Z')",
+    ).bind(expectedEdition.policyId),
   ]);
 
   await expect(
     env.DB.prepare(
-      "INSERT INTO awards (id, standings_version_id, edition_id, competitor_id, snapshot_id, rule_id, points, win, top_three, final) VALUES ('award-provenance-mismatch', 'award-provenance-standings', ?1, 'award-provenance-competitor', ?2, 'rule-1', 10, 1, 1, 1)",
+      "INSERT INTO awards (id, standings_version_id, edition_id, event_id, competitor_id, display_name, snapshot_id, source_descriptor_id, source_class, snapshot_sha256, parser_version, permission, published_at, division, lineage_id, placement, furthest_stage, won_final_round, rule_id, points, win, top_three, final) VALUES ('award-provenance-mismatch', 'award-provenance-standings', ?1, 'extemp', 'award-provenance-competitor', 'Speaker', ?2, ?3, 'organizer-html-pdf', ?4, 'parser-1', 'official-public-document', '2026-08-11T00:00:00Z', 'combined', 'harvard', 1, 'final', 1, 'rule-1', 10, 1, 1, 1)",
     )
-      .bind(expectedEdition.editionId, otherEdition.snapshotId)
+      .bind(
+        expectedEdition.editionId,
+        otherEdition.snapshotId,
+        otherEdition.descriptorId,
+        otherEdition.snapshotSha256,
+      )
       .run(),
   ).rejects.toThrow(/FOREIGN KEY constraint failed/);
 });

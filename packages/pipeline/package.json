@@ -1,0 +1,31 @@
+{
+  "name": "@points-race/pipeline",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "pnpm run clean && tsc -p tsconfig.build.json",
+    "clean": "node --eval \"require('node:fs').rmSync('dist', { force: true, recursive: true })\"",
+    "pretest": "pnpm run build",
+    "typecheck": "tsc --noEmit",
+    "pretypecheck": "pnpm run build",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@points-race/policy": "workspace:*",
+    "cheerio": "1.2.0",
+    "csv-parse": "7.0.2",
+    "zod": "4.4.3"
+  }
+}

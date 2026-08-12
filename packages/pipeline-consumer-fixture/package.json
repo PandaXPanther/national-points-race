@@ -1,0 +1,11 @@
+{
+  "name": "@points-race/pipeline-consumer-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@points-race/pipeline": "workspace:*"
+  }
+}

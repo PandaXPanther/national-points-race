@@ -2,6 +2,8 @@ export type Tier = 1 | 2 | 3 | 4 | 5;
 
 export type RoundStage = "octafinal" | "quarterfinal" | "semifinal" | "final";
 
+export type Division = "combined" | "ix" | "usx";
+
 export type TournamentLineageId =
   | "nsda-nationals"
   | "mba-round-robin"
@@ -64,3 +66,23 @@ export interface PolicyLedger {
   readonly tiers: Readonly<Record<Exclude<Tier, 1>, TierPolicy>>;
   readonly nsda: NsdaPolicy;
 }
+
+export interface ScoreResultInput {
+  readonly editionId: string;
+  readonly competitorId: string;
+  readonly division: Division;
+  readonly lineageId: TournamentLineageId;
+  readonly placement: number | null;
+  readonly furthestStage: RoundStage;
+}
+
+export interface ScoredResult extends ScoreResultInput {
+  readonly points: number;
+  readonly ruleId: string;
+  readonly win: boolean;
+  readonly topThree: boolean;
+  readonly final: boolean;
+}
+
+export type PolicyInputErrorCode =
+  "INVALID_PLACEMENT" | "CONTRADICTORY_STAGE" | "UNKNOWN_TOURNAMENT";

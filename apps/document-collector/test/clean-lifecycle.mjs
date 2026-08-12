@@ -47,6 +47,7 @@ function assertBuilt() {
     resolve(pipelineDist, "index.js"),
     resolve(collectorDist, "index.js"),
     resolve(collectorDist, "cli.js"),
+    resolve(collectorDist, "run.js"),
   ]) {
     if (!existsSync(path)) throw new Error(`Lifecycle did not build ${path}`);
   }

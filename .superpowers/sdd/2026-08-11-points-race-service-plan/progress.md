@@ -7,8 +7,8 @@
 - Task 3: complete — fetch, scheduled, and queue Worker handlers (`88c3ce1`, fix `7ef92ee`; scoped re-review clean)
 - Task 4: complete — season lifecycle and tournament discovery (`0ca8f83`)
 - Task 5: complete — collection, rebuild, retry, leases, and dead-letter handling (`ea71a5d`)
-- Task 6: complete — signed document ingest and audited public standings APIs
-- Task 7: pending — scheduled Node document-collector workflow
+- Task 6: complete — signed document ingest and audited public standings APIs (`4e7e41a`)
+- Task 7: complete — scheduled bounded Node document-collector workflow
 - Task 8: pending — complete simulated-season Workers integration test
 
 ## Controller notes

@@ -134,7 +134,7 @@ describe("season standings", () => {
     ]);
   });
 
-  it("is independent of award input order", () => {
+  it("is independent of valid integer award input order", () => {
     const awards = [
       awardFixture({
         competitorId: "amy",
@@ -155,6 +155,30 @@ describe("season standings", () => {
 
     expect(buildStandings(awards)).toEqual(
       buildStandings([...awards].reverse()),
+    );
+  });
+
+  it("rejects order-sensitive non-integer-safe award points in either input order", () => {
+    const awards = [10_000_000_000_000_000, -10_000_000_000_000_000, 1].map(
+      (points) => awardFixture({ points }),
+    );
+    const expectedError = expect.objectContaining({
+      code: "INVALID_AWARD_POINTS",
+      message: "Award points must be a safe integer from 0 to 300.",
+    });
+
+    expect(() => buildStandings(awards)).toThrowError(expectedError);
+    expect(() => buildStandings([...awards].reverse())).toThrowError(
+      expectedError,
+    );
+  });
+
+  it.each([-1, 301])("rejects out-of-range award points: %s", (points) => {
+    expect(() => buildStandings([awardFixture({ points })])).toThrowError(
+      expect.objectContaining({
+        code: "INVALID_AWARD_POINTS",
+        message: "Award points must be a safe integer from 0 to 300.",
+      }),
     );
   });
 

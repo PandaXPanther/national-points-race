@@ -36,6 +36,21 @@ function nameFor(displayName: string): Name {
   return { displayName: collapsed, normalized };
 }
 
+function pointsFor(award: Award): number {
+  if (
+    !Number.isSafeInteger(award.points) ||
+    award.points < 0 ||
+    award.points > 300
+  ) {
+    throw new PolicyInputError(
+      "INVALID_AWARD_POINTS",
+      "Award points must be a safe integer from 0 to 300.",
+    );
+  }
+
+  return award.points;
+}
+
 function compareNames(left: Name, right: Name): number {
   return (
     compareText(left.normalized, right.normalized) ||
@@ -69,6 +84,7 @@ export function buildStandings(awards: readonly Award[]): readonly Standing[] {
   const aggregates = new Map<string, Aggregate>();
 
   for (const award of awards) {
+    const points = pointsFor(award);
     const name = nameFor(award.displayName);
     const current = aggregates.get(award.competitorId);
 
@@ -76,7 +92,7 @@ export function buildStandings(awards: readonly Award[]): readonly Standing[] {
       aggregates.set(award.competitorId, {
         competitorId: award.competitorId,
         ...name,
-        points: award.points,
+        points,
         wins: award.win ? 1 : 0,
         topThrees: award.topThree ? 1 : 0,
         finals: award.final ? 1 : 0,
@@ -84,7 +100,7 @@ export function buildStandings(awards: readonly Award[]): readonly Standing[] {
       continue;
     }
 
-    current.points += award.points;
+    current.points += points;
     current.wins += award.win ? 1 : 0;
     current.topThrees += award.topThree ? 1 : 0;
     current.finals += award.final ? 1 : 0;

@@ -1,5 +1,6 @@
 import js from "@eslint/js";
 import eslintConfigPrettier from "eslint-config-prettier";
+import tseslint from "typescript-eslint";
 
 export default [
   {
@@ -7,6 +8,7 @@ export default [
       ".pnpm-store/",
       "node_modules/",
       "dist/",
+      "**/dist/",
       "coverage/",
       ".wrangler/",
       ".dev.vars*",
@@ -14,5 +16,18 @@ export default [
     ],
   },
   js.configs.recommended,
+  ...tseslint.configs.recommended.map((config) => ({
+    ...config,
+    files: ["**/*.{ts,tsx}"],
+  })),
+  {
+    files: ["**/*.{ts,tsx}"],
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+    },
+  },
   eslintConfigPrettier,
 ];

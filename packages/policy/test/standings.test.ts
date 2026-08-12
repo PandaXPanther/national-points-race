@@ -115,6 +115,45 @@ describe("season standings", () => {
     expect(standings.map(({ rank }) => rank)).toEqual([1, 1, 1]);
   });
 
+  it("uses NFKC ordering for compatibility-character names without breaking shared ranks", () => {
+    const standings = buildStandings([
+      awardFixture({
+        competitorId: "ascii-zoe",
+        displayName: "Zoe",
+        points: 100,
+      }),
+      awardFixture({
+        competitorId: "full-width-amy",
+        displayName: "Ａmy",
+        points: 100,
+      }),
+    ]);
+
+    expect(
+      standings.map(({ competitorId, displayName, rank }) => ({
+        competitorId,
+        displayName,
+        rank,
+      })),
+    ).toEqual([
+      {
+        competitorId: "full-width-amy",
+        displayName: "Ａmy",
+        rank: 1,
+      },
+      { competitorId: "ascii-zoe", displayName: "Zoe", rank: 1 },
+    ]);
+  });
+
+  it("uses NFKC ordering when selecting one competitor's display name", () => {
+    const standings = buildStandings([
+      awardFixture({ displayName: "Zoe", points: 60 }),
+      awardFixture({ displayName: "Ａmy", points: 40 }),
+    ]);
+
+    expect(standings[0]?.displayName).toBe("Ａmy");
+  });
+
   it("selects the ordinal-smallest normalized display name for one competitor", () => {
     const standings = buildStandings([
       awardFixture({ displayName: "  Alice   Example  ", points: 60 }),

@@ -132,6 +132,7 @@ export interface Standing {
 export type PolicyInputErrorCode =
   | "INVALID_PLACEMENT"
   | "CONTRADICTORY_STAGE"
+  | "CONTRADICTORY_FINAL_ROUND"
   | "UNKNOWN_TOURNAMENT"
   | "INVALID_DISPLAY_NAME"
   | "INVALID_AWARD_POINTS";

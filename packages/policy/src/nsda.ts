@@ -53,6 +53,29 @@ export function scoreNsdaResult(input: NsdaScoreInput): Award {
     );
   }
 
+  if (
+    input.placement !== null &&
+    input.placement <= 6 &&
+    input.furthestStage !== "final"
+  ) {
+    throw new PolicyInputError(
+      "CONTRADICTORY_STAGE",
+      "A top-six NSDA placement requires a final stage.",
+    );
+  }
+
+  if (
+    input.wonFinalRound &&
+    (input.furthestStage !== "final" ||
+      input.placement === null ||
+      input.placement > 6)
+  ) {
+    throw new PolicyInputError(
+      "CONTRADICTORY_FINAL_ROUND",
+      "An NSDA final-round winner requires a top-six final placement.",
+    );
+  }
+
   const strongField = input.bonusDivision === input.division;
   const base = basePoints(input);
   const score = strongField ? multiplyHalfUp(base) : base;

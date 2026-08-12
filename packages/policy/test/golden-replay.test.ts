@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,6 +14,8 @@ import {
 } from "./golden-loader.js";
 
 const fixtureDirectory = fileURLToPath(new URL("./fixtures/", import.meta.url));
+const AUTHORITATIVE_FIXTURE_SHA256 =
+  "28a4dcbe7e52a05657fc15b556da8ca3be981837470379175f35b2ce455f3c1d";
 
 function readFixture(name: string): string {
   return readFileSync(resolve(fixtureDirectory, name), "utf8");
@@ -52,6 +55,9 @@ describe("2024-25 golden standings replay", () => {
   const authoritativeCsv = readFixture("2024-25-final-standings.csv");
 
   it("reproduces every authoritative total and tiebreak statistic", () => {
+    expect(createHash("sha256").update(authoritativeCsv).digest("hex")).toBe(
+      AUTHORITATIVE_FIXTURE_SHA256,
+    );
     const season = loadGoldenSeason(authoritativeCsv);
     const rebuilt = buildStandings(season.awards);
 

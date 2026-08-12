@@ -1,6 +1,7 @@
 import type { RoundStage } from "./types.js";
 
 const aliases: Readonly<Record<string, RoundStage>> = {
+  octo: "octafinal",
   octa: "octafinal",
   octas: "octafinal",
   octafinal: "octafinal",
@@ -9,6 +10,7 @@ const aliases: Readonly<Record<string, RoundStage>> = {
   octofinals: "octafinal",
   roundof16: "octafinal",
   top16: "octafinal",
+  quarter: "quarterfinal",
   quarterfinal: "quarterfinal",
   quarterfinals: "quarterfinal",
   quarters: "quarterfinal",
@@ -19,7 +21,9 @@ const aliases: Readonly<Record<string, RoundStage>> = {
   semi: "semifinal",
   semis: "semifinal",
   roundof4: "semifinal",
+  roundbeforefinal: "semifinal",
   top4: "semifinal",
+  exhibition: "final",
   final: "final",
   finals: "final",
   finalround: "final",

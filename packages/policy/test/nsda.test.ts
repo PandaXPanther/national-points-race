@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   computeNsdaBonusDivision,
   multiplyHalfUp,
+  PolicyInputError,
   scoreNsdaResult,
   type NsdaScoreInput,
 } from "../src/index.js";
@@ -137,6 +138,53 @@ describe("NSDA scoring", () => {
       expect.objectContaining({ code: "INVALID_PLACEMENT" }),
     );
   });
+
+  it.each([
+    {
+      state: "top-six placement outside the final",
+      overrides: {
+        placement: 6,
+        furthestStage: "semifinal",
+        wonFinalRound: false,
+      },
+      code: "CONTRADICTORY_STAGE",
+    },
+    {
+      state: "quarterfinal final-round winner",
+      overrides: {
+        placement: null,
+        furthestStage: "quarterfinal",
+        wonFinalRound: true,
+      },
+      code: "CONTRADICTORY_FINAL_ROUND",
+    },
+    {
+      state: "unplaced final-round winner",
+      overrides: {
+        placement: null,
+        furthestStage: "final",
+        wonFinalRound: true,
+      },
+      code: "CONTRADICTORY_FINAL_ROUND",
+    },
+    {
+      state: "seventh-place final-round winner",
+      overrides: {
+        placement: 7,
+        furthestStage: "final",
+        wonFinalRound: true,
+      },
+      code: "CONTRADICTORY_FINAL_ROUND",
+    },
+  ] as const)(
+    "rejects contradictory NSDA state: $state",
+    ({ overrides, code }) => {
+      const score = () => scoreNsdaResult(nsdaFixture(overrides));
+
+      expect(score).toThrowError(PolicyInputError);
+      expect(score).toThrowError(expect.objectContaining({ code }));
+    },
+  );
 
   it("rounds exact halves up", () => {
     expect(multiplyHalfUp(1)).toBe(1);

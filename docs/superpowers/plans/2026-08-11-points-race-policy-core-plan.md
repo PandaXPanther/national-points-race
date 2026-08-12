@@ -6,7 +6,7 @@
 
 **Architecture:** Store policy as immutable typed data and implement scoring as pure functions over normalized results. Emit provenance-rich awards, derive standings by aggregation, and validate the interpretation using historical edge fixtures plus the authoritative 2024–2025 spreadsheet.
 
-**Tech Stack:** Node.js 24.16.0, pnpm 11.16.0, TypeScript 7.0.2, Vitest 4.1.10, Zod 4.4.3, csv-parse 7.0.2, ESLint 10.8.1, Prettier 3.9.6.
+**Tech Stack:** Node.js 24.16.0, pnpm 11.16.0, TypeScript 7.0.2 compiler with the TypeScript 6.0.2 programmatic API for lint compatibility, Vitest 4.1.10, Zod 4.4.3, csv-parse 7.0.2, ESLint 10.8.1, Prettier 3.9.6.
 
 ## Global Constraints
 
@@ -81,15 +81,18 @@ Use this root `package.json` dependency set:
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@types/node": "26.2.0",
+    "@typescript/native": "npm:typescript@7.0.2",
     "eslint": "10.8.1",
     "eslint-config-prettier": "10.1.8",
     "prettier": "3.9.6",
-    "typescript": "7.0.2",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
     "typescript-eslint": "8.67.0",
     "vitest": "4.1.10"
   }
 }
 ```
+
+The side-by-side aliases are intentional: `@typescript/native` supplies the TypeScript 7 `tsc` binary, while `typescript` supplies the TypeScript 6 programmatic API required by `typescript-eslint`. Apply `typescript-eslint`'s flat recommended configuration to `**/*.{ts,tsx}` and keep `eslint-config-prettier` last.
 
 Use this policy package entry:
 

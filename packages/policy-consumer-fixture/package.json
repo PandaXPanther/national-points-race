@@ -1,0 +1,11 @@
+{
+  "name": "@points-race/policy-consumer-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@points-race/policy": "workspace:*"
+  }
+}

@@ -185,6 +185,39 @@ describe("rebuildSeason", () => {
     );
   });
 
+  it("withholds awards and standings from a forged snapshot URL", () => {
+    const built = set("harvard-2025", "harvard", "forged", [
+      person("alice", 1),
+    ]);
+    const input = inputFromSets([built], [harvardEdition()]);
+    input.snapshots = input.snapshots.map((snapshot) => ({
+      ...snapshot,
+      url: "https://attacker.example/forged.json",
+    }));
+    const before = JSON.stringify(input);
+
+    const output = rebuildSeason(input);
+
+    expect(output.selectedResultSets).toEqual([]);
+    expect(output.awards).toEqual([]);
+    expect(output.standings).toEqual([]);
+    expect(output.top25Snapshot.competitorIds).toEqual([]);
+    expect(output.diagnostics).toEqual([
+      {
+        code: "RESULT_SOURCE_URL_NOT_ALLOWED",
+        severity: "error",
+        editionId: "harvard-2025",
+        lineageId: "harvard",
+        eventId: "forged",
+        division: "ix",
+        sourceSnapshotIds: ["snapshot-forged"],
+        explanation:
+          "The snapshot URL is not permitted by its source descriptor.",
+      },
+    ]);
+    expect(JSON.stringify(input)).toBe(before);
+  });
+
   it("withholds only an unmapped identity result and never falls back to display name", () => {
     const aliceSet = set("harvard-2025", "harvard", "ix", [person("alice", 1)]);
     const bobSet = set("harvard-2025", "harvard", "usx", [person("bob", 2)]);

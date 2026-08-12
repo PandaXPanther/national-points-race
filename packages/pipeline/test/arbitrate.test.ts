@@ -197,6 +197,70 @@ describe("arbitrateResultSets", () => {
     });
   });
 
+  it("selects an exact allowed HTTPS snapshot URL", () => {
+    const output = arbitrateResultSets(
+      fixture([candidate({ id: "allowed-source-url" })]),
+    );
+
+    expect(
+      output.selected.map(({ sourceSnapshotId }) => sourceSnapshotId),
+    ).toEqual(["allowed-source-url"]);
+    expect(output.selectedProvenance).toEqual([
+      expect.objectContaining({
+        sourceSnapshotId: "allowed-source-url",
+        descriptorId: "descriptor-allowed-source-url",
+      }),
+    ]);
+    expect(output.rejected).toEqual([]);
+    expect(output.diagnostics).toEqual([]);
+  });
+
+  it.each([
+    ["plain HTTP", "http://results.example/forged.json"],
+    ["an attacker hostname", "https://attacker.example/forged.json"],
+    ["credentials", "https://attacker:credential@results.example/forged.json"],
+    ["a nondefault port", "https://results.example:8443/forged.json"],
+  ])("withholds a snapshot URL using %s", (_case, url) => {
+    const input = fixture([candidate({ id: "forged-source-url" })]);
+    input.snapshots = input.snapshots.map((snapshot) => ({
+      ...snapshot,
+      url,
+    }));
+    const before = JSON.stringify(input);
+
+    const output = arbitrateResultSets(input);
+
+    expect(output.selected).toEqual([]);
+    expect(output.selectedProvenance).toEqual([]);
+    expect(output.rejected).toEqual([
+      {
+        editionId: "harvard-2025",
+        lineageId: "harvard",
+        eventId: "ix",
+        division: "ix",
+        sourceSnapshotId: "forged-source-url",
+        reasonCode: "SOURCE_URL_NOT_ALLOWED",
+        selectedSourceSnapshotId: null,
+      },
+    ]);
+    expect(output.diagnostics).toEqual([
+      {
+        code: "RESULT_SOURCE_URL_NOT_ALLOWED",
+        severity: "error",
+        editionId: "harvard-2025",
+        lineageId: "harvard",
+        eventId: "ix",
+        division: "ix",
+        sourceSnapshotIds: ["forged-source-url"],
+        explanation:
+          "The snapshot URL is not permitted by its source descriptor.",
+      },
+    ]);
+    expect(output.diagnostics[0]?.explanation).not.toContain(url);
+    expect(output.diagnostics[0]?.explanation).not.toContain("credential");
+    expect(JSON.stringify(input)).toBe(before);
+  });
+
   it("retains an ineligible set only as a diagnostic", () => {
     const item = candidate({ id: "ineligible" });
     item.resultSet.event = { ...item.resultSet.event, eligible: false };

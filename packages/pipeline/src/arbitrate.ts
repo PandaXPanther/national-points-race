@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { assertAllowedSource, SourceFetchError } from "./http/source-policy.js";
 import { NormalizedResultSetSchema } from "./normalized.js";
 import {
   SourceClassSchema,
@@ -18,6 +19,7 @@ export const ArbitrationRejectedReasonSchema = z.enum([
   "RESULT_DIVISION_MISMATCH",
   "SOURCE_PERMISSION_MISMATCH",
   "SOURCE_REFERENCE_INVALID",
+  "SOURCE_URL_NOT_ALLOWED",
   "SUPERSEDED",
 ]);
 
@@ -29,6 +31,7 @@ export const ArbitrationDiagnosticCodeSchema = z.enum([
   "RESULT_SOURCE_INVALID_REFERENCE",
   "RESULT_SOURCE_NONFINAL",
   "RESULT_SOURCE_PERMISSION_MISMATCH",
+  "RESULT_SOURCE_URL_NOT_ALLOWED",
 ]);
 
 export const ArbitrationDiagnosticSchema = z
@@ -216,6 +219,25 @@ export function arbitrateResultSets(
             "RESULT_SOURCE_INVALID_REFERENCE",
             [resultSet],
             "The result set must reference exactly one snapshot and source descriptor.",
+          ),
+        );
+        continue;
+      }
+      try {
+        assertAllowedSource(new URL(snapshot.url), descriptor);
+      } catch (error) {
+        if (
+          !(error instanceof SourceFetchError) ||
+          error.code !== "SOURCE_POLICY_REJECTED"
+        ) {
+          throw error;
+        }
+        reject(resultSet, "SOURCE_URL_NOT_ALLOWED", null, rejected);
+        diagnostics.push(
+          diagnostic(
+            "RESULT_SOURCE_URL_NOT_ALLOWED",
+            [resultSet],
+            "The snapshot URL is not permitted by its source descriptor.",
           ),
         );
         continue;

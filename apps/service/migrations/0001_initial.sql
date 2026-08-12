@@ -47,6 +47,7 @@ CREATE TABLE source_snapshots (
   parser_version TEXT NOT NULL,
   permission TEXT NOT NULL,
   r2_key TEXT NOT NULL UNIQUE,
+  UNIQUE(id, edition_id),
   UNIQUE(edition_id, descriptor_id, sha256)
 );
 
@@ -68,6 +69,8 @@ CREATE TABLE normalized_results (
   ),
   won_final_round INTEGER NOT NULL CHECK (won_final_round IN (0, 1)),
   explicitly_final INTEGER NOT NULL CHECK (explicitly_final IN (0, 1)),
+  FOREIGN KEY (snapshot_id, edition_id)
+    REFERENCES source_snapshots(id, edition_id),
   UNIQUE(snapshot_id, event_key, source_entry_id)
 );
 
@@ -107,6 +110,8 @@ CREATE TABLE awards (
   win INTEGER NOT NULL CHECK (win IN (0, 1)),
   top_three INTEGER NOT NULL CHECK (top_three IN (0, 1)),
   final INTEGER NOT NULL CHECK (final IN (0, 1)),
+  FOREIGN KEY (snapshot_id, edition_id)
+    REFERENCES source_snapshots(id, edition_id),
   UNIQUE(standings_version_id, edition_id, competitor_id)
 );
 

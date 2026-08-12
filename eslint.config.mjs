@@ -13,7 +13,7 @@ export default [
       ".wrangler/",
       ".dev.vars*",
       "playwright-report/",
-      "work/",
+      "work/cloudflare-types/**",
       "**/src/worker-configuration.d.ts",
     ],
   },

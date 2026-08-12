@@ -113,6 +113,48 @@ export type {
 } from "./adapters/documents/manifest.js";
 
 export {
+  ArbitrationDiagnosticCodeSchema,
+  ArbitrationDiagnosticSchema,
+  ArbitrationInputSchema,
+  ArbitrationOutputSchema,
+  ArbitrationRejectedReasonSchema,
+  ArbitrationRejectedSetSchema,
+  arbitrateResultSets,
+  SelectedResultSetProvenanceSchema,
+} from "./arbitrate.js";
+export type {
+  ArbitrationDiagnostic,
+  ArbitrationDiagnosticCode,
+  ArbitrationInput,
+  ArbitrationOutput,
+  ArbitrationRejectedReason,
+  ArbitrationRejectedSet,
+  SelectedResultSetProvenance,
+} from "./arbitrate.js";
+export {
+  AwardProvenanceSchema,
+  AwardRebuildInputSchema,
+  AwardRebuildOutputSchema,
+  PostNcflCutoffSchema,
+  RebuildDiagnosticCodeSchema,
+  RebuildDiagnosticSchema,
+  rebuildSeason,
+  SeasonEditionSchema,
+  StandingSchema,
+  Top25SnapshotSchema,
+} from "./rebuild.js";
+export type {
+  AwardProvenance,
+  AwardRebuildInput,
+  AwardRebuildOutput,
+  PostNcflCutoff,
+  RebuildDiagnostic,
+  RebuildDiagnosticCode,
+  SeasonEdition,
+  Top25Snapshot,
+} from "./rebuild.js";
+
+export {
   DivisionSchema,
   POLICY_VERSION,
   RoundStageSchema,

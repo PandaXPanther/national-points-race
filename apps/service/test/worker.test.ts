@@ -228,6 +228,20 @@ describe("Worker module surface and HTTP runtime", () => {
       expect(text).not.toContain("service.test");
     },
   );
+
+  it("returns the stable JSON 404 for HEAD /healthz without echoing its URL", async () => {
+    const response = await SELF.fetch(
+      "https://service.test/healthz?secret=head-query-marker",
+      { method: "HEAD" },
+    );
+    const text = await response.text();
+
+    expect(response.status).toBe(404);
+    expect(response.headers.get("content-type")).toBe("application/json");
+    expect(text).toBe("");
+    expect(text).not.toContain("head-query-marker");
+    expect(text).not.toContain("service.test");
+  });
 });
 
 describe("fetch orchestration and logging", () => {

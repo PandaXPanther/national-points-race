@@ -98,3 +98,39 @@ The 20 Workers-runtime tests cover:
 - The package-script selector runs all service files because pnpm forwards the literal separator. Exact focused evidence therefore uses the direct Vitest command as well.
 - The bare Wrangler check command's path/flag mismatch is documented above; the actual checked-in generated artifact is current.
 - No Cloudflare deployment, resource provisioning, Task 4 discovery, Task 5 job processing, message ack/retry, storage mutation, or dependency change was performed.
+
+## Independent review fix round 1: reject unsupported health methods
+
+### Finding and root cause
+
+- Independent review found that Hono implicitly dispatches `HEAD /healthz` through the registered GET route, violating the requirement that unsupported methods return `404`.
+- Hono `4.13.1` implements HEAD dispatch by invoking GET and wrapping the result in `new Response(null, ...)`. A guard inside Hono therefore corrected the status but could never expose a JSON entity to a real HEAD client.
+- A pre-Hono Worker fetch guard is required to prevent the GET fallback. The Workers HTTP boundary still strips the entity body, as required by HEAD semantics, even though the guard constructs the same stable JSON 404 response used for other unsupported methods.
+
+### Regression RED and protocol clarification
+
+- A real `SELF.fetch` regression for `HEAD /healthz?secret=head-query-marker` was added before the production fix.
+- Focused command: `pnpm --filter @points-race/service exec vitest run test/worker.test.ts -t "returns the stable JSON 404 for HEAD /healthz without echoing its URL"`.
+- Genuine initial RED: exit `1`; one selected test failed because status was `200` rather than `404`. The completed fetch log showed `diagnosticCode: "FETCH_OK"`, proving the Hono GET fallback.
+- The first minimal Hono-level guard changed status/logging to `404`/`FETCH_NOT_FOUND`, but the same real-runtime test then failed when parsing the empty HEAD entity. Moving the guard before Hono proved the Workers boundary also enforces the empty wire body.
+- The controller made the protocol-specific exception authoritative: HEAD must return `404`, `Content-Type: application/json`, `FETCH_NOT_FOUND` through the normal log mapping, no URL/query echo, and an exact empty wire body. Non-HEAD unsupported methods continue to prove the exact stable JSON entity.
+
+### Minimal fix and GREEN
+
+- `worker.ts` now checks only the exact `/healthz` pathname before delegating to Hono. Any method other than exact `GET` receives the existing stable JSON 404 representation; all other routes and all logging behavior remain unchanged.
+- Focused GREEN: the same selected real-runtime command exited `0`; one selected test passed and 20 were skipped.
+- Full Worker GREEN: `pnpm --filter @points-race/service exec vitest run test/worker.test.ts` exited `0`; one file and 21 tests passed.
+- The regression asserts status `404`, `Content-Type: application/json`, an exact empty HEAD wire body, and absence of query/URL echo. The fetch wrapper maps the guard's `404` to `FETCH_NOT_FOUND`.
+
+### Fresh proportional verification
+
+- Full service tests: three files and 61 tests passed.
+- Service clean lifecycle: three files and 61 tests passed after rebuilding workspace dependencies.
+- Service typecheck passed.
+- Exact generated-type freshness check passed for `src/worker-configuration.d.ts` with `CloudflareBindings` and runtime declarations excluded.
+- Wrangler deploy dry-run passed; upload was 621.73 KiB / 97.48 KiB gzip and nothing was deployed.
+- Serialized root tests passed: policy 120, pipeline 206, document collector 24, service 61.
+- Root lint and formatting checks passed; formatting reported all matched files compliant.
+- `git diff --check 88c3ce1d50d4e676646698e9ef1287120a5b84ae` passed.
+- Changed-code explicit-any, unsafe-pattern, Worker-effect, and non-echoing credential scans reported zero findings.
+- Pre-existing Node engine and upstream sourcemap warnings remain unchanged. No Task 4 work or optional behavior was added.

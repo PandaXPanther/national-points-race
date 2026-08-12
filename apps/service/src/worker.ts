@@ -1,7 +1,9 @@
 import { createApp } from "./app";
 import { createFetchHandler } from "./handlers/fetch";
-import { createQueueHandler, type JobMessage } from "./handlers/queue";
+import { createQueueHandler } from "./handlers/queue";
 import { createScheduledHandler } from "./handlers/scheduled";
+import { consumeJobs as consumeJobBatch } from "./jobs/consumer";
+import type { JobMessage } from "./jobs/message";
 import { runScheduledTick as runLifecycleTick } from "./seasons/lifecycle";
 
 const app = createApp();
@@ -34,7 +36,7 @@ const worker = {
     fetcher: fetchApp,
   }),
   scheduled: createScheduledHandler({ runScheduledTick: runLifecycleTick }),
-  queue: createQueueHandler(),
+  queue: createQueueHandler({ consumeJobs: consumeJobBatch }),
 } satisfies ExportedHandler<CloudflareBindings, JobMessage>;
 
 export {

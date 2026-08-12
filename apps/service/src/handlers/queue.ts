@@ -8,8 +8,7 @@ import {
   type HandlerLogger,
   type HandlerResult,
 } from "../log";
-
-export type JobMessage = unknown;
+import type { JobMessage } from "../jobs/message";
 
 export type ConsumeJobs = (
   batch: MessageBatch<JobMessage>,

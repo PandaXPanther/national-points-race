@@ -366,7 +366,7 @@ describe("scheduled season lifecycle", () => {
 });
 
 describe("JobMessageSchema", () => {
-  it("accepts only the Task-4 discriminated message contract", () => {
+  it("preserves the lifecycle contract while accepting Task-5 dead letters", () => {
     const valid = {
       schemaVersion: 1,
       id: "a".repeat(64),
@@ -379,9 +379,8 @@ describe("JobMessageSchema", () => {
     } as const;
     expect(JobMessageSchema.parse(valid)).toEqual(valid);
     expect(
-      JobMessageSchema.safeParse({ ...valid, type: "process-dead-letter" })
-        .success,
-    ).toBe(false);
+      JobMessageSchema.parse({ ...valid, type: "process-dead-letter" }).type,
+    ).toBe("process-dead-letter");
     expect(
       JobMessageSchema.safeParse({ ...valid, secret: "do-not-store" }).success,
     ).toBe(false);

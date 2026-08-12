@@ -53,6 +53,25 @@ describe("single-event scoring", () => {
     ).toBe(0);
   });
 
+  it.each([
+    { placement: 5, points: 60, final: true },
+    { placement: 6, points: 50, final: false },
+    { placement: 7, points: 0, final: false },
+  ])(
+    "gives MBA place $placement its points and Exhibition Round finals flag",
+    ({ placement, points, final }) => {
+      expect(
+        scoreResult(
+          resultInput({
+            lineageId: "mba-round-robin",
+            placement,
+            furthestStage: "final",
+          }),
+        ),
+      ).toMatchObject({ points, final });
+    },
+  );
+
   it("preserves scoring identity and flags a first-place final", () => {
     expect(
       scoreResult(

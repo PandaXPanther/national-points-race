@@ -5,5 +5,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "node ../../scripts/vitest-runner.mjs"
+  },
+  "dependencies": {
+    "csv-parse": "7.0.2"
   }
 }

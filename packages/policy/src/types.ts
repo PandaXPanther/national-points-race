@@ -46,6 +46,7 @@ export interface TournamentLineage {
   readonly tier: Tier;
   readonly aliases: readonly string[];
   readonly mbaTopSixOnly: boolean;
+  readonly finalCreditPlacementLimit: 5 | 6;
 }
 
 export interface NsdaPolicy {

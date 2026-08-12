@@ -13,8 +13,8 @@
 - Policy ID is exactly `legacy-2024-25-v1`.
 - The ledger contains exactly 20 tournament lineages and the point values in the approved design.
 - Domain code has no network, filesystem, database, Cloudflare, UI, or current-time dependency.
-- Places 1–6 receive finalist points; places 7+ use the previous eligible elimination bucket or zero.
-- MBA recognizes only places 1–6.
+- Places 1–6 receive placement points; places 7+ use the previous eligible elimination bucket or zero.
+- MBA places 1–6 receive points; only places 1–5 receive the finals tiebreak flag, following the Exhibition Round precedent.
 - One competitor receives at most one award and one set of tiebreak flags per tournament.
 - NSDA multiplier is 1.25 with half-up rounding and uses the post-NCFL top-25 snapshot.
 - Standings sort by points, wins, top-three finishes, finals, then shared rank.
@@ -25,6 +25,7 @@
 ### Task 1: Root workspace and policy package
 
 **Files:**
+
 - Create: `package.json`
 - Create: `pnpm-workspace.yaml`
 - Create: `tsconfig.base.json`
@@ -37,6 +38,7 @@
 - Test: `packages/policy/test/policy-version.test.ts`
 
 **Interfaces:**
+
 - Produces: workspace scripts `format:check`, `lint`, `typecheck`, and `test`
 - Produces: `POLICY_VERSION: "legacy-2024-25-v1"`
 
@@ -123,12 +125,14 @@ git commit -m "build: scaffold points race policy workspace"
 ### Task 2: Domain types and frozen policy ledger
 
 **Files:**
+
 - Create: `packages/policy/src/types.ts`
 - Create: `packages/policy/src/legacy-2024-25-v1.ts`
 - Modify: `packages/policy/src/index.ts`
 - Test: `packages/policy/test/ledger.test.ts`
 
 **Interfaces:**
+
 - Produces: `RoundStage`, `TournamentLineage`, `TierPolicy`, `PolicyLedger`, `LEGACY_POLICY`
 - Produces: `getTournamentPolicy(lineageId: TournamentLineageId): TournamentLineage`
 
@@ -141,16 +145,31 @@ import { LEGACY_POLICY } from "../src/index.js";
 describe("legacy ledger", () => {
   it("freezes the twenty approved tournament lineages", () => {
     expect(LEGACY_POLICY.tournaments).toHaveLength(20);
-    expect(LEGACY_POLICY.tournaments.filter((t) => t.tier === 1)).toHaveLength(1);
-    expect(LEGACY_POLICY.tournaments.filter((t) => t.tier === 2)).toHaveLength(3);
-    expect(LEGACY_POLICY.tournaments.filter((t) => t.tier === 3)).toHaveLength(4);
-    expect(LEGACY_POLICY.tournaments.filter((t) => t.tier === 4)).toHaveLength(7);
-    expect(LEGACY_POLICY.tournaments.filter((t) => t.tier === 5)).toHaveLength(5);
+    expect(LEGACY_POLICY.tournaments.filter((t) => t.tier === 1)).toHaveLength(
+      1,
+    );
+    expect(LEGACY_POLICY.tournaments.filter((t) => t.tier === 2)).toHaveLength(
+      3,
+    );
+    expect(LEGACY_POLICY.tournaments.filter((t) => t.tier === 3)).toHaveLength(
+      4,
+    );
+    expect(LEGACY_POLICY.tournaments.filter((t) => t.tier === 4)).toHaveLength(
+      7,
+    );
+    expect(LEGACY_POLICY.tournaments.filter((t) => t.tier === 5)).toHaveLength(
+      5,
+    );
   });
 
   it("stores exact legacy point tables", () => {
-    expect(LEGACY_POLICY.tiers[2].placements).toEqual([150, 120, 105, 75, 60, 50]);
-    expect(LEGACY_POLICY.tiers[3].eliminations).toEqual({ semifinal: 25, quarterfinal: 15 });
+    expect(LEGACY_POLICY.tiers[2].placements).toEqual([
+      150, 120, 105, 75, 60, 50,
+    ]);
+    expect(LEGACY_POLICY.tiers[3].eliminations).toEqual({
+      semifinal: 25,
+      quarterfinal: 15,
+    });
     expect(LEGACY_POLICY.tiers[5].eliminations).toEqual({});
     expect(LEGACY_POLICY.nsda.finalRoundWinnerBonus).toBe(40);
   });
@@ -193,8 +212,26 @@ export type TournamentLineageId =
   | "apple-valley-minneapple";
 
 export interface TierPolicy {
-  readonly placements: readonly [number, number, number, number, number, number];
-  readonly eliminations: Readonly<Partial<Record<Exclude<RoundStage, "final">, number>>>;
+  readonly placements: readonly [
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+  ];
+  readonly eliminations: Readonly<
+    Partial<Record<Exclude<RoundStage, "final">, number>>
+  >;
+}
+
+export interface TournamentLineage {
+  readonly id: TournamentLineageId;
+  readonly canonicalName: string;
+  readonly tier: Tier;
+  readonly aliases: readonly string[];
+  readonly mbaTopSixOnly: boolean;
+  readonly finalCreditPlacementLimit: 5 | 6;
 }
 ```
 
@@ -202,12 +239,20 @@ Create the full ledger with the exact roster and these tier values:
 
 ```ts
 const tiers = {
-  2: { placements: [150, 120, 105, 75, 60, 50], eliminations: { semifinal: 38, quarterfinal: 23, octafinal: 8 } },
-  3: { placements: [100, 85, 70, 50, 40, 33], eliminations: { semifinal: 25, quarterfinal: 15 } },
+  2: {
+    placements: [150, 120, 105, 75, 60, 50],
+    eliminations: { semifinal: 38, quarterfinal: 23, octafinal: 8 },
+  },
+  3: {
+    placements: [100, 85, 70, 50, 40, 33],
+    eliminations: { semifinal: 25, quarterfinal: 15 },
+  },
   4: { placements: [70, 60, 49, 35, 28, 23], eliminations: { semifinal: 18 } },
-  5: { placements: [40, 34, 28, 20, 16, 13], eliminations: {} }
+  5: { placements: [40, 34, 28, 20, 16, 13], eliminations: {} },
 } as const;
 ```
+
+Set `finalCreditPlacementLimit` to `5` for MBA and `6` for every other lineage. MBA places 1–6 receive points, but only places 1–5 receive the finals tiebreak flag under the Exhibition Round precedent.
 
 Store NSDA base placements 1–14 as `[200,170,140,100,80,66,50,48,46,44,40,38,36,34]`, quarterfinal `30`, octafinal `10`, final-round bonus `40`, multiplier numerator `5`, denominator `4`, and rounding mode `half-up`.
 
@@ -234,6 +279,7 @@ git commit -m "feat: freeze legacy points race policy ledger"
 ### Task 3: Round classification and single-event scoring
 
 **Files:**
+
 - Create: `packages/policy/src/round-classifier.ts`
 - Create: `packages/policy/src/score-result.ts`
 - Modify: `packages/policy/src/types.ts`
@@ -242,6 +288,7 @@ git commit -m "feat: freeze legacy points race policy ledger"
 - Test: `packages/policy/test/score-result.test.ts`
 
 **Interfaces:**
+
 - Consumes: `LEGACY_POLICY`, `RoundStage`, `TournamentLineageId`
 - Produces: `classifyRoundLabel(label: string): RoundStage | null`
 - Produces: `scoreResult(input: ScoreResultInput): ScoredResult`
@@ -250,22 +297,57 @@ git commit -m "feat: freeze legacy points race policy ledger"
 
 ```ts
 it("demotes a seventh-place Tier 3 finalist to semifinalist points", () => {
-  expect(scoreResult({ lineageId: "california-invitational", placement: 7, furthestStage: "final" }).points).toBe(25);
+  expect(
+    scoreResult({
+      lineageId: "california-invitational",
+      placement: 7,
+      furthestStage: "final",
+    }).points,
+  ).toBe(25);
 });
 
 it("awards zero to a seventh-place Tier 5 finalist", () => {
-  expect(scoreResult({ lineageId: "james-logan-mlk", placement: 7, furthestStage: "final" }).points).toBe(0);
+  expect(
+    scoreResult({
+      lineageId: "james-logan-mlk",
+      placement: 7,
+      furthestStage: "final",
+    }).points,
+  ).toBe(0);
 });
 
 it("awards MBA points only to the recognized top six", () => {
-  expect(scoreResult({ lineageId: "mba-round-robin", placement: null, furthestStage: "semifinal" }).points).toBe(0);
+  expect(
+    scoreResult({
+      lineageId: "mba-round-robin",
+      placement: null,
+      furthestStage: "semifinal",
+    }).points,
+  ).toBe(0);
 });
+
+it.each([
+  [5, 60, true],
+  [6, 50, false],
+  [7, 0, false],
+])(
+  "scores MBA place %s with its finals-credit rule",
+  (placement, points, final) => {
+    expect(
+      scoreResult({
+        lineageId: "mba-round-robin",
+        placement,
+        furthestStage: "final",
+      }),
+    ).toMatchObject({ points, final });
+  },
+);
 
 it.each([
   ["Octas", "octafinal"],
   ["Round of 8", "quarterfinal"],
   ["Semi-Finals", "semifinal"],
-  ["James Copeland Exhibition Round", "final"]
+  ["James Copeland Exhibition Round", "final"],
 ])("normalizes %s", (label, expected) => {
   expect(classifyRoundLabel(label)).toBe(expected);
 });
@@ -286,16 +368,38 @@ Implement this precedence:
 ```ts
 export function scoreResult(input: ScoreResultInput): ScoredResult {
   const tournament = getTournamentPolicy(input.lineageId);
-  if (tournament.mbaTopSixOnly && (input.placement === null || input.placement > 6)) {
+  if (
+    tournament.mbaTopSixOnly &&
+    (input.placement === null || input.placement > 6)
+  ) {
     return scored(input, 0, "mba-top-six-only", false, false, false);
   }
-  if (input.placement !== null && input.placement >= 1 && input.placement <= 6) {
+  if (
+    input.placement !== null &&
+    input.placement >= 1 &&
+    input.placement <= 6
+  ) {
     const points = pointsForPlacement(tournament.tier, input.placement);
-    return scored(input, points, "placement", input.placement === 1, input.placement <= 3, true);
+    return scored(
+      input,
+      points,
+      "placement",
+      input.placement === 1,
+      input.placement <= 3,
+      input.placement <= tournament.finalCreditPlacementLimit,
+    );
   }
-  const stage = input.furthestStage === "final" ? "semifinal" : input.furthestStage;
+  const stage =
+    input.furthestStage === "final" ? "semifinal" : input.furthestStage;
   const points = pointsForElimination(tournament.tier, stage);
-  return scored(input, points, points === 0 ? "no-eligible-bucket" : `${stage}-bucket`, false, false, false);
+  return scored(
+    input,
+    points,
+    points === 0 ? "no-eligible-bucket" : `${stage}-bucket`,
+    false,
+    false,
+    false,
+  );
 }
 ```
 
@@ -305,7 +409,7 @@ Reject placements below 1, contradictory `placement <= 6` without a final stage,
 
 Run: `pnpm --filter @points-race/policy test`
 
-Expected: PASS, including Tier 3 seventh place = 25, Tier 5 seventh place = 0, and MBA non-top-six = 0.
+Expected: PASS, including Tier 3 seventh place = 25, Tier 5 seventh place = 0, MBA places 1–6 receiving points, and only MBA places 1–5 receiving the finals tiebreak flag.
 
 - [ ] **Step 5: Commit scoring**
 
@@ -319,6 +423,7 @@ git commit -m "feat: score placements and elimination stages"
 ### Task 4: Per-tournament maximum and NSDA scoring
 
 **Files:**
+
 - Create: `packages/policy/src/score-tournament.ts`
 - Create: `packages/policy/src/nsda.ts`
 - Modify: `packages/policy/src/types.ts`
@@ -327,6 +432,7 @@ git commit -m "feat: score placements and elimination stages"
 - Test: `packages/policy/test/nsda.test.ts`
 
 **Interfaces:**
+
 - Produces: `selectTournamentAwards(results: readonly ScoredResult[]): readonly Award[]`
 - Produces: `computeNsdaBonusDivision(input: NsdaBonusInput): "ix" | "usx" | null`
 - Produces: `scoreNsdaResult(input: NsdaScoreInput): Award`
@@ -336,23 +442,57 @@ git commit -m "feat: score placements and elimination stages"
 ```ts
 it("keeps only one award when a competitor wins both extemp divisions", () => {
   const awards = selectTournamentAwards([
-    scoredFixture({ competitorId: "c1", division: "ix", points: 40, placement: 1 }),
-    scoredFixture({ competitorId: "c1", division: "usx", points: 40, placement: 1 })
+    scoredFixture({
+      competitorId: "c1",
+      division: "ix",
+      points: 40,
+      placement: 1,
+    }),
+    scoredFixture({
+      competitorId: "c1",
+      division: "usx",
+      points: 40,
+      placement: 1,
+    }),
   ]);
   expect(awards).toHaveLength(1);
-  expect(awards[0]).toMatchObject({ points: 40, win: true, topThree: true, final: true });
+  expect(awards[0]).toMatchObject({
+    points: 40,
+    win: true,
+    topThree: true,
+    final: true,
+  });
 });
 
 it("gives no NSDA multiplier when top-25 counts tie", () => {
-  expect(computeNsdaBonusDivision({ ixEntrants: ["a"], usxEntrants: ["b"], top25: ["a", "b"] })).toBeNull();
+  expect(
+    computeNsdaBonusDivision({
+      ixEntrants: ["a"],
+      usxEntrants: ["b"],
+      top25: ["a", "b"],
+    }),
+  ).toBeNull();
 });
 
 it("uses half-up rounding for the strong-field division", () => {
-  expect(scoreNsdaResult(nsdaFixture({ placement: 2, bonusDivision: "ix", division: "ix" })).points).toBe(213);
+  expect(
+    scoreNsdaResult(
+      nsdaFixture({ placement: 2, bonusDivision: "ix", division: "ix" }),
+    ).points,
+  ).toBe(213);
 });
 
 it("adds the separately multiplied final-round bonus", () => {
-  expect(scoreNsdaResult(nsdaFixture({ placement: 1, wonFinalRound: true, bonusDivision: "ix", division: "ix" })).points).toBe(300);
+  expect(
+    scoreNsdaResult(
+      nsdaFixture({
+        placement: 1,
+        wonFinalRound: true,
+        bonusDivision: "ix",
+        division: "ix",
+      }),
+    ).points,
+  ).toBe(300);
 });
 ```
 
@@ -369,7 +509,11 @@ Select the highest points per `(editionId, competitorId)`. Break equal awards de
 Use integer arithmetic for the multiplier:
 
 ```ts
-export function multiplyHalfUp(value: number, numerator = 5, denominator = 4): number {
+export function multiplyHalfUp(
+  value: number,
+  numerator = 5,
+  denominator = 4,
+): number {
   return Math.floor((value * numerator + denominator / 2) / denominator);
 }
 ```
@@ -399,12 +543,14 @@ git commit -m "feat: add tournament maximum and NSDA bonuses"
 ### Task 5: Standings aggregation and shared ranks
 
 **Files:**
+
 - Create: `packages/policy/src/standings.ts`
 - Modify: `packages/policy/src/types.ts`
 - Modify: `packages/policy/src/index.ts`
 - Test: `packages/policy/test/standings.test.ts`
 
 **Interfaces:**
+
 - Consumes: `readonly Award[]`
 - Produces: `buildStandings(awards: readonly Award[]): readonly Standing[]`
 
@@ -413,7 +559,12 @@ git commit -m "feat: add tournament maximum and NSDA bonuses"
 ```ts
 it("sorts by all four historical criteria", () => {
   const standings = buildStandings(awardSetWithTies());
-  expect(standings.map((s) => s.competitorId)).toEqual(["more-wins", "more-top-threes", "more-finals", "lower"]);
+  expect(standings.map((s) => s.competitorId)).toEqual([
+    "more-wins",
+    "more-top-threes",
+    "more-finals",
+    "lower",
+  ]);
 });
 
 it("assigns a shared rank after all criteria tie", () => {
@@ -459,6 +610,7 @@ git commit -m "feat: aggregate historical standings tiebreaks"
 ### Task 6: 2024–2025 golden-master replay
 
 **Files:**
+
 - Create: `packages/policy/test/fixtures/2024-25-final-standings.csv`
 - Create: `packages/policy/test/golden-loader.ts`
 - Create: `packages/policy/test/golden-replay.test.ts`
@@ -466,6 +618,7 @@ git commit -m "feat: aggregate historical standings tiebreaks"
 - Modify: `package.json`
 
 **Interfaces:**
+
 - Produces: `loadGoldenSeason(csv: string): GoldenSeason`
 - Produces: root script `test:golden`
 
@@ -522,7 +675,7 @@ export const GOLDEN_COLUMNS = {
   ETOC: "extemp-toc",
   NIETOC: "nietoc",
   NCFL: "ncfl-nationals",
-  NSDA: "nsda-nationals"
+  NSDA: "nsda-nationals",
 } as const;
 ```
 
@@ -548,3 +701,8 @@ Expected: zero golden mismatches and all commands exit `0`.
 git add package.json pnpm-lock.yaml packages/policy
 git commit -m "test: replay authoritative 2024-25 standings"
 ```
+
+## Authoritative policy precedent
+
+- MBA Exhibition Round finals-credit precedent: <https://extemp.com/2024-montgomery-bell-academy-extemp-round-robin-zhang-closes-out-peddi-for-illinois-first-round-robin-championship/>
+- 2025 MBA sixth-place points confirmation: <https://extemp.com/2025-montgomery-bell-academy-extemp-round-robin-haider-wins-convincing-victory-over-star-studded-field/>

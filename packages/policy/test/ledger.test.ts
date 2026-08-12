@@ -10,6 +10,7 @@ describe("legacy ledger", () => {
         tier: 1,
         aliases: ["NSDA Nationals", "National Speech & Debate Tournament"],
         mbaTopSixOnly: false,
+        finalCreditPlacementLimit: 6,
       },
       {
         id: "mba-round-robin",
@@ -17,6 +18,7 @@ describe("legacy ledger", () => {
         tier: 2,
         aliases: ["MBA Round Robin", "MBA"],
         mbaTopSixOnly: true,
+        finalCreditPlacementLimit: 5,
       },
       {
         id: "harvard",
@@ -24,6 +26,7 @@ describe("legacy ledger", () => {
         tier: 2,
         aliases: ["Harvard"],
         mbaTopSixOnly: false,
+        finalCreditPlacementLimit: 6,
       },
       {
         id: "ncfl-nationals",
@@ -31,6 +34,7 @@ describe("legacy ledger", () => {
         tier: 2,
         aliases: ["NCFL Nationals", "NCFL Grand Nationals"],
         mbaTopSixOnly: false,
+        finalCreditPlacementLimit: 6,
       },
       {
         id: "glenbrooks",
@@ -38,6 +42,7 @@ describe("legacy ledger", () => {
         tier: 3,
         aliases: ["The Glenbrooks"],
         mbaTopSixOnly: false,
+        finalCreditPlacementLimit: 6,
       },
       {
         id: "longhorn-classic",
@@ -45,6 +50,7 @@ describe("legacy ledger", () => {
         tier: 3,
         aliases: ["Longhorn Classic", "UT"],
         mbaTopSixOnly: false,
+        finalCreditPlacementLimit: 6,
       },
       {
         id: "california-invitational",
@@ -52,6 +58,7 @@ describe("legacy ledger", () => {
         tier: 3,
         aliases: ["Cal Invitational"],
         mbaTopSixOnly: false,
+        finalCreditPlacementLimit: 6,
       },
       {
         id: "uk-toc",
@@ -59,6 +66,7 @@ describe("legacy ledger", () => {
         tier: 3,
         aliases: ["UK TOC"],
         mbaTopSixOnly: false,
+        finalCreditPlacementLimit: 6,
       },
       {
         id: "yale",
@@ -66,6 +74,7 @@ describe("legacy ledger", () => {
         tier: 4,
         aliases: ["Yale"],
         mbaTopSixOnly: false,
+        finalCreditPlacementLimit: 6,
       },
       {
         id: "florida-blue-key",
@@ -73,6 +82,7 @@ describe("legacy ledger", () => {
         tier: 4,
         aliases: ["Blue Key"],
         mbaTopSixOnly: false,
+        finalCreditPlacementLimit: 6,
       },
       {
         id: "princeton-classic",
@@ -80,6 +90,7 @@ describe("legacy ledger", () => {
         tier: 4,
         aliases: ["Princeton"],
         mbaTopSixOnly: false,
+        finalCreditPlacementLimit: 6,
       },
       {
         id: "barkley-forum",
@@ -87,6 +98,7 @@ describe("legacy ledger", () => {
         tier: 4,
         aliases: ["Emory Barkley Forum"],
         mbaTopSixOnly: false,
+        finalCreditPlacementLimit: 6,
       },
       {
         id: "stanford",
@@ -94,6 +106,7 @@ describe("legacy ledger", () => {
         tier: 4,
         aliases: ["Stanford Invitational"],
         mbaTopSixOnly: false,
+        finalCreditPlacementLimit: 6,
       },
       {
         id: "extemp-toc",
@@ -101,6 +114,7 @@ describe("legacy ledger", () => {
         tier: 4,
         aliases: ["Extemp TOC", "ETOC"],
         mbaTopSixOnly: false,
+        finalCreditPlacementLimit: 6,
       },
       {
         id: "nietoc",
@@ -108,6 +122,7 @@ describe("legacy ledger", () => {
         tier: 4,
         aliases: ["NIETOC"],
         mbaTopSixOnly: false,
+        finalCreditPlacementLimit: 6,
       },
       {
         id: "uk-season-opener",
@@ -116,6 +131,7 @@ describe("legacy ledger", () => {
         tier: 5,
         aliases: ["UK Season Opener", "NSO-UK"],
         mbaTopSixOnly: false,
+        finalCreditPlacementLimit: 6,
       },
       {
         id: "nyc-invitational",
@@ -123,6 +139,7 @@ describe("legacy ledger", () => {
         tier: 5,
         aliases: ["NYC Invitational"],
         mbaTopSixOnly: false,
+        finalCreditPlacementLimit: 6,
       },
       {
         id: "george-mason",
@@ -130,6 +147,7 @@ describe("legacy ledger", () => {
         tier: 5,
         aliases: ["George Mason", "GMU Patriot Games"],
         mbaTopSixOnly: false,
+        finalCreditPlacementLimit: 6,
       },
       {
         id: "james-logan-mlk",
@@ -137,6 +155,7 @@ describe("legacy ledger", () => {
         tier: 5,
         aliases: ["James Logan", "MLK Invitational"],
         mbaTopSixOnly: false,
+        finalCreditPlacementLimit: 6,
       },
       {
         id: "apple-valley-minneapple",
@@ -144,6 +163,7 @@ describe("legacy ledger", () => {
         tier: 5,
         aliases: ["Minneapple", "Apple Valley"],
         mbaTopSixOnly: false,
+        finalCreditPlacementLimit: 6,
       },
     ]);
     expect(LEGACY_POLICY.tournaments).toHaveLength(20);
@@ -181,6 +201,19 @@ describe("legacy ledger", () => {
       finalRoundWinnerBonus: 40,
       multiplier: { numerator: 5, denominator: 4, rounding: "half-up" },
     });
+  });
+
+  it("limits MBA finals credit to the five Exhibition Round places", () => {
+    expect(
+      getTournamentPolicy("mba-round-robin").finalCreditPlacementLimit,
+    ).toBe(5);
+    expect(
+      LEGACY_POLICY.tournaments
+        .filter(({ id }) => id !== "mba-round-robin")
+        .every(
+          ({ finalCreditPlacementLimit }) => finalCreditPlacementLimit === 6,
+        ),
+    ).toBe(true);
   });
 
   it("retrieves the declared lineage record by identifier", () => {

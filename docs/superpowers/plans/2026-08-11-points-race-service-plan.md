@@ -26,6 +26,7 @@
 ### Task 1: Worker package, bindings, and D1 schema
 
 **Files:**
+
 - Create: `apps/service/package.json`
 - Create: `apps/service/tsconfig.json`
 - Create: `apps/service/wrangler.jsonc`
@@ -35,6 +36,7 @@
 - Test: `apps/service/test/schema.test.ts`
 
 **Interfaces:**
+
 - Produces bindings: `DB`, `RAW_SNAPSHOTS`, `JOBS`
 - Produces queue consumer for `points-race-jobs` and DLQ `points-race-dead-letter`
 
@@ -48,12 +50,24 @@ import { applyMigrations } from "./support/migrations.js";
 beforeAll(() => applyMigrations(env.DB));
 
 it("creates every versioned domain table", async () => {
-  const rows = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name").all<{ name: string }>();
-  expect(rows.results.map((r) => r.name)).toEqual(expect.arrayContaining([
-    "awards", "canonical_competitors", "identity_edges", "job_leases", "job_runs",
-    "normalized_results", "source_snapshots", "standings_rows", "standings_versions",
-    "tournament_editions", "tournament_lineages"
-  ]));
+  const rows = await env.DB.prepare(
+    "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name",
+  ).all<{ name: string }>();
+  expect(rows.results.map((r) => r.name)).toEqual(
+    expect.arrayContaining([
+      "awards",
+      "canonical_competitors",
+      "identity_edges",
+      "job_leases",
+      "job_runs",
+      "normalized_results",
+      "source_snapshots",
+      "standings_rows",
+      "standings_versions",
+      "tournament_editions",
+      "tournament_lineages",
+    ]),
+  );
 });
 ```
 
@@ -75,16 +89,21 @@ Use this binding configuration, relying on Wrangler’s documented automatic pro
   "r2_buckets": [{ "binding": "RAW_SNAPSHOTS" }],
   "queues": {
     "producers": [{ "binding": "JOBS", "queue": "points-race-jobs" }],
-    "consumers": [{
-      "queue": "points-race-jobs",
-      "max_batch_size": 10,
-      "max_batch_timeout": 5,
-      "max_retries": 3,
-      "dead_letter_queue": "points-race-dead-letter"
-    }]
+    "consumers": [
+      {
+        "queue": "points-race-jobs",
+        "max_batch_size": 10,
+        "max_batch_timeout": 5,
+        "max_retries": 3,
+        "dead_letter_queue": "points-race-dead-letter",
+      },
+    ],
   },
   "triggers": { "crons": ["17 8 * * *"] },
-  "vars": { "APP_ENV": "development", "PUBLIC_ORIGIN": "http://localhost:4321" }
+  "vars": {
+    "APP_ENV": "development",
+    "PUBLIC_ORIGIN": "http://localhost:4321",
+  },
 }
 ```
 
@@ -236,6 +255,7 @@ git commit -m "feat: scaffold autonomous service storage"
 ### Task 2: D1 repositories and immutable R2 snapshot store
 
 **Files:**
+
 - Create: `apps/service/src/storage/editions.ts`
 - Create: `apps/service/src/storage/snapshots.ts`
 - Create: `apps/service/src/storage/results.ts`
@@ -245,6 +265,7 @@ git commit -m "feat: scaffold autonomous service storage"
 - Test: `apps/service/test/storage.test.ts`
 
 **Interfaces:**
+
 - Produces: `EditionRepository`, `SnapshotRepository`, `ResultRepository`, `StandingsRepository`, `LeaseRepository`
 - Produces: `persistSnapshot(input: PersistSnapshotInput): Promise<SourceSnapshotRecord>`
 
@@ -308,6 +329,7 @@ git commit -m "feat: persist immutable results and standings"
 ### Task 3: Worker entrypoint, health route, and generated environment types
 
 **Files:**
+
 - Create: `apps/service/src/app.ts`
 - Create: `apps/service/src/log.ts`
 - Create: `apps/service/src/handlers/fetch.ts`
@@ -317,6 +339,7 @@ git commit -m "feat: persist immutable results and standings"
 - Test: `apps/service/test/worker.test.ts`
 
 **Interfaces:**
+
 - Produces ES module handlers: `fetch`, `scheduled`, `queue`
 - Produces route: `GET /healthz`
 
@@ -326,7 +349,10 @@ git commit -m "feat: persist immutable results and standings"
 it("returns structured health without exposing binding details", async () => {
   const response = await SELF.fetch("https://service.test/healthz");
   expect(response.status).toBe(200);
-  expect(await response.json()).toEqual({ status: "ok", policyVersion: "legacy-2024-25-v1" });
+  expect(await response.json()).toEqual({
+    status: "ok",
+    policyVersion: "legacy-2024-25-v1",
+  });
 });
 ```
 
@@ -346,11 +372,16 @@ Use Hono only for `fetch`; call focused functions from scheduled and queue handl
 export default {
   fetch: (request, env, ctx) => app.fetch(request, env, ctx),
   async scheduled(controller, env, ctx) {
-    ctx.waitUntil(runScheduledTick({ scheduledAt: new Date(controller.scheduledTime).toISOString(), env }));
+    ctx.waitUntil(
+      runScheduledTick({
+        scheduledAt: new Date(controller.scheduledTime).toISOString(),
+        env,
+      }),
+    );
   },
   async queue(batch, env, ctx) {
     await consumeJobs(batch, env, ctx);
-  }
+  },
 } satisfies ExportedHandler<CloudflareBindings, JobMessage>;
 ```
 
@@ -380,6 +411,7 @@ git commit -m "feat: expose Worker fetch cron and queue handlers"
 ### Task 4: Season lifecycle and tournament-lineage discovery
 
 **Files:**
+
 - Create: `apps/service/src/seasons/lifecycle.ts`
 - Create: `apps/service/src/discovery/registry.ts`
 - Create: `apps/service/src/discovery/tabroom-calendar.ts`
@@ -389,6 +421,7 @@ git commit -m "feat: expose Worker fetch cron and queue handlers"
 - Test: `apps/service/test/discovery.test.ts`
 
 **Interfaces:**
+
 - Produces: `seasonIdFor(date: Date): string`
 - Produces: `runScheduledTick(input: ScheduledTickInput): Promise<ScheduledTickOutput>`
 - Produces: `matchLineage(candidates, fingerprint): MatchResult`
@@ -399,11 +432,15 @@ git commit -m "feat: expose Worker fetch cron and queue handlers"
 it.each([
   ["2026-08-01T00:00:00Z", "2026-27"],
   ["2027-07-31T23:59:59Z", "2026-27"],
-  ["2027-08-01T00:00:00Z", "2027-28"]
-])("maps %s to %s", (value, season) => expect(seasonIdFor(new Date(value))).toBe(season));
+  ["2027-08-01T00:00:00Z", "2027-28"],
+])("maps %s to %s", (value, season) =>
+  expect(seasonIdFor(new Date(value))).toBe(season),
+);
 
 it("rejects a renamed candidate with an organizer contradiction", () => {
-  expect(matchLineage([conflictingCandidate()], harvardFingerprint())).toMatchObject({ kind: "no-match" });
+  expect(
+    matchLineage([conflictingCandidate()], harvardFingerprint()),
+  ).toMatchObject({ kind: "no-match" });
 });
 ```
 
@@ -458,6 +495,7 @@ git commit -m "feat: automate seasons and tournament discovery"
 ### Task 5: Queue collection, rebuild, retry, and dead-letter behavior
 
 **Files:**
+
 - Create: `apps/service/src/jobs/message.ts`
 - Create: `apps/service/src/jobs/consumer.ts`
 - Create: `apps/service/src/jobs/collect.ts`
@@ -466,6 +504,7 @@ git commit -m "feat: automate seasons and tournament discovery"
 - Test: `apps/service/test/queue-consumer.test.ts`
 
 **Interfaces:**
+
 - Produces: discriminated `JobMessage` union
 - Produces: `consumeJobs(batch, env, ctx): Promise<void>`
 
@@ -486,7 +525,9 @@ it("retries a transient provider failure with bounded delay", async () => {
 });
 
 it("does not fetch an unauthorized SpeechWire descriptor", async () => {
-  await expect(runCollect(unauthorizedSpeechWireJob())).resolves.toMatchObject({ code: "SOURCE_PERMISSION_REQUIRED" });
+  await expect(runCollect(unauthorizedSpeechWireJob())).resolves.toMatchObject({
+    code: "SOURCE_PERMISSION_REQUIRED",
+  });
   expect(provider.calls).toBe(0);
 });
 ```
@@ -535,6 +576,7 @@ git commit -m "feat: process collection and rebuild jobs safely"
 ### Task 6: Signed document ingestion and read-only public API
 
 **Files:**
+
 - Create: `apps/service/src/auth/hmac.ts`
 - Create: `apps/service/src/routes/ingest.ts`
 - Create: `apps/service/src/routes/seasons.ts`
@@ -545,6 +587,7 @@ git commit -m "feat: process collection and rebuild jobs safely"
 - Test: `apps/service/test/api.test.ts`
 
 **Interfaces:**
+
 - Produces: `POST /internal/document-ingest`
 - Produces: `GET /v1/seasons/:seasonId/standings`
 - Produces: `GET /v1/seasons/:seasonId/competitors/:competitorId`
@@ -555,14 +598,23 @@ git commit -m "feat: process collection and rebuild jobs safely"
 
 ```ts
 it("rejects an unsigned document payload", async () => {
-  const response = await SELF.fetch("https://service.test/internal/document-ingest", { method: "POST", body: "{}" });
+  const response = await SELF.fetch(
+    "https://service.test/internal/document-ingest",
+    { method: "POST", body: "{}" },
+  );
   expect(response.status).toBe(401);
 });
 
 it("returns standings with version and provenance links", async () => {
   await seedPublishedSeason();
-  const response = await SELF.fetch("https://service.test/v1/seasons/2026-27/standings");
-  expect(await response.json()).toMatchObject({ seasonId: "2026-27", policyVersion: "legacy-2024-25-v1", standingsVersion: expect.any(String) });
+  const response = await SELF.fetch(
+    "https://service.test/v1/seasons/2026-27/standings",
+  );
+  expect(await response.json()).toMatchObject({
+    seasonId: "2026-27",
+    policyVersion: "legacy-2024-25-v1",
+    standingsVersion: expect.any(String),
+  });
 });
 ```
 
@@ -608,6 +660,7 @@ git commit -m "feat: expose audited standings service API"
 ### Task 7: Scheduled Node document collector workflow
 
 **Files:**
+
 - Create: `apps/document-collector/src/discover.ts`
 - Create: `apps/document-collector/src/sign.ts`
 - Create: `apps/document-collector/src/run.ts`
@@ -615,6 +668,7 @@ git commit -m "feat: expose audited standings service API"
 - Test: `apps/document-collector/test/run.test.ts`
 
 **Interfaces:**
+
 - Consumes: checked-in official document manifests and service ingest endpoint
 - Produces: daily unattended document ingestion
 
@@ -623,7 +677,10 @@ git commit -m "feat: expose audited standings service API"
 ```ts
 it("discovers, parses, signs, and submits an official packet", async () => {
   await runCollector(fixtureCollectorContext());
-  expect(server.requests[0]).toMatchObject({ path: "/internal/document-ingest", validSignature: true });
+  expect(server.requests[0]).toMatchObject({
+    path: "/internal/document-ingest",
+    validSignature: true,
+  });
 });
 ```
 
@@ -662,12 +719,14 @@ git commit -m "feat: schedule official document collection"
 ### Task 8: Complete simulated-season Workers integration test
 
 **Files:**
+
 - Create: `apps/service/test/integration/autonomous-season.test.ts`
 - Create: `apps/service/test/integration/fixtures.ts`
 - Modify: `apps/service/package.json`
 - Modify: `package.json`
 
 **Interfaces:**
+
 - Produces root script: `test:integration`
 
 - [ ] **Step 1: Write the full failing simulation**

@@ -25,6 +25,7 @@
 ### Task 1: Pipeline package and canonical source contracts
 
 **Files:**
+
 - Create: `packages/pipeline/package.json`
 - Create: `packages/pipeline/tsconfig.json`
 - Create: `packages/pipeline/src/source.ts`
@@ -34,6 +35,7 @@
 - Test: `packages/pipeline/test/contracts.test.ts`
 
 **Interfaces:**
+
 - Consumes: `PolicyVersionId`, `TournamentLineageId`, `RoundStage` from `@points-race/policy`
 - Produces: `SourceDescriptor`, `SourceSnapshot`, `NormalizedEvent`, `NormalizedResult`, `NormalizedResultSet`, `Diagnostic`
 
@@ -44,7 +46,10 @@ import { describe, expect, it } from "vitest";
 import { NormalizedResultSetSchema } from "../src/index.js";
 
 it("rejects a result set without immutable provenance", () => {
-  const parsed = NormalizedResultSetSchema.safeParse({ editionId: "e1", results: [] });
+  const parsed = NormalizedResultSetSchema.safeParse({
+    editionId: "e1",
+    results: [],
+  });
   expect(parsed.success).toBe(false);
 });
 ```
@@ -70,7 +75,11 @@ export const SourceSnapshotSchema = z.object({
   sha256: z.string().regex(/^[a-f0-9]{64}$/),
   mediaType: z.string().min(1),
   parserVersion: z.string().min(1),
-  permission: z.enum(["official-public-export", "official-public-document", "written-authorization"])
+  permission: z.enum([
+    "official-public-export",
+    "official-public-document",
+    "written-authorization",
+  ]),
 });
 
 export const NormalizedResultSchema = z.object({
@@ -81,7 +90,7 @@ export const NormalizedResultSchema = z.object({
   division: z.enum(["combined", "ix", "usx"]),
   placement: z.number().int().positive().nullable(),
   furthestStage: z.enum(["octafinal", "quarterfinal", "semifinal", "final"]),
-  wonFinalRound: z.boolean()
+  wonFinalRound: z.boolean(),
 });
 ```
 
@@ -110,6 +119,7 @@ git commit -m "feat: define source normalization contracts"
 ### Task 2: Bounded HTTP reader and source allowlist
 
 **Files:**
+
 - Create: `packages/pipeline/src/http/bounded-fetch.ts`
 - Create: `packages/pipeline/src/http/source-policy.ts`
 - Modify: `packages/pipeline/src/index.ts`
@@ -117,6 +127,7 @@ git commit -m "feat: define source normalization contracts"
 - Test: `packages/pipeline/test/source-policy.test.ts`
 
 **Interfaces:**
+
 - Produces: `fetchBounded(input: BoundedFetchInput): Promise<BoundedResponse>`
 - Produces: `assertAllowedSource(url: URL, descriptor: SourceDescriptor): void`
 
@@ -125,13 +136,25 @@ git commit -m "feat: define source normalization contracts"
 ```ts
 it("aborts a response that exceeds the configured byte limit", async () => {
   const fetchImpl = fixtureFetch(new Uint8Array(1_025));
-  await expect(fetchBounded({ url, fetchImpl, maxBytes: 1_024, timeoutMs: 1_000, acceptedTypes: ["application/json"] }))
-    .rejects.toMatchObject({ code: "SOURCE_TOO_LARGE" });
+  await expect(
+    fetchBounded({
+      url,
+      fetchImpl,
+      maxBytes: 1_024,
+      timeoutMs: 1_000,
+      acceptedTypes: ["application/json"],
+    }),
+  ).rejects.toMatchObject({ code: "SOURCE_TOO_LARGE" });
 });
 
-it.each(["http://tabroom.com/x", "https://127.0.0.1/x", "https://evil.example/x"])(
-  "rejects disallowed source %s",
-  (value) => expect(() => assertAllowedSource(new URL(value), tabroomDescriptor)).toThrow()
+it.each([
+  "http://tabroom.com/x",
+  "https://127.0.0.1/x",
+  "https://evil.example/x",
+])("rejects disallowed source %s", (value) =>
+  expect(() =>
+    assertAllowedSource(new URL(value), tabroomDescriptor),
+  ).toThrow(),
 );
 ```
 
@@ -178,6 +201,7 @@ git commit -m "feat: enforce bounded permitted source fetches"
 ### Task 3: Tabroom public export adapter
 
 **Files:**
+
 - Create: `packages/pipeline/src/adapters/tabroom/schema.ts`
 - Create: `packages/pipeline/src/adapters/tabroom/fetch.ts`
 - Create: `packages/pipeline/src/adapters/tabroom/normalize.ts`
@@ -185,6 +209,7 @@ git commit -m "feat: enforce bounded permitted source fetches"
 - Test: `packages/pipeline/test/tabroom-adapter.test.ts`
 
 **Interfaces:**
+
 - Produces: `fetchTabroomExport(tournamentId: number, context: FetchContext): Promise<SourceSnapshotPayload>`
 - Produces: `normalizeTabroomExport(input: TabroomNormalizeInput): readonly NormalizedResultSet[]`
 
@@ -204,12 +229,17 @@ Retain categories, events, rounds, schools, entries, students, and published res
 it("maps the published Extemporaneous Speaking result sets", () => {
   const sets = normalizeTabroomExport(tabroomFixtureInput());
   expect(sets).toHaveLength(1);
-  expect(sets[0]?.event).toMatchObject({ division: "combined", eligible: true });
+  expect(sets[0]?.event).toMatchObject({
+    division: "combined",
+    eligible: true,
+  });
   expect(sets[0]?.results.every((r) => r.sourceEntryId.length > 0)).toBe(true);
 });
 
 it("does not emit registration contacts or video settings", () => {
-  expect(JSON.stringify(normalizeTabroomExport(tabroomFixtureInput()))).not.toMatch(/contact|video_link|email/i);
+  expect(
+    JSON.stringify(normalizeTabroomExport(tabroomFixtureInput())),
+  ).not.toMatch(/contact|video_link|email/i);
 });
 ```
 
@@ -254,6 +284,7 @@ git commit -m "feat: normalize Tabroom public tournament exports"
 ### Task 4: Official document adapters and Node collector CLI
 
 **Files:**
+
 - Create: `apps/document-collector/package.json`
 - Create: `apps/document-collector/tsconfig.json`
 - Create: `apps/document-collector/src/cli.ts`
@@ -266,6 +297,7 @@ git commit -m "feat: normalize Tabroom public tournament exports"
 - Test: `apps/document-collector/test/pdf.test.ts`
 
 **Interfaces:**
+
 - Pipeline produces: `parseStructuredOfficialDocument(input: StructuredOfficialDocumentInput): readonly NormalizedResultSet[]`
 - Node collector produces: `parseOfficialDocument(input: OfficialDocumentInput): Promise<readonly NormalizedResultSet[]>`
 - Produces CLI: `points-race-collect --manifest test/fixtures/manifest.json --output work/normalized.json`
@@ -275,10 +307,13 @@ git commit -m "feat: normalize Tabroom public tournament exports"
 Create minimal committed fixtures containing the same six-person result table in JSON, CSV, HTML, and text-based PDF form. Assert JSON, CSV, and HTML are identical in the pipeline test, then assert the Node collector’s PDF result equals that same expected value.
 
 ```ts
-it.each(["json", "csv", "html"])("normalizes the %s fixture identically", async (format) => {
-  const result = await parseFixture(format);
-  expect(stripSnapshotId(result)).toEqual(expectedNormalizedFinal());
-});
+it.each(["json", "csv", "html"])(
+  "normalizes the %s fixture identically",
+  async (format) => {
+    const result = await parseFixture(format);
+    expect(stripSnapshotId(result)).toEqual(expectedNormalizedFinal());
+  },
+);
 
 it("normalizes the text-layer PDF identically", async () => {
   const result = await parsePdfFixture();
@@ -306,9 +341,15 @@ Use a versioned manifest shape:
 export interface DocumentManifest {
   readonly id: string;
   readonly lineageId: TournamentLineageId;
-  readonly mediaType: "text/csv" | "text/html" | "application/pdf" | "application/json";
+  readonly mediaType:
+    "text/csv" | "text/html" | "application/pdf" | "application/json";
   readonly eventSelector: string;
-  readonly columns: Readonly<{ name: readonly string[]; school: readonly string[]; placement: readonly string[]; stage: readonly string[] }>;
+  readonly columns: Readonly<{
+    name: readonly string[];
+    school: readonly string[];
+    placement: readonly string[];
+    stage: readonly string[];
+  }>;
 }
 ```
 
@@ -337,6 +378,7 @@ git commit -m "feat: parse official tournament result documents"
 ### Task 5: School canonicalization and conservative identity graph
 
 **Files:**
+
 - Create: `packages/pipeline/src/identity/normalize.ts`
 - Create: `packages/pipeline/src/identity/school.ts`
 - Create: `packages/pipeline/src/identity/resolve.ts`
@@ -344,6 +386,7 @@ git commit -m "feat: parse official tournament result documents"
 - Test: `packages/pipeline/test/identity.test.ts`
 
 **Interfaces:**
+
 - Produces: `normalizePersonName(value: string): string`
 - Produces: `canonicalizeSchool(value: string, aliases: SchoolAliasRegistry): CanonicalSchool`
 - Produces: `resolveIdentities(input: IdentityResolutionInput): IdentityResolutionOutput`
@@ -352,11 +395,16 @@ git commit -m "feat: parse official tournament result documents"
 
 ```ts
 it("links repeated stable source person IDs", () => {
-  expect(resolveIdentities(stableIdFixture()).mappings).toContainEqual({ sourcePersonKey: "tabroom:1571074", competitorId: "competitor:1" });
+  expect(resolveIdentities(stableIdFixture()).mappings).toContainEqual({
+    sourcePersonKey: "tabroom:1571074",
+    competitorId: "competitor:1",
+  });
 });
 
 it("links exact normalized name and canonical school across permitted sources", () => {
-  expect(resolveIdentities(exactCrossSourceFixture()).competitors).toHaveLength(1);
+  expect(resolveIdentities(exactCrossSourceFixture()).competitors).toHaveLength(
+    1,
+  );
 });
 
 it("does not merge same-name competitors from different schools", () => {
@@ -364,7 +412,9 @@ it("does not merge same-name competitors from different schools", () => {
 });
 
 it("is independent of source-record order", () => {
-  expect(resolveIdentities(records)).toEqual(resolveIdentities([...records].reverse()));
+  expect(resolveIdentities(records)).toEqual(
+    resolveIdentities([...records].reverse()),
+  );
 });
 ```
 
@@ -407,6 +457,7 @@ git commit -m "feat: resolve competitors with conservative evidence"
 ### Task 6: Deterministic season rebuild pipeline
 
 **Files:**
+
 - Create: `packages/pipeline/src/rebuild.ts`
 - Create: `packages/pipeline/src/arbitrate.ts`
 - Modify: `packages/pipeline/src/index.ts`
@@ -414,6 +465,7 @@ git commit -m "feat: resolve competitors with conservative evidence"
 - Test: `packages/pipeline/test/arbitrate.test.ts`
 
 **Interfaces:**
+
 - Consumes: normalized result sets, identity mappings, policy package
 - Produces: `rebuildSeason(input: AwardRebuildInput): AwardRebuildOutput`
 - Produces: `arbitrateResultSets(input: ArbitrationInput): ArbitrationOutput`
@@ -422,7 +474,9 @@ git commit -m "feat: resolve competitors with conservative evidence"
 
 ```ts
 it("prefers a newer explicit official correction for the same event", () => {
-  expect(arbitrateResultSets(correctionFixture()).selected[0]?.sourceSnapshotId).toBe("corrected");
+  expect(
+    arbitrateResultSets(correctionFixture()).selected[0]?.sourceSnapshotId,
+  ).toBe("corrected");
 });
 
 it("rebuilds byte-equivalent output for shuffled identical input", () => {
@@ -434,7 +488,9 @@ it("rebuilds byte-equivalent output for shuffled identical input", () => {
 it("emits unavailable diagnostics instead of an award for contradictory evidence", () => {
   const output = rebuildSeason(contradictoryFixture());
   expect(output.awards).toHaveLength(0);
-  expect(output.diagnostics).toContainEqual(expect.objectContaining({ code: "RESULT_SOURCE_CONFLICT" }));
+  expect(output.diagnostics).toContainEqual(
+    expect.objectContaining({ code: "RESULT_SOURCE_CONFLICT" }),
+  );
 });
 ```
 

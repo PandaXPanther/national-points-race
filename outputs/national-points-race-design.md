@@ -51,25 +51,25 @@ The permanent roster is the final published 2024–2025 structure.
 
 - NSDA National Tournament
 
-| Finish | Base points | Strong-field points |
-|---|---:|---:|
-| 1st | 200 | 250 |
-| 2nd | 170 | 213 |
-| 3rd | 140 | 175 |
-| 4th | 100 | 125 |
-| 5th | 80 | 100 |
-| 6th | 66 | 83 |
-| 7th | 50 | 63 |
-| 8th | 48 | 60 |
-| 9th | 46 | 58 |
-| 10th | 44 | 55 |
-| 11th | 40 | 50 |
-| 12th | 38 | 48 |
-| 13th | 36 | 45 |
-| 14th | 34 | 43 |
-| Quarterfinalist | 30 | 38 |
-| Octafinalist | 10 | 13 |
-| Final-round winner bonus | 40 | 50 |
+| Finish                   | Base points | Strong-field points |
+| ------------------------ | ----------: | ------------------: |
+| 1st                      |         200 |                 250 |
+| 2nd                      |         170 |                 213 |
+| 3rd                      |         140 |                 175 |
+| 4th                      |         100 |                 125 |
+| 5th                      |          80 |                 100 |
+| 6th                      |          66 |                  83 |
+| 7th                      |          50 |                  63 |
+| 8th                      |          48 |                  60 |
+| 9th                      |          46 |                  58 |
+| 10th                     |          44 |                  55 |
+| 11th                     |          40 |                  50 |
+| 12th                     |          38 |                  48 |
+| 13th                     |          36 |                  45 |
+| 14th                     |          34 |                  43 |
+| Quarterfinalist          |          30 |                  38 |
+| Octafinalist             |          10 |                  13 |
+| Final-round winner bonus |          40 |                  50 |
 
 The strong-field values are the base values multiplied by 1.25 and rounded to the nearest integer with `.5` rounded upward.
 
@@ -79,19 +79,19 @@ The strong-field values are the base values multiplied by 1.25 and rounded to th
 - Harvard National Speech and Debate Tournament
 - NCFL Grand National Tournament
 
-| Finish | Points |
-|---|---:|
-| 1st | 150 |
-| 2nd | 120 |
-| 3rd | 105 |
-| 4th | 75 |
-| 5th | 60 |
-| 6th | 50 |
-| Semifinalist | 38 |
-| Quarterfinalist | 23 |
-| Octafinalist | 8 |
+| Finish          | Points |
+| --------------- | -----: |
+| 1st             |    150 |
+| 2nd             |    120 |
+| 3rd             |    105 |
+| 4th             |     75 |
+| 5th             |     60 |
+| 6th             |     50 |
+| Semifinalist    |     38 |
+| Quarterfinalist |     23 |
+| Octafinalist    |      8 |
 
-MBA is an exception: only its officially recognized top six receive points.
+MBA is an exception: places 1–6 receive points, but only places 1–5 receive the finals tiebreak flag, following the Exhibition Round precedent.
 
 ### Tier 3
 
@@ -100,16 +100,16 @@ MBA is an exception: only its officially recognized top six receive points.
 - California Invitational
 - University of Kentucky Tournament of Champions
 
-| Finish | Points |
-|---|---:|
-| 1st | 100 |
-| 2nd | 85 |
-| 3rd | 70 |
-| 4th | 50 |
-| 5th | 40 |
-| 6th | 33 |
-| Semifinalist | 25 |
-| Quarterfinalist | 15 |
+| Finish          | Points |
+| --------------- | -----: |
+| 1st             |    100 |
+| 2nd             |     85 |
+| 3rd             |     70 |
+| 4th             |     50 |
+| 5th             |     40 |
+| 6th             |     33 |
+| Semifinalist    |     25 |
+| Quarterfinalist |     15 |
 
 ### Tier 4
 
@@ -121,15 +121,15 @@ MBA is an exception: only its officially recognized top six receive points.
 - Tournament of Champions of Extemporaneous Speaking
 - National Individual Events Tournament of Champions
 
-| Finish | Points |
-|---|---:|
-| 1st | 70 |
-| 2nd | 60 |
-| 3rd | 49 |
-| 4th | 35 |
-| 5th | 28 |
-| 6th | 23 |
-| Semifinalist | 18 |
+| Finish       | Points |
+| ------------ | -----: |
+| 1st          |     70 |
+| 2nd          |     60 |
+| 3rd          |     49 |
+| 4th          |     35 |
+| 5th          |     28 |
+| 6th          |     23 |
+| Semifinalist |     18 |
 
 ### Tier 5
 
@@ -140,13 +140,13 @@ MBA is an exception: only its officially recognized top six receive points.
 - Apple Valley Minneapple Speech Tournament
 
 | Finish | Points |
-|---|---:|
-| 1st | 40 |
-| 2nd | 34 |
-| 3rd | 28 |
-| 4th | 20 |
-| 5th | 16 |
-| 6th | 13 |
+| ------ | -----: |
+| 1st    |     40 |
+| 2nd    |     34 |
+| 3rd    |     28 |
+| 4th    |     20 |
+| 5th    |     16 |
+| 6th    |     13 |
 
 ## 5. Executable policy ledger
 
@@ -165,7 +165,7 @@ The ledger is versioned as `legacy-2024-25-v1`. Scoring code consumes it as data
 - A final participant placed seventh or lower does not receive finalist points.
 - That participant receives the preceding elimination bucket when the tier awards that bucket. For example, seventh place at a Tier 3 event receives the Tier 3 semifinalist award of 25 points.
 - If the tier has no preceding elimination bucket, the participant receives zero. Therefore seventh place at a Tier 5 event receives zero.
-- The `finals` season statistic counts only scored places 1–6, matching the historical standings.
+- The `finals` season statistic counts scored places 1–6, except at MBA where only places 1–5 receive finals credit under the Exhibition Round precedent.
 - The service accepts the tournament’s officially published placement and tiebreaker. It does not recompute judge-preference or cumulative-rank tiebreakers.
 
 ### 5.3 Elimination-round classification
@@ -377,7 +377,7 @@ Permanent tests cover:
 - seventh place at the 2023 California Invitational receiving Tier 3 semifinalist points
 - seventh place at the James Logan MLK Invitational receiving zero under Tier 5
 - a competitor winning both IX and USX at one tournament receiving only the single highest award
-- MBA participants outside the recognized top six receiving zero
+- MBA places 1–6 receiving points while only places 1–5 receive the finals tiebreak flag
 - NSDA strong-field counting, half-up multiplier rounding, and separate final-round bonus
 - season tiebreaks and co-champion fallback
 - official result correction causing idempotent recalculation
@@ -413,6 +413,8 @@ The implementation is ready to launch only when:
 - Extemp Central, 2024–2025 structure and point tables: <https://extemp.com/2024-2025-extemp-central-national-points-race-the-structure-of-this-years-competition/>
 - Extemp Central, final 2024–2025 standings: <https://extemp.com/natl-points-race/>
 - Authoritative 2024–2025 spreadsheet: <https://docs.google.com/spreadsheets/d/1zKg4DMD9OwQaBFVPBPRIkgsTueH86TQV/edit?gid=508191381>
+- MBA Exhibition Round finals-credit precedent: <https://extemp.com/2024-montgomery-bell-academy-extemp-round-robin-zhang-closes-out-peddi-for-illinois-first-round-robin-championship/>
+- 2025 MBA sixth-place points confirmation: <https://extemp.com/2025-montgomery-bell-academy-extemp-round-robin-haider-wins-convincing-victory-over-star-studded-field/>
 - Oversized Tier 3 final precedent: <https://extemp.com/2023-california-invitational-vakkalagadda-notches-another-win-for-bellarmine-college-preparatory-trivedi-takes-second-after-winning-final-round/>
 - Oversized Tier 5 final and multi-division precedent: <https://extemp.com/2023-james-logan-mlk-invitational-gercken-sweeps-ix-olakangils-title-defense-in-ix-falls-short/>
 - Season tiebreak precedent: <https://extemp.com/2014-2015-national-points-race-how-fridays-finals-will-determine-this-years-winner/>

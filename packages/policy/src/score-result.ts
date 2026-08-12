@@ -101,7 +101,7 @@ export function scoreResult(input: ScoreResultInput): ScoredResult {
       "placement",
       input.placement === 1,
       input.placement <= 3,
-      true,
+      input.placement <= tournament.finalCreditPlacementLimit,
     );
   }
 

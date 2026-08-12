@@ -24,6 +24,7 @@
 ### Task 1: Astro Pages project and typed API client
 
 **Files:**
+
 - Create: `apps/web/package.json`
 - Create: `apps/web/tsconfig.json`
 - Create: `apps/web/astro.config.mjs`
@@ -35,6 +36,7 @@
 - Test: `apps/web/test/api.test.ts`
 
 **Interfaces:**
+
 - Consumes: public service API DTOs
 - Produces: `getCurrentSeason()`, `getStandings(seasonId)`, `getTournamentStatuses(seasonId)`, `getCompetitor(seasonId, competitorId)`
 
@@ -43,12 +45,16 @@
 ```ts
 it("validates the standings response before returning it", async () => {
   server.respondJson(validStandingsPayload());
-  await expect(getStandings("2026-27", fixtureApiContext())).resolves.toMatchObject({ policyVersion: "legacy-2024-25-v1" });
+  await expect(
+    getStandings("2026-27", fixtureApiContext()),
+  ).resolves.toMatchObject({ policyVersion: "legacy-2024-25-v1" });
 });
 
 it("rejects malformed public API data", async () => {
   server.respondJson({ standings: "wrong" });
-  await expect(getStandings("2026-27", fixtureApiContext())).rejects.toMatchObject({ code: "PUBLIC_API_CONTRACT" });
+  await expect(
+    getStandings("2026-27", fixtureApiContext()),
+  ).rejects.toMatchObject({ code: "PUBLIC_API_CONTRACT" });
 });
 ```
 
@@ -65,7 +71,7 @@ Use `output: "server"` with the Cloudflare adapter. Configure Pages:
   "pages_build_output_dir": "./dist",
   "compatibility_date": "2026-08-11",
   "compatibility_flags": ["nodejs_compat"],
-  "vars": { "PUBLIC_API_BASE_URL": "http://localhost:8787" }
+  "vars": { "PUBLIC_API_BASE_URL": "http://localhost:8787" },
 }
 ```
 
@@ -101,6 +107,7 @@ git commit -m "feat: scaffold typed points race web client"
 ### Task 2: Design system, layout, and current leaderboard
 
 **Files:**
+
 - Create: `apps/web/src/styles/tokens.css`
 - Create: `apps/web/src/styles/global.css`
 - Create: `apps/web/src/layouts/SiteLayout.astro`
@@ -112,6 +119,7 @@ git commit -m "feat: scaffold typed points race web client"
 - Test: `apps/web/test/standings-page.test.ts`
 
 **Interfaces:**
+
 - Produces: reusable public layout and standings table
 
 - [ ] **Step 1: Write failing rendered-page assertions**
@@ -119,13 +127,15 @@ git commit -m "feat: scaffold typed points race web client"
 ```ts
 it("renders rank, competitor, school, points, and every tiebreak field", async () => {
   const html = await renderStandingsPage(standingsFixture());
-  expect(html).toContain("<th scope=\"col\">Points</th>");
-  expect(html).toContain("<th scope=\"col\">Wins</th>");
+  expect(html).toContain('<th scope="col">Points</th>');
+  expect(html).toContain('<th scope="col">Wins</th>');
   expect(html).toContain("Robert Zhang");
 });
 
 it("renders an explicit unavailable state", async () => {
-  expect(await renderStandingsPage(unavailableFixture())).toContain("Official results are not currently available");
+  expect(await renderStandingsPage(unavailableFixture())).toContain(
+    "Official results are not currently available",
+  );
 });
 ```
 
@@ -180,6 +190,7 @@ git commit -m "feat: present current national points standings"
 ### Task 3: Competitor and tournament audit pages
 
 **Files:**
+
 - Create: `apps/web/src/pages/[season]/competitors/[competitorId].astro`
 - Create: `apps/web/src/pages/[season]/tournaments/index.astro`
 - Create: `apps/web/src/pages/[season]/tournaments/[editionId].astro`
@@ -189,6 +200,7 @@ git commit -m "feat: present current national points standings"
 - Test: `apps/web/test/audit-pages.test.ts`
 
 **Interfaces:**
+
 - Produces shareable competitor and tournament URLs with source/rule provenance
 
 - [ ] **Step 1: Write failing audit-page tests**
@@ -238,6 +250,7 @@ git commit -m "feat: add competitor and tournament audit pages"
 ### Task 4: Policy, archives, corrections, and exports
 
 **Files:**
+
 - Create: `apps/web/src/pages/policy.astro`
 - Create: `apps/web/src/pages/archive/index.astro`
 - Create: `apps/web/src/pages/archive/[season].astro`
@@ -248,6 +261,7 @@ git commit -m "feat: add competitor and tournament audit pages"
 - Test: `apps/web/test/reference-pages.test.ts`
 
 **Interfaces:**
+
 - Produces public explanation of `legacy-2024-25-v1`, roster, edge cases, versions, and exports
 
 - [ ] **Step 1: Write failing policy-content tests**
@@ -255,7 +269,13 @@ git commit -m "feat: add competitor and tournament audit pages"
 ```ts
 it("documents every scoring edge that affects awards", async () => {
   const html = await renderPolicyPage();
-  for (const phrase of ["places 1–6", "seventh place", "highest single award", "post-NCFL top 25", "co-champions"]) {
+  for (const phrase of [
+    "places 1–6",
+    "seventh place",
+    "highest single award",
+    "post-NCFL top 25",
+    "co-champions",
+  ]) {
     expect(html).toContain(phrase);
   }
 });
@@ -291,6 +311,7 @@ git commit -m "feat: publish policy archives and corrections"
 ### Task 5: Playwright accessibility and responsive coverage
 
 **Files:**
+
 - Create: `playwright.config.ts`
 - Create: `apps/web/e2e/leaderboard.spec.ts`
 - Create: `apps/web/e2e/audit.spec.ts`
@@ -299,6 +320,7 @@ git commit -m "feat: publish policy archives and corrections"
 - Modify: `package.json`
 
 **Interfaces:**
+
 - Produces root scripts `test:e2e` and `test:a11y`
 
 - [ ] **Step 1: Write failing browser assertions**
@@ -306,10 +328,16 @@ git commit -m "feat: publish policy archives and corrections"
 Cover keyboard navigation from skip link through standings rows, shared-rank URLs, source links, unavailable statuses, competitor/tournament pages, and 320/768/1440 pixel viewports.
 
 ```ts
-test("current leaderboard has no serious accessibility violations", async ({ page }) => {
+test("current leaderboard has no serious accessibility violations", async ({
+  page,
+}) => {
   await page.goto("/");
   const results = await new AxeBuilder({ page }).analyze();
-  expect(results.violations.filter((v) => ["serious", "critical"].includes(v.impact ?? ""))).toEqual([]);
+  expect(
+    results.violations.filter((v) =>
+      ["serious", "critical"].includes(v.impact ?? ""),
+    ),
+  ).toEqual([]);
 });
 ```
 
@@ -346,6 +374,7 @@ git commit -m "test: cover public site accessibility and reflow"
 ### Task 6: CI, Cloudflare environments, migrations, and deployment
 
 **Files:**
+
 - Create: `.github/workflows/ci.yml`
 - Create: `.github/workflows/deploy-staging.yml`
 - Create: `.github/workflows/deploy-production.yml`
@@ -354,6 +383,7 @@ git commit -m "test: cover public site accessibility and reflow"
 - Create: `docs/operations/deployment.md`
 
 **Interfaces:**
+
 - Produces automatic staging deploys from `main`
 - Produces manually approved production deploys from a tested commit
 
@@ -419,6 +449,7 @@ git commit -m "ci: deploy verified Cloudflare environments"
 ### Task 7: Automated backups, monitoring, and recovery test
 
 **Files:**
+
 - Create: `.github/workflows/backup-production.yml`
 - Create: `.github/workflows/monitor-production.yml`
 - Create: `scripts/verify-backup.ps1`
@@ -428,6 +459,7 @@ git commit -m "ci: deploy verified Cloudflare environments"
 - Test: `apps/service/test/operational-status.test.ts`
 
 **Interfaces:**
+
 - Produces: `GET /v1/operations/public-status`
 - Produces: weekly D1 export and restore verification
 
@@ -436,9 +468,19 @@ git commit -m "ci: deploy verified Cloudflare environments"
 ```ts
 it("reports overdue and unavailable editions without internal details", async () => {
   await seedOperationalStatuses();
-  const body = await (await SELF.fetch("https://service.test/v1/operations/public-status")).json();
-  expect(body).toEqual(expect.objectContaining({ service: "ok", overdueEditions: 1, sourceUnavailableEditions: 1 }));
-  expect(JSON.stringify(body)).not.toMatch(/r2_key|source_person|diagnostic_json/);
+  const body = await (
+    await SELF.fetch("https://service.test/v1/operations/public-status")
+  ).json();
+  expect(body).toEqual(
+    expect.objectContaining({
+      service: "ok",
+      overdueEditions: 1,
+      sourceUnavailableEditions: 1,
+    }),
+  );
+  expect(JSON.stringify(body)).not.toMatch(
+    /r2_key|source_person|diagnostic_json/,
+  );
 });
 ```
 
@@ -486,11 +528,13 @@ git commit -m "ops: automate backup monitoring and recovery"
 ### Task 8: Launch verification and production handoff
 
 **Files:**
+
 - Create: `docs/operations/launch-checklist.md`
 - Create: `docs/operations/source-permissions.md`
 - Create: `outputs/launch-verification-report.md`
 
 **Interfaces:**
+
 - Produces documented evidence for production readiness
 
 - [ ] **Step 1: Run the complete local gate**

@@ -9,6 +9,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
+    "test:golden": "pnpm --filter @points-race/policy test -- golden-replay.test.ts",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test"
   },

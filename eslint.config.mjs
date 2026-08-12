@@ -10,9 +10,9 @@ export default [
       "coverage/",
       ".wrangler/",
       ".dev.vars*",
-      "playwright-report/"
-    ]
+      "playwright-report/",
+    ],
   },
   js.configs.recommended,
-  eslintConfigPrettier
+  eslintConfigPrettier,
 ];

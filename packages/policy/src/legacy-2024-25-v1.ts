@@ -30,6 +30,7 @@ const tournaments = [
     tier: 1,
     aliases: ["NSDA Nationals", "National Speech & Debate Tournament"],
     mbaTopSixOnly: false,
+    finalCreditPlacementLimit: 6,
   },
   {
     id: "mba-round-robin",
@@ -37,6 +38,7 @@ const tournaments = [
     tier: 2,
     aliases: ["MBA Round Robin", "MBA"],
     mbaTopSixOnly: true,
+    finalCreditPlacementLimit: 5,
   },
   {
     id: "harvard",
@@ -44,6 +46,7 @@ const tournaments = [
     tier: 2,
     aliases: ["Harvard"],
     mbaTopSixOnly: false,
+    finalCreditPlacementLimit: 6,
   },
   {
     id: "ncfl-nationals",
@@ -51,6 +54,7 @@ const tournaments = [
     tier: 2,
     aliases: ["NCFL Nationals", "NCFL Grand Nationals"],
     mbaTopSixOnly: false,
+    finalCreditPlacementLimit: 6,
   },
   {
     id: "glenbrooks",
@@ -58,6 +62,7 @@ const tournaments = [
     tier: 3,
     aliases: ["The Glenbrooks"],
     mbaTopSixOnly: false,
+    finalCreditPlacementLimit: 6,
   },
   {
     id: "longhorn-classic",
@@ -65,6 +70,7 @@ const tournaments = [
     tier: 3,
     aliases: ["Longhorn Classic", "UT"],
     mbaTopSixOnly: false,
+    finalCreditPlacementLimit: 6,
   },
   {
     id: "california-invitational",
@@ -72,6 +78,7 @@ const tournaments = [
     tier: 3,
     aliases: ["Cal Invitational"],
     mbaTopSixOnly: false,
+    finalCreditPlacementLimit: 6,
   },
   {
     id: "uk-toc",
@@ -79,6 +86,7 @@ const tournaments = [
     tier: 3,
     aliases: ["UK TOC"],
     mbaTopSixOnly: false,
+    finalCreditPlacementLimit: 6,
   },
   {
     id: "yale",
@@ -86,6 +94,7 @@ const tournaments = [
     tier: 4,
     aliases: ["Yale"],
     mbaTopSixOnly: false,
+    finalCreditPlacementLimit: 6,
   },
   {
     id: "florida-blue-key",
@@ -93,6 +102,7 @@ const tournaments = [
     tier: 4,
     aliases: ["Blue Key"],
     mbaTopSixOnly: false,
+    finalCreditPlacementLimit: 6,
   },
   {
     id: "princeton-classic",
@@ -100,6 +110,7 @@ const tournaments = [
     tier: 4,
     aliases: ["Princeton"],
     mbaTopSixOnly: false,
+    finalCreditPlacementLimit: 6,
   },
   {
     id: "barkley-forum",
@@ -107,6 +118,7 @@ const tournaments = [
     tier: 4,
     aliases: ["Emory Barkley Forum"],
     mbaTopSixOnly: false,
+    finalCreditPlacementLimit: 6,
   },
   {
     id: "stanford",
@@ -114,6 +126,7 @@ const tournaments = [
     tier: 4,
     aliases: ["Stanford Invitational"],
     mbaTopSixOnly: false,
+    finalCreditPlacementLimit: 6,
   },
   {
     id: "extemp-toc",
@@ -121,6 +134,7 @@ const tournaments = [
     tier: 4,
     aliases: ["Extemp TOC", "ETOC"],
     mbaTopSixOnly: false,
+    finalCreditPlacementLimit: 6,
   },
   {
     id: "nietoc",
@@ -128,6 +142,7 @@ const tournaments = [
     tier: 4,
     aliases: ["NIETOC"],
     mbaTopSixOnly: false,
+    finalCreditPlacementLimit: 6,
   },
   {
     id: "uk-season-opener",
@@ -136,6 +151,7 @@ const tournaments = [
     tier: 5,
     aliases: ["UK Season Opener", "NSO-UK"],
     mbaTopSixOnly: false,
+    finalCreditPlacementLimit: 6,
   },
   {
     id: "nyc-invitational",
@@ -143,6 +159,7 @@ const tournaments = [
     tier: 5,
     aliases: ["NYC Invitational"],
     mbaTopSixOnly: false,
+    finalCreditPlacementLimit: 6,
   },
   {
     id: "george-mason",
@@ -150,6 +167,7 @@ const tournaments = [
     tier: 5,
     aliases: ["George Mason", "GMU Patriot Games"],
     mbaTopSixOnly: false,
+    finalCreditPlacementLimit: 6,
   },
   {
     id: "james-logan-mlk",
@@ -157,6 +175,7 @@ const tournaments = [
     tier: 5,
     aliases: ["James Logan", "MLK Invitational"],
     mbaTopSixOnly: false,
+    finalCreditPlacementLimit: 6,
   },
   {
     id: "apple-valley-minneapple",
@@ -164,6 +183,7 @@ const tournaments = [
     tier: 5,
     aliases: ["Minneapple", "Apple Valley"],
     mbaTopSixOnly: false,
+    finalCreditPlacementLimit: 6,
   },
 ] as const satisfies readonly TournamentLineage[];
 

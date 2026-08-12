@@ -24,12 +24,26 @@ const ProviderResultSetSchema = z
   })
   .passthrough();
 
+const ProviderSectionBallotSchema = z
+  .object({
+    entry: ProviderIdSchema,
+  })
+  .passthrough();
+
+const ProviderSectionSchema = z
+  .object({
+    id: ProviderIdSchema,
+    round: ProviderIdSchema,
+    ballots: z.array(ProviderSectionBallotSchema),
+  })
+  .passthrough();
+
 const ProviderRoundSchema = z
   .object({
     id: ProviderIdSchema,
     label: z.string().min(1).nullish(),
     type: z.string().min(1).nullish(),
-    sections: z.array(z.unknown()),
+    sections: z.array(ProviderSectionSchema),
   })
   .passthrough();
 

@@ -3,9 +3,11 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import {
+  fetchBounded,
   fetchTabroomExport,
   normalizeTabroomExport,
   TabroomParseError,
+  type BoundedFetchInput,
   type TabroomNormalizeInput,
 } from "../src/index.js";
 
@@ -48,6 +50,11 @@ function expectTabroomError(action: () => unknown, code: string): void {
 describe("Tabroom public export adapter", () => {
   it("fetches the exact public export with only the caller-configured user agent", async () => {
     const requests: Array<{ url: string; userAgent: string | null }> = [];
+    let boundedInput: BoundedFetchInput | undefined;
+    const boundedFetch: typeof fetchBounded = async (input) => {
+      boundedInput = input;
+      return fetchBounded(input);
+    };
     const fetchImpl: typeof fetch = async (request, init) => {
       requests.push({
         url: String(request),
@@ -60,6 +67,7 @@ describe("Tabroom public export adapter", () => {
 
     const snapshot = await fetchTabroomExport(38186, {
       userAgent: "PointsRaceFixtureTest/1.0",
+      boundedFetch,
       fetchImpl,
       now: () => new Date("2026-08-11T12:00:00.000Z"),
     });
@@ -70,6 +78,11 @@ describe("Tabroom public export adapter", () => {
         userAgent: "PointsRaceFixtureTest/1.0",
       },
     ]);
+    expect(boundedInput).toMatchObject({
+      maxBytes: 26_214_400,
+      timeoutMs: 45_000,
+      acceptedTypes: ["application/json"],
+    });
     expect(snapshot).toMatchObject({
       finalUrl:
         "https://www.tabroom.com/api/download_data.mhtml?tourn_id=38186",
@@ -257,6 +270,35 @@ describe("Tabroom public export adapter", () => {
     );
   });
 
+  it("rejects duplicate result rows for the same provider entry", () => {
+    const input = mutableFixtureInput();
+    const payload = input.payload as {
+      categories: Array<{
+        events: Array<{
+          result_sets: Array<{
+            results: Array<{
+              entry: string;
+              place: string | null;
+              round: string;
+              values: unknown[];
+            }>;
+          }>;
+        }>;
+      }>;
+    };
+    payload.categories[0]!.events[0]!.result_sets[0]!.results.push({
+      entry: "entry-1",
+      place: null,
+      round: "1463288",
+      values: [],
+    });
+
+    expectTabroomError(
+      () => normalizeTabroomExport(input),
+      "TABROOM_DUPLICATE_RESULT_ENTRY",
+    );
+  });
+
   it("sorts non-contiguous numeric placements numerically", () => {
     const input = mutableFixtureInput();
     const payload = input.payload as {
@@ -335,22 +377,30 @@ describe("Tabroom public export adapter", () => {
     ]);
   });
 
-  it("uses final or cumulative provider evidence rather than a convenient label", () => {
+  it("requires compatible bracket metadata with published final or cumulative evidence", () => {
     const input = mutableFixtureInput();
     const payload = input.payload as {
       categories: Array<{
-        events: Array<{ result_sets: Array<{ tag: string }> }>;
+        events: Array<{
+          result_sets: Array<{ tag: string; bracket: string | number }>;
+        }>;
       }>;
     };
     const resultSet = payload.categories[0]!.events[0]!.result_sets[0]!;
     resultSet.tag = "cumulative";
+    resultSet.bracket = 0;
     expect(normalizeTabroomExport(input)[0]?.explicitFinal).toBe(true);
 
+    resultSet.tag = "final";
+    resultSet.bracket = "prelim";
+    expect(normalizeTabroomExport(input)[0]?.explicitFinal).toBe(false);
+
     resultSet.tag = "seed";
+    resultSet.bracket = "final";
     expect(normalizeTabroomExport(input)[0]?.explicitFinal).toBe(false);
   });
 
-  it("derives a final stage from validated provider round participation when placement is absent", () => {
+  it("uses direct result-round participation when placement is absent", () => {
     const input = mutableFixtureInput();
     const payload = input.payload as {
       categories: Array<{
@@ -372,6 +422,131 @@ describe("Tabroom public export adapter", () => {
       furthestStage: "final",
       wonFinalRound: false,
     });
+  });
+
+  it("derives the furthest stage from validated section participation when the result omits a round", () => {
+    const input = mutableFixtureInput();
+    const payload = input.payload as {
+      categories: Array<{
+        events: Array<{
+          rounds: Array<{
+            id: string;
+            sections: Array<{
+              id: string;
+              round: string;
+              letter: string;
+              flight: string;
+              room: string;
+              ballots: Array<{ entry: string }>;
+            }>;
+          }>;
+          result_sets: Array<{
+            results: Array<{
+              entry: string;
+              place: string | null;
+              round: string | null;
+            }>;
+          }>;
+        }>;
+      }>;
+    };
+    const event = payload.categories[0]!.events[0]!;
+    const semifinal = event.rounds.find((round) => round.id === "1463288")!;
+    const final = event.rounds.find((round) => round.id === "1442590")!;
+    semifinal.sections.push({
+      id: "section-semifinal",
+      round: "1463288",
+      letter: "A",
+      flight: "A",
+      room: "Room One",
+      ballots: [{ entry: "entry-1" }],
+    });
+    final.sections.push({
+      id: "section-final",
+      round: "1442590",
+      letter: "A",
+      flight: "A",
+      room: "Room Two",
+      ballots: [{ entry: "entry-1" }],
+    });
+    const result = event.result_sets[0]!.results.find(
+      (candidate) => candidate.entry === "entry-1",
+    )!;
+    result.place = null;
+    result.round = null;
+    event.rounds.reverse();
+
+    expect(
+      normalizeTabroomExport(input)[0]?.results.find(
+        (candidate) => candidate.sourceEntryId === "tabroom:entry:entry-1",
+      ),
+    ).toMatchObject({
+      placement: null,
+      furthestStage: "final",
+      wonFinalRound: false,
+    });
+  });
+
+  it("rejects section participation for an entry absent from the school joins", () => {
+    const input = mutableFixtureInput();
+    const payload = input.payload as {
+      categories: Array<{
+        events: Array<{
+          rounds: Array<{
+            id: string;
+            sections: Array<{
+              id: string;
+              round: string;
+              ballots: Array<{ entry: string }>;
+            }>;
+          }>;
+        }>;
+      }>;
+    };
+    const final = payload.categories[0]!.events[0]!.rounds.find(
+      (round) => round.id === "1442590",
+    )!;
+    final.sections.push({
+      id: "section-final",
+      round: "1442590",
+      ballots: [{ entry: "missing-entry" }],
+    });
+
+    expectTabroomError(
+      () => normalizeTabroomExport(input),
+      "TABROOM_MISSING_SECTION_ENTRY",
+    );
+  });
+
+  it("rejects a section whose provider round reference does not match its containing round", () => {
+    const input = mutableFixtureInput();
+    const payload = input.payload as {
+      categories: Array<{
+        events: Array<{
+          rounds: Array<{
+            id: string;
+            sections: Array<{
+              id: string;
+              round: string;
+              ballots: Array<{ entry: string }>;
+            }>;
+          }>;
+        }>;
+      }>;
+    };
+    const final = payload.categories[0]!.events[0]!.rounds.find(
+      (round) => round.id === "1442590",
+    )!;
+    final.sections.push({
+      id: "section-final",
+      round: "1463288",
+      ballots: [{ entry: "entry-1" }],
+    });
+
+    expectTabroomError(
+      () => normalizeTabroomExport(input),
+      "TABROOM_SECTION_ROUND_MISMATCH",
+    );
   });
 
   it("produces byte-identical JSON from reversed equivalent provider arrays", () => {

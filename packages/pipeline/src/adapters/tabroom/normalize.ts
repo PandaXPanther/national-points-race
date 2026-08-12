@@ -1,6 +1,7 @@
 import {
   classifyRoundLabel,
   type Division,
+  type RoundStage,
   type TournamentLineageId,
 } from "@points-race/policy";
 
@@ -46,6 +47,19 @@ interface EntryJoin {
   readonly schoolName: string;
 }
 
+interface IndexedRound {
+  readonly label: string | null;
+  readonly type: string | null;
+  readonly entryIds: ReadonlySet<string>;
+}
+
+const ROUND_STAGE_ORDER: Readonly<Record<RoundStage, number>> = {
+  octafinal: 1,
+  quarterfinal: 2,
+  semifinal: 3,
+  final: 4,
+};
+
 export function normalizeTabroomExport(
   input: TabroomNormalizeInput,
 ): readonly NormalizedResultSet[] {
@@ -66,7 +80,7 @@ export function normalizeTabroomExport(
     for (const event of sortedById(category.events)) {
       const rule = rules.get(`${category.id}:${event.id}`);
       if (rule === undefined) continue;
-      const rounds = indexRounds(event.rounds);
+      const rounds = indexRounds(event.rounds, joins, event.id);
       for (const resultSet of [...event.result_sets].sort(compareResultSet)) {
         if (
           !isPublished(resultSet.published) ||
@@ -85,10 +99,7 @@ export function normalizeTabroomExport(
           sourceSnapshotId: input.sourceSnapshotId,
           diagnostics,
         });
-        const explicitFinal =
-          isPublished(resultSet.published) &&
-          (resultSet.tag?.toLowerCase() === "final" ||
-            resultSet.tag?.toLowerCase() === "cumulative");
+        const explicitFinal = hasExplicitFinalityEvidence(resultSet);
         outputs.push(
           NormalizedResultSetSchema.parse({
             editionId: input.editionId,
@@ -184,10 +195,7 @@ function buildEntryJoins(
 
 function normalizeResults(input: {
   readonly results: TabroomExport["categories"][number]["events"][number]["result_sets"][number]["results"];
-  readonly rounds: ReadonlyMap<
-    string,
-    { readonly label: string | null; readonly type: string | null }
-  >;
+  readonly rounds: ReadonlyMap<string, IndexedRound>;
   readonly joins: ReadonlyMap<string, EntryJoin>;
   readonly eventId: string;
   readonly rule: TabroomEventRule;
@@ -196,8 +204,16 @@ function normalizeResults(input: {
   readonly diagnostics: Diagnostic[];
 }): readonly NormalizedResult[] {
   const placements = new Set<number>();
+  const entryIds = new Set<string>();
   const output: NormalizedResult[] = [];
   for (const result of [...input.results].sort(compareResult)) {
+    if (entryIds.has(result.entry)) {
+      throw new TabroomParseError(
+        "TABROOM_DUPLICATE_RESULT_ENTRY",
+        `Tabroom result set contained duplicate entry ${result.entry}.`,
+      );
+    }
+    entryIds.add(result.entry);
     const join = input.joins.get(result.entry);
     if (join === undefined) {
       throw new TabroomParseError(
@@ -221,7 +237,7 @@ function normalizeResults(input: {
       }
       placements.add(placement);
     }
-    const stage = stageForResult(result.round, input.rounds);
+    const stage = stageForResult(result.round, result.entry, input.rounds);
     if (stage === null) {
       input.diagnostics.push({
         code: "TABROOM_UNKNOWN_ROUND_LABEL",
@@ -248,30 +264,35 @@ function normalizeResults(input: {
 
 function stageForResult(
   roundId: string | null | undefined,
-  rounds: ReadonlyMap<
-    string,
-    { readonly label: string | null; readonly type: string | null }
-  >,
-) {
-  if (roundId === null || roundId === undefined) return null;
-  const round = rounds.get(roundId);
-  if (round === undefined) return null;
-  return (
-    (round.label === null ? null : classifyRoundLabel(round.label)) ??
-    (round.type === null ? null : classifyRoundLabel(round.type))
-  );
+  entryId: string,
+  rounds: ReadonlyMap<string, IndexedRound>,
+): RoundStage | null {
+  if (roundId !== null && roundId !== undefined) {
+    const round = rounds.get(roundId);
+    return round === undefined ? null : classifyRound(round);
+  }
+  let furthestStage: RoundStage | null = null;
+  for (const round of rounds.values()) {
+    if (!round.entryIds.has(entryId)) continue;
+    const stage = classifyRound(round);
+    if (
+      stage !== null &&
+      (furthestStage === null ||
+        ROUND_STAGE_ORDER[stage] > ROUND_STAGE_ORDER[furthestStage])
+    ) {
+      furthestStage = stage;
+    }
+  }
+  return furthestStage;
 }
 
 function indexRounds(
   rounds: TabroomExport["categories"][number]["events"][number]["rounds"],
-): ReadonlyMap<
-  string,
-  { readonly label: string | null; readonly type: string | null }
-> {
-  const index = new Map<
-    string,
-    { readonly label: string | null; readonly type: string | null }
-  >();
+  joins: ReadonlyMap<string, EntryJoin>,
+  eventId: string,
+): ReadonlyMap<string, IndexedRound> {
+  const index = new Map<string, IndexedRound>();
+  const sectionIds = new Set<string>();
   for (const round of sortedById(rounds)) {
     if (index.has(round.id)) {
       throw new TabroomParseError(
@@ -279,12 +300,46 @@ function indexRounds(
         `Tabroom round ${round.id} appeared more than once.`,
       );
     }
+    const entryIds = new Set<string>();
+    for (const section of sortedById(round.sections)) {
+      assertUnique(sectionIds, section.id, "TABROOM_DUPLICATE_SECTION_ID");
+      if (section.round !== round.id) {
+        throw new TabroomParseError(
+          "TABROOM_SECTION_ROUND_MISMATCH",
+          `Tabroom section ${section.id} referenced round ${section.round} instead of ${round.id}.`,
+        );
+      }
+      for (const ballot of section.ballots) {
+        const join = joins.get(ballot.entry);
+        if (join === undefined) {
+          throw new TabroomParseError(
+            "TABROOM_MISSING_SECTION_ENTRY",
+            `Tabroom section ${section.id} referenced missing entry ${ballot.entry}.`,
+          );
+        }
+        if (join.eventId !== eventId) {
+          throw new TabroomParseError(
+            "TABROOM_SECTION_ENTRY_EVENT_MISMATCH",
+            `Tabroom section ${section.id} referenced entry ${ballot.entry} from another event.`,
+          );
+        }
+        entryIds.add(ballot.entry);
+      }
+    }
     index.set(round.id, {
       label: round.label ?? null,
       type: round.type ?? null,
+      entryIds,
     });
   }
   return index;
+}
+
+function classifyRound(round: IndexedRound): RoundStage | null {
+  return (
+    (round.label === null ? null : classifyRoundLabel(round.label)) ??
+    (round.type === null ? null : classifyRoundLabel(round.type))
+  );
 }
 
 function parsePlacement(
@@ -315,6 +370,23 @@ function parsePlacement(
 
 function isPublished(value: boolean | number): boolean {
   return value === true || value === 1;
+}
+
+function hasExplicitFinalityEvidence(
+  resultSet: TabroomExport["categories"][number]["events"][number]["result_sets"][number],
+): boolean {
+  const tag = resultSet.tag?.trim().toLowerCase();
+  return (
+    isPublished(resultSet.published) &&
+    (tag === "final" || tag === "cumulative") &&
+    isFinalBracket(resultSet.bracket)
+  );
+}
+
+function isFinalBracket(value: string | number | undefined): boolean {
+  if (value === 0) return true;
+  if (typeof value !== "string") return false;
+  return ["0", "final", "cumulative"].includes(value.trim().toLowerCase());
 }
 
 function assertUnique<T>(

@@ -25,6 +25,7 @@ import {
   IdentityResolutionOutputSchema,
   SchoolAliasRegistrySchema,
   SourcePersonSchema,
+  type IdentityDiagnostic,
   type SourcePerson,
 } from "./identity/types.js";
 import {
@@ -53,14 +54,18 @@ export const PostNcflCutoffSchema = z
   .readonly();
 
 export const RebuildDiagnosticCodeSchema = z.enum([
+  "IDENTITY_AMBIGUOUS",
+  "IDENTITY_STABLE_ID_CONFLICT",
   "IDENTITY_UNRESOLVED",
   "POLICY_INPUT_INVALID",
 ]);
 
+const NsdaScoringDivisionSchema = z.enum(["ix", "usx"]);
+
 export const RebuildDiagnosticSchema = z
   .object({
     code: RebuildDiagnosticCodeSchema,
-    severity: z.literal("error"),
+    severity: z.enum(["warning", "error"]),
     editionId: z.string().min(1),
     lineageId: z.custom<TournamentLineageId>(
       (value) => typeof value === "string",
@@ -216,6 +221,17 @@ interface MappedResult {
   readonly provenance: SelectedResultSetProvenance;
 }
 
+interface IdentityMatch {
+  readonly sourcePersonKey: string;
+  readonly competitorId: string;
+}
+
+interface IdentityConflictScope {
+  readonly sourcePersonKeys: ReadonlySet<string>;
+  readonly competitorIds: ReadonlySet<string>;
+  readonly diagnostics: readonly RebuildDiagnostic[];
+}
+
 interface ScoredEvent {
   readonly awards: readonly AwardProvenance[];
   readonly diagnostics: readonly RebuildDiagnostic[];
@@ -250,11 +266,30 @@ export function rebuildSeason(rawInput: AwardRebuildInput): AwardRebuildOutput {
     arbitration.selectedProvenance.map((item) => [item.sourceSnapshotId, item]),
   );
   const diagnostics: RebuildDiagnosticUnion[] = [...arbitration.diagnostics];
+  const identityConflicts = mapIdentityConflicts(
+    identity.diagnostics,
+    input.sourcePeople,
+    input.resultSets,
+    mappings,
+  );
+  diagnostics.push(...identityConflicts.diagnostics);
   const mappedByEvent = new Map<string, MappedResult[]>();
 
   for (const resultSet of arbitration.selected) {
     const eventKey = stableEventKey(resultSet);
     const mapped: MappedResult[] = [];
+    if (hasInvalidNsdaDivision(resultSet)) {
+      diagnostics.push(
+        rebuildDiagnostic(
+          "POLICY_INPUT_INVALID",
+          resultSet,
+          resultSet.results.map(({ sourceEntryId }) => sourceEntryId),
+          "NSDA scoring accepts only matching IX or USX event and result divisions.",
+        ),
+      );
+      mappedByEvent.set(eventKey, mapped);
+      continue;
+    }
     for (const result of resultSet.results) {
       const mapping = uniqueCompetitorMapping(
         resultSet,
@@ -273,11 +308,25 @@ export function rebuildSeason(rawInput: AwardRebuildInput): AwardRebuildOutput {
         );
         continue;
       }
-      const competitor = competitors.get(mapping)!;
+      if (
+        identityConflicts.sourcePersonKeys.has(mapping.sourcePersonKey) ||
+        identityConflicts.competitorIds.has(mapping.competitorId)
+      ) {
+        diagnostics.push(
+          rebuildDiagnostic(
+            "IDENTITY_UNRESOLVED",
+            resultSet,
+            [result.sourceEntryId],
+            "A selected normalized result belongs to an identity component with unresolved conflict evidence.",
+          ),
+        );
+        continue;
+      }
+      const competitor = competitors.get(mapping.competitorId)!;
       mapped.push({
         resultSet,
         result,
-        competitorId: mapping,
+        competitorId: mapping.competitorId,
         displayName: competitor.displayName,
         provenance: provenance.get(resultSet.sourceSnapshotId)!,
       });
@@ -378,15 +427,17 @@ function scoreEvent(
   const scored: AwardProvenance[] = [];
   for (const item of mapped) {
     try {
-      const core =
-        item.resultSet.lineageId === "nsda-nationals"
-          ? scoreNsdaResult({
-              ...scoreInput(item),
-              division: item.result.division as "ix" | "usx",
-              lineageId: "nsda-nationals",
-              bonusDivision,
-            })
-          : scoreResult(scoreInput(item));
+      let core: Award | ScoredResult;
+      if (item.resultSet.lineageId === "nsda-nationals") {
+        core = scoreNsdaResult({
+          ...scoreInput(item),
+          division: NsdaScoringDivisionSchema.parse(item.result.division),
+          lineageId: "nsda-nationals",
+          bonusDivision,
+        });
+      } else {
+        core = scoreResult(scoreInput(item));
+      }
       if (core.points > 0) scored.push(withProvenance(item, core));
     } catch (error) {
       const policyError = error as PolicyInputError;
@@ -404,6 +455,18 @@ function scoreEvent(
     }
   }
   return { awards: scored, diagnostics: [] };
+}
+
+function hasInvalidNsdaDivision(resultSet: ResultSet): boolean {
+  return (
+    resultSet.lineageId === "nsda-nationals" &&
+    (resultSet.event.division === "combined" ||
+      resultSet.results.some(
+        (result) =>
+          result.division === "combined" ||
+          result.division !== resultSet.event.division,
+      ))
+  );
 }
 
 function scoreInput(item: MappedResult) {
@@ -467,7 +530,7 @@ function uniqueCompetitorMapping(
   result: NormalizedResult,
   people: readonly SourcePerson[],
   mappings: ReadonlyMap<string, string>,
-): string | null {
+): IdentityMatch | null {
   const matchingPeople = people.filter(
     (person) =>
       person.editionId === resultSet.editionId &&
@@ -485,7 +548,104 @@ function uniqueCompetitorMapping(
   )
     ? sourcePersonId
     : `${matchingPeople[0]!.provider}:${sourcePersonId}`;
-  return mappings.get(sourcePersonKey)!;
+  const competitorId = mappings.get(sourcePersonKey);
+  return competitorId === undefined ? null : { sourcePersonKey, competitorId };
+}
+
+function mapIdentityConflicts(
+  identityDiagnostics: readonly IdentityDiagnostic[],
+  people: readonly SourcePerson[],
+  resultSets: readonly ResultSet[],
+  mappings: ReadonlyMap<string, string>,
+): IdentityConflictScope {
+  const sourcePersonKeys = new Set<string>();
+  const competitorIds = new Set<string>();
+  const diagnostics: RebuildDiagnostic[] = [];
+
+  for (const identityDiagnostic of identityDiagnostics) {
+    const scope = identityDiagnosticScope(identityDiagnostic, people, mappings);
+    for (const sourcePersonKey of scope.sourcePersonKeys)
+      sourcePersonKeys.add(sourcePersonKey);
+    for (const competitorId of scope.competitorIds)
+      competitorIds.add(competitorId);
+
+    const implicatedPeople = people.filter((person) => {
+      const sourcePersonKey = stableSourcePersonKey(person);
+      return (
+        (sourcePersonKey !== null &&
+          scope.sourcePersonKeys.has(sourcePersonKey)) ||
+        identityDiagnostic.sourceEntryIds.includes(person.sourceEntryId)
+      );
+    });
+    const contexts = new Map<
+      string,
+      { resultSet: ResultSet; people: SourcePerson[] }
+    >();
+    for (const person of implicatedPeople) {
+      const matchingResultSets = resultSets.filter(
+        (resultSet) =>
+          resultSet.editionId === person.editionId &&
+          resultSet.event.id === person.eventId &&
+          resultSet.event.division === person.division &&
+          resultSet.sourceSnapshotId === person.sourceSnapshotId,
+      );
+      for (const resultSet of matchingResultSets) {
+        const key = stableEventKey(resultSet);
+        const context = contexts.get(key) ?? { resultSet, people: [] };
+        context.people.push(person);
+        contexts.set(key, context);
+      }
+    }
+    for (const key of [...contexts.keys()].sort(compareText)) {
+      const context = contexts.get(key)!;
+      diagnostics.push({
+        code: identityDiagnostic.code,
+        severity: identityDiagnostic.severity,
+        editionId: context.resultSet.editionId,
+        lineageId: context.resultSet.lineageId,
+        eventId: context.resultSet.event.id,
+        division: context.resultSet.event.division,
+        sourceSnapshotIds: uniqueSorted(
+          context.people.map(({ sourceSnapshotId }) => sourceSnapshotId),
+        ),
+        sourceEntryIds: uniqueSorted(
+          context.people.map(({ sourceEntryId }) => sourceEntryId),
+        ),
+        explanation: identityDiagnostic.explanation,
+      });
+    }
+  }
+
+  return { sourcePersonKeys, competitorIds, diagnostics };
+}
+
+function identityDiagnosticScope(
+  diagnostic: IdentityDiagnostic,
+  people: readonly SourcePerson[],
+  mappings: ReadonlyMap<string, string>,
+): Omit<IdentityConflictScope, "diagnostics"> {
+  const sourcePersonKeys = new Set(diagnostic.sourcePersonKeys);
+  for (const person of people) {
+    if (!diagnostic.sourceEntryIds.includes(person.sourceEntryId)) continue;
+    const sourcePersonKey = stableSourcePersonKey(person);
+    if (sourcePersonKey !== null) sourcePersonKeys.add(sourcePersonKey);
+  }
+  const competitorIds = new Set<string>();
+  for (const sourcePersonKey of sourcePersonKeys) {
+    const competitorId = mappings.get(sourcePersonKey);
+    if (competitorId !== undefined) competitorIds.add(competitorId);
+  }
+  for (const [sourcePersonKey, competitorId] of mappings) {
+    if (competitorIds.has(competitorId)) sourcePersonKeys.add(sourcePersonKey);
+  }
+  return { sourcePersonKeys, competitorIds };
+}
+
+function stableSourcePersonKey(person: SourcePerson): string | null {
+  if (person.sourcePersonId === null) return null;
+  return person.sourcePersonId.startsWith(`${person.provider}:`)
+    ? person.sourcePersonId
+    : `${person.provider}:${person.sourcePersonId}`;
 }
 
 function rebuildDiagnostic(

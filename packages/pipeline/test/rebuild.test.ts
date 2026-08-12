@@ -388,6 +388,133 @@ describe("rebuildSeason", () => {
     expect(JSON.stringify(corrected)).toBe(before);
   });
 
+  it("canonicalizes nested result and parser-diagnostic permutations without mutating input", () => {
+    const built = set(
+      "harvard-2025",
+      "harvard",
+      "nested",
+      [person("bob", 2), person("alice", 1)],
+      { snapshotSuffix: "nested" },
+    );
+    const nested: BuiltSet = {
+      ...built,
+      resultSet: {
+        ...built.resultSet,
+        parserDiagnostics: [
+          {
+            code: "Z_LAST",
+            severity: "warning",
+            editionId: "harvard-2025",
+            sourceSnapshotId: "snapshot-nested",
+            explanation: "Later by stable diagnostic tuple.",
+          },
+          {
+            code: "A_FIRST",
+            severity: "info",
+            editionId: "harvard-2025",
+            sourceSnapshotId: "snapshot-nested",
+            explanation: "Earlier by stable diagnostic tuple.",
+          },
+        ],
+      },
+    };
+    const input = inputFromSets([nested], [harvardEdition()]);
+    const before = JSON.stringify(input);
+
+    const first = rebuildSeason(input);
+    const permuted = rebuildSeason(reverseDeep(input));
+
+    expect(JSON.stringify(first)).toBe(JSON.stringify(permuted));
+    expect(first.versionHash).toBe(permuted.versionHash);
+    expect(
+      first.selectedResultSets[0]?.results.map(
+        ({ sourceEntryId }) => sourceEntryId,
+      ),
+    ).toEqual(["entry-alice", "entry-bob"]);
+    expect(
+      first.selectedResultSets[0]?.parserDiagnostics.map(({ code }) => code),
+    ).toEqual(["A_FIRST", "Z_LAST"]);
+    expect(JSON.stringify(input)).toBe(before);
+  });
+
+  it("withholds conflicted identity components while a clean competitor still scores", () => {
+    const repeated = set("harvard-2025", "harvard", "stable-conflict", [
+      person("stable-a", 1, { publishedName: "Stable Alpha" }),
+      person("stable-b", 2, { publishedName: "Stable Beta" }),
+    ]);
+    const stableConflict: BuiltSet = {
+      ...repeated,
+      resultSet: {
+        ...repeated.resultSet,
+        results: repeated.resultSet.results.map((result) =>
+          result.sourceEntryId === "entry-stable-b"
+            ? { ...result, sourcePersonId: "stable-a" }
+            : result,
+        ),
+      },
+      sourcePeople: repeated.sourcePeople.map((sourcePerson) =>
+        sourcePerson.sourceEntryId === "entry-stable-b"
+          ? { ...sourcePerson, sourcePersonId: "stable-a" }
+          : sourcePerson,
+      ),
+    };
+    const sameSchoolAmbiguity = set("harvard-2025", "harvard", "ambiguous", [
+      person("amb-a", 1, { publishedName: "Same Speaker" }),
+      person("amb-b", 2, { publishedName: "Same Speaker" }),
+    ]);
+    const clean = set("harvard-2025", "harvard", "clean", [person("carol", 1)]);
+    const input = inputFromSets(
+      [stableConflict, sameSchoolAmbiguity, clean],
+      [harvardEdition()],
+    );
+
+    const output = rebuildSeason(input);
+    const permuted = rebuildSeason(reverseDeep(input));
+
+    expect(output.awards).toEqual([
+      expect.objectContaining({ competitorId: CAROL, points: 150 }),
+    ]);
+    expect(
+      output.diagnostics
+        .filter(({ code }) => code.startsWith("IDENTITY_"))
+        .map((diagnostic) => [
+          diagnostic.eventId,
+          diagnostic.code,
+          "sourceEntryIds" in diagnostic ? diagnostic.sourceEntryIds : [],
+        ]),
+    ).toEqual([
+      ["ambiguous", "IDENTITY_AMBIGUOUS", ["entry-amb-a", "entry-amb-b"]],
+      ["ambiguous", "IDENTITY_UNRESOLVED", ["entry-amb-a"]],
+      ["ambiguous", "IDENTITY_UNRESOLVED", ["entry-amb-b"]],
+      [
+        "stable-conflict",
+        "IDENTITY_STABLE_ID_CONFLICT",
+        ["entry-stable-a", "entry-stable-b"],
+      ],
+      ["stable-conflict", "IDENTITY_UNRESOLVED", ["entry-stable-a"]],
+      ["stable-conflict", "IDENTITY_UNRESOLVED", ["entry-stable-b"]],
+    ]);
+    expect(JSON.stringify(output)).toBe(JSON.stringify(permuted));
+  });
+
+  it("withholds a combined NSDA event as invalid policy input", () => {
+    const output = rebuildSeason(
+      inputFromSets(
+        [set("nsda-2025", "nsda-nationals", "combined", [person("alice", 1)])],
+        [nsdaEdition()],
+      ),
+    );
+
+    expect(output.awards).toEqual([]);
+    expect(output.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "POLICY_INPUT_INVALID",
+        eventId: "combined",
+        sourceEntryIds: ["entry-alice"],
+      }),
+    );
+  });
+
   it("sorts merged diagnostics by stable event/code keys", () => {
     const unavailable = set("harvard-2025", "harvard", "a", [
       person("alice", 1),

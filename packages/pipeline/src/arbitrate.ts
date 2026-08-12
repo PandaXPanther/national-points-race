@@ -148,6 +148,7 @@ export function arbitrateResultSets(
   rawInput: ArbitrationInput,
 ): ArbitrationOutput {
   const input = ArbitrationInputSchema.parse(rawInput);
+  const resultSets = input.resultSets.map(canonicalResultSet);
   const snapshots = new Map(
     input.snapshots.map((snapshot) => [snapshot.id, snapshot]),
   );
@@ -159,7 +160,7 @@ export function arbitrateResultSets(
   const selected: ResultSet[] = [];
   const selectedProvenance: SelectedResultSetProvenance[] = [];
 
-  const groups = groupResultSets(input.resultSets);
+  const groups = groupResultSets(resultSets);
   for (const groupKey of [...groups.keys()].sort(compareText)) {
     const group = groups.get(groupKey)!;
     if (!metadataAgrees(group)) {
@@ -420,10 +421,71 @@ function semanticContent(resultSet: ResultSet): string {
     editionId: resultSet.editionId,
     lineageId: resultSet.lineageId,
     event: resultSet.event,
-    results: [...resultSet.results]
-      .map((result) => ({ ...result }))
-      .sort(compareStableValue),
+    results: resultSet.results,
   });
+}
+
+function canonicalResultSet(resultSet: ResultSet): ResultSet {
+  return {
+    ...resultSet,
+    event: { ...resultSet.event },
+    results: resultSet.results
+      .map((result) => ({ ...result }))
+      .sort(compareNormalizedResult),
+    parserDiagnostics: resultSet.parserDiagnostics
+      .map((diagnostic) => ({ ...diagnostic }))
+      .sort(compareParserDiagnostic),
+  };
+}
+
+function compareNormalizedResult(
+  left: ResultSet["results"][number],
+  right: ResultSet["results"][number],
+): number {
+  return compareText(
+    JSON.stringify([
+      left.sourceEntryId,
+      left.sourcePersonId,
+      left.publishedName,
+      left.publishedSchool,
+      left.division,
+      left.placement,
+      left.furthestStage,
+      left.wonFinalRound,
+    ]),
+    JSON.stringify([
+      right.sourceEntryId,
+      right.sourcePersonId,
+      right.publishedName,
+      right.publishedSchool,
+      right.division,
+      right.placement,
+      right.furthestStage,
+      right.wonFinalRound,
+    ]),
+  );
+}
+
+function compareParserDiagnostic(
+  left: ResultSet["parserDiagnostics"][number],
+  right: ResultSet["parserDiagnostics"][number],
+): number {
+  return compareText(
+    JSON.stringify([
+      left.code,
+      left.severity,
+      left.editionId,
+      left.sourceSnapshotId,
+      left.explanation,
+    ]),
+    JSON.stringify([
+      right.code,
+      right.severity,
+      right.editionId,
+      right.sourceSnapshotId,
+      right.explanation,
+    ]),
+  );
 }
 
 function provenance(candidate: Candidate): SelectedResultSetProvenance {

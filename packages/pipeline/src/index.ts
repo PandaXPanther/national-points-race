@@ -24,6 +24,14 @@ export type {
   SourcePermission,
   SourceSnapshot,
 } from "./source.js";
+export { fetchBounded } from "./http/bounded-fetch.js";
+export type {
+  BoundedFetchInput,
+  BoundedResponse,
+  SourceHash,
+} from "./http/bounded-fetch.js";
+export { assertAllowedSource, SourceFetchError } from "./http/source-policy.js";
+export type { SourceFetchErrorCode } from "./http/source-policy.js";
 
 export {
   DivisionSchema,

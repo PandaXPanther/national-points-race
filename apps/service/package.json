@@ -6,6 +6,7 @@
   "scripts": {
     "pretest": "pnpm --filter @points-race/pipeline build",
     "test": "vitest run",
+    "test:integration": "vitest run test/integration/autonomous-season.test.ts --max-workers=1 --no-isolate",
     "test:clean-lifecycle": "node test/clean-lifecycle.mjs",
     "typecheck": "tsc --noEmit",
     "dev": "wrangler dev",

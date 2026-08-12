@@ -8,8 +8,8 @@
 - Task 4: complete — season lifecycle and tournament discovery (`0ca8f83`)
 - Task 5: complete — collection, rebuild, retry, leases, and dead-letter handling (`ea71a5d`)
 - Task 6: complete — signed document ingest and audited public standings APIs (`4e7e41a`)
-- Task 7: complete — scheduled bounded Node document-collector workflow
-- Task 8: pending — complete simulated-season Workers integration test
+- Task 7: complete — scheduled bounded Node document-collector workflow (`a2661bb`)
+- Task 8: complete — complete simulated-season Workers integration test
 
 ## Controller notes
 

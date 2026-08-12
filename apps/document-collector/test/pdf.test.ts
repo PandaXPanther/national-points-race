@@ -147,6 +147,8 @@ describe("text-layer PDF adapter", () => {
       "encrypted.pdf",
       "multi-table.pdf",
       "unrelated-table.pdf",
+      "adjacent-unrelated-table.pdf",
+      "large-row-gap.pdf",
       "overlapping-text.pdf",
       "manifest.json",
     ];
@@ -241,6 +243,28 @@ describe("text-layer PDF adapter", () => {
         }),
       "PDF_MULTIPLE_TABLES",
     );
+  });
+
+  it("rejects an adjacent unrelated four-column table without relying on a vertical gap", async () => {
+    await expectPdfError(
+      () =>
+        parseOfficialDocument({
+          manifest,
+          mediaType: "application/pdf",
+          bytes: fixtureBytes("adjacent-unrelated-table.pdf"),
+        }),
+      "PDF_MULTIPLE_TABLES",
+    );
+  });
+
+  it("normalizes one valid result table with a large inter-row gap", async () => {
+    const result = await parseOfficialDocument({
+      manifest,
+      mediaType: "application/pdf",
+      bytes: fixtureBytes("large-row-gap.pdf"),
+    });
+
+    expect(stripSnapshotIds(result)).toEqual(expected);
   });
 
   it("rejects overlapping text cells", async () => {

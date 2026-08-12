@@ -8,13 +8,13 @@ import type { TextItem } from "pdfjs-dist/types/src/display/api.js";
 
 import {
   normalizeOfficialDocumentTable,
+  RoundStageSchema,
   type DocumentManifest,
   type NormalizedResultSet,
 } from "@points-race/pipeline";
 
 export const PDF_ROW_Y_TOLERANCE = 2;
 
-const PDF_SEPARATED_TABLE_GAP_FACTOR = 4;
 const PDF_TABLE_COLUMN_X_TOLERANCE = 4;
 
 export type PdfDocumentErrorCode =
@@ -245,43 +245,67 @@ function selectPdfResultTable(
   const selected = rows
     .slice(headerIndex)
     .filter((row) => row.pageNumber === header.pageNumber);
-  assertNoSeparatedTableBlock(selected, Object.keys(manifest.columns).length);
+  assertNoAdditionalTableBlock(selected, header, manifest);
   return selected.map((row) => row.cells.map(({ text }) => text));
 }
 
-function assertNoSeparatedTableBlock(
+function assertNoAdditionalTableBlock(
   rows: readonly PositionedPdfRow[],
-  columnCount: number,
+  header: PositionedPdfRow,
+  manifest: DocumentManifest,
 ): void {
+  const placementIndex = findConfiguredColumnIndex(
+    header,
+    manifest.columns.placement,
+  );
+  const stageIndex = findConfiguredColumnIndex(header, manifest.columns.stage);
   for (let index = 1; index < rows.length - 1; index += 1) {
-    const previous = rows[index - 1]!;
     const candidateHeader = rows[index]!;
     const candidateRow = rows[index + 1]!;
-    const height = Math.max(
-      1,
-      ...previous.cells.map((cell) => cell.height),
-      ...candidateHeader.cells.map((cell) => cell.height),
-    );
-    const isSeparated =
-      previous.y - candidateHeader.y > height * PDF_SEPARATED_TABLE_GAP_FACTOR;
     if (
-      isSeparated &&
-      candidateHeader.cells.length === columnCount &&
-      candidateRow.cells.length === columnCount &&
-      columnsAlign(candidateHeader, candidateRow)
+      columnsAlign(header, candidateHeader) &&
+      !isPositivePlacement(candidateHeader.cells[placementIndex]!.text) &&
+      !isAllowedStage(candidateHeader.cells[stageIndex]!.text) &&
+      columnsAlign(header, candidateRow) &&
+      isPositivePlacement(candidateRow.cells[placementIndex]!.text) &&
+      isAllowedStage(candidateRow.cells[stageIndex]!.text)
     ) {
       throw new PdfDocumentError(
         "PDF_MULTIPLE_TABLES",
-        "PDF contains multiple or ambiguously separated tabular blocks.",
+        "PDF contains multiple or ambiguous tabular blocks.",
       );
     }
   }
+}
+
+function findConfiguredColumnIndex(
+  header: PositionedPdfRow,
+  aliases: readonly string[],
+): number {
+  const index = header.cells.findIndex(({ text }) => aliases.includes(text));
+  if (index < 0) {
+    throw new PdfDocumentError(
+      "PDF_TABLE_NOT_FOUND",
+      "PDF contains no table with the configured exact headers.",
+    );
+  }
+  return index;
+}
+
+function isPositivePlacement(value: string): boolean {
+  if (!/^[1-9]\d*$/.test(value.trim())) return false;
+  return Number.isSafeInteger(Number(value));
+}
+
+function isAllowedStage(value: string): boolean {
+  return RoundStageSchema.safeParse(value.trim()).success;
 }
 
 function columnsAlign(
   left: PositionedPdfRow,
   right: PositionedPdfRow,
 ): boolean {
+  if (left.cells.length !== right.cells.length) return false;
   return left.cells.every(
     (cell, index) =>
       Math.abs(cell.x - right.cells[index]!.x) <= PDF_TABLE_COLUMN_X_TOLERANCE,

@@ -78,6 +78,10 @@ Every public standings, methodology, archive, and correction page includes this 
 
 The callout links to <https://discord.gg/8RFTvCWPPv>. It does not collect contact information on the site.
 
+### Project support
+
+The footer and appropriate reference pages include a restrained support line: readers can star the public project at <https://github.com/PandaXPanther/national-points-race> or support the maintainer at <https://buymeacoffee.com/sarast1>. These links are presented as optional project support, remain visually secondary to standings and source information, and use clear accessible link text.
+
 ## System architecture
 
 The already implemented Cloudflare Worker remains the source of truth:
@@ -175,13 +179,14 @@ Public-facing copy must not use em dashes. Use commas, colons, parentheses, or s
 3. Historical seasons from the supplied Extemp Central page are present as preserved data or explicit attributed source links.
 4. The methodology exactly matches the executable policy, including all edge cases and rounding.
 5. The Discord correction callout and `@PandaXPanther` instruction are visible throughout the reference and standings experience.
-6. The 2025–2026 archive names Daphne Kalir-Starr as reconstructed champion with 619 points and publishes up to 100 standings.
-7. The 2026–2027 and later public standings publish up to 100 competitors without changing the policy's post-NCFL top-25 scoring snapshot.
-8. The Arizona State HDSHC Invitational is Tier 4 in `npr-2026-27-v1` and is discovered for 2026–2027 and later seasons.
-9. Exactly one valid MBA submission can be accepted per season, and acceptance produces an immutable evidence record and idempotent standings rebuild.
-10. Invalid evidence, ambiguous names, duplicate placements, repeat submissions, and concurrent submissions cannot alter standings.
-11. GitHub and Cloudflare publication completes without committed credentials, and every successful push to `main` deploys automatically.
-12. Full tests, golden replay, simulated season, accessibility checks, deploy dry runs, production smoke tests, and post-deploy URL checks pass.
+6. The GitHub star and Buy Me a Coffee support links are available without competing visually with editorial content.
+7. The 2025–2026 archive names Daphne Kalir-Starr as reconstructed champion with 619 points and publishes up to 100 standings.
+8. The 2026–2027 and later public standings publish up to 100 competitors without changing the policy's post-NCFL top-25 scoring snapshot.
+9. The Arizona State HDSHC Invitational is Tier 4 in `npr-2026-27-v1` and is discovered for 2026–2027 and later seasons.
+10. Exactly one valid MBA submission can be accepted per season, and acceptance produces an immutable evidence record and idempotent standings rebuild.
+11. Invalid evidence, ambiguous names, duplicate placements, repeat submissions, and concurrent submissions cannot alter standings.
+12. GitHub and Cloudflare publication completes without committed credentials, and every successful push to `main` deploys automatically.
+13. Full tests, golden replay, simulated season, accessibility checks, deploy dry runs, production smoke tests, and post-deploy URL checks pass.
 
 ## Authoritative references
 
@@ -191,3 +196,5 @@ Public-facing copy must not use em dashes. Use commas, colons, parentheses, or s
 - Arizona State tournament information: <https://humancommunication.asu.edu/student-life/forensics/team-schedule-and-debate-events>
 - 2026 Arizona State HDSHC Invitational record: <https://www.tabroom.com/index/tourn/index.mhtml?tourn_id=37484>
 - Community corrections: <https://discord.gg/8RFTvCWPPv>
+- Project repository: <https://github.com/PandaXPanther/national-points-race>
+- Maintainer support: <https://buymeacoffee.com/sarast1>

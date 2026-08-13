@@ -24,6 +24,8 @@ describe("GitHub Pages deployment workflow", () => {
     expect(workflow).toContain("--commit-hash $GITHUB_SHA");
     expect(workflow).toContain("secrets.CLOUDFLARE_API_TOKEN");
     expect(workflow).toContain("secrets.CLOUDFLARE_ACCOUNT_ID");
+    expect(workflow).toContain("env.CLOUDFLARE_API_TOKEN != ''");
+    expect(workflow).toContain("env.CLOUDFLARE_ACCOUNT_ID != ''");
   });
 
   it("documents the one-time secret setup and production behavior", async () => {

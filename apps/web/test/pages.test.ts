@@ -97,4 +97,15 @@ describe("public information architecture", () => {
     );
     expect(history).toContain("independent");
   });
+
+  it("publishes the current 21-tournament policy and ASU addition", async () => {
+    const [current, methodology] = await Promise.all([
+      readFile(`${sourceRoot}pages/2026-27.astro`, "utf8"),
+      readFile(`${sourceRoot}pages/methodology.astro`, "utf8"),
+    ]);
+    expect(current).toContain("npr-2026-27-v1");
+    expect(current).toContain("21");
+    expect(methodology).toContain("Arizona State HDSHC Invitational");
+    expect(methodology).toContain("Tier 4");
+  });
 });

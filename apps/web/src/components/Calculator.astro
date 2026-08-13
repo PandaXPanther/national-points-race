@@ -7,7 +7,7 @@ interface Props {
 const { policy } = Astro.props;
 ---
 
-<section class="calculator paper-card" data-policy={JSON.stringify(policy)}>
+<section class="calculator" data-policy={JSON.stringify(policy)}>
   <div>
     <p class="eyebrow">Policy calculator</p>
     <h3>Try a placement</h3>
@@ -79,6 +79,8 @@ const { policy } = Astro.props;
     display: grid;
     grid-template-columns: minmax(0, 0.8fr) minmax(20rem, 1.2fr);
     gap: 2rem;
+    border-top: 2px solid var(--ink);
+    padding-top: 1.25rem;
   }
 
   form {

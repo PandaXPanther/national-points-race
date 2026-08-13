@@ -17,10 +17,10 @@ const tierGroups = [1, 2, 3, 4, 5].map((tier) => ({
 >
   <header class="shell hero">
     <p class="eyebrow">Policy {policy.version}</p>
-    <h1>Exactly how the race is calculated.</h1>
+    <h1>How the race is calculated</h1>
     <p class="dek">
-      These tables are rendered from the same frozen policy ledger used by the scoring
-      engine. No separate editorial spreadsheet controls the result.
+      These tables are rendered from the same versioned policy ledger used by the
+      scoring engine. No separate editorial spreadsheet controls the result.
     </p>
   </header>
 
@@ -64,15 +64,20 @@ const tierGroups = [1, 2, 3, 4, 5].map((tier) => ({
 
   <section class="section">
     <div class="shell">
-      <div class="section-heading"><div><p class="eyebrow">Frozen roster</p><h2>Twenty tracked lineages</h2></div><p>Names and tiers come directly from the executable policy.</p></div>
+      <div class="section-heading"><div><p class="eyebrow">Current roster</p><h2>Twenty-one tracked tournaments</h2></div><p>Names and tiers come directly from the executable 2026-27 policy.</p></div>
+      <p class="asu-note">
+        The <strong>Arizona State HDSHC Invitational</strong> joins the race as a
+        <strong>Tier 4</strong> tournament beginning in 2026-27. It is not applied
+        retroactively to the 2025-26 reconstruction.
+      </p>
       <div class="tier-roster">
         {tierGroups.map(({ tier, tournaments }) => (
-          <article class="paper-card">
+          <section class="tier-section">
             <p class="eyebrow">Tier {tier}</p>
             <ul class="clean-list">
               {tournaments.map((tournament) => <li><strong>{tournament.canonicalName}</strong>{tournament.mbaTopSixOnly && <span>MBA top-six exception</span>}</li>)}
             </ul>
-          </article>
+          </section>
         ))}
       </div>
     </div>
@@ -105,9 +110,11 @@ const tierGroups = [1, 2, 3, 4, 5].map((tier) => ({
 </SiteLayout>
 
 <style>
-  .tier-roster { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
-  .tier-roster article:first-child { grid-column: 1 / -1; }
+  .asu-note { max-width: var(--measure); margin: 0 0 2rem; color: var(--ink-soft); }
+  .tier-roster { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem; }
+  .tier-roster section:first-child { grid-column: 1 / -1; }
+  .tier-section { border-top: 2px solid var(--rule-dark); padding-top: 1rem; }
   .tier-roster li { display: flex; justify-content: space-between; gap: 1rem; }
   .tier-roster li span { color: var(--burgundy); font-size: 0.75rem; }
-  @media (max-width: 44rem) { .tier-roster { grid-template-columns: 1fr; } .tier-roster article:first-child { grid-column: auto; } }
+  @media (max-width: 44rem) { .tier-roster { grid-template-columns: 1fr; } .tier-roster section:first-child { grid-column: auto; } }
 </style>

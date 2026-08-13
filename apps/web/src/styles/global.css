@@ -12,19 +12,17 @@ html {
 
 body {
   margin: 0;
-  background:
-    linear-gradient(rgb(120 31 50 / 3%) 1px, transparent 1px) 0 7.5rem / 100%
-      1.75rem,
-    var(--paper);
+  background: var(--paper);
   color: var(--ink);
   font-family: var(--sans);
-  line-height: 1.55;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
 a {
   color: var(--burgundy);
-  text-decoration-thickness: 0.08em;
-  text-underline-offset: 0.18em;
+  text-decoration-thickness: 0.075em;
+  text-underline-offset: 0.2em;
 }
 
 a:hover {
@@ -33,19 +31,18 @@ a:hover {
 
 :focus-visible {
   outline: 3px solid var(--gold);
-  outline-offset: 4px;
+  outline-offset: 3px;
 }
 
 .skip-link {
   position: fixed;
   z-index: 100;
-  top: 0.75rem;
-  left: 0.75rem;
+  top: 0.6rem;
+  left: 0.6rem;
   transform: translateY(-160%);
-  border-radius: 0.25rem;
   background: var(--ink);
   color: white;
-  padding: 0.7rem 1rem;
+  padding: 0.55rem 0.8rem;
 }
 
 .skip-link:focus {
@@ -53,16 +50,16 @@ a:hover {
 }
 
 main {
-  min-height: 60vh;
+  min-height: 62vh;
 }
 
 .shell {
-  width: min(calc(100% - 2rem), var(--content));
+  width: min(calc(100% - 2.5rem), var(--content));
   margin-inline: auto;
 }
 
 .hero {
-  padding: clamp(3.5rem, 8vw, 7rem) 0 clamp(3rem, 6vw, 5rem);
+  padding: clamp(2.75rem, 6vw, 5rem) 0 clamp(2.25rem, 5vw, 4rem);
 }
 
 .hero-grid,
@@ -70,16 +67,20 @@ main {
 .card-grid,
 .stats-grid {
   display: grid;
-  gap: 1.25rem;
+  gap: clamp(1.5rem, 4vw, 3rem);
 }
 
 .hero-grid {
-  align-items: end;
-  grid-template-columns: minmax(0, 1.6fr) minmax(17rem, 0.7fr);
+  align-items: start;
+  grid-template-columns: minmax(0, 1.55fr) minmax(16rem, 0.7fr);
+}
+
+.hero-grid > * {
+  min-width: 0;
 }
 
 .split-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
 .card-grid {
@@ -91,11 +92,11 @@ main {
 }
 
 .eyebrow {
-  margin: 0 0 0.7rem;
+  margin: 0 0 0.65rem;
   color: var(--burgundy);
-  font-size: 0.74rem;
-  font-weight: 800;
-  letter-spacing: 0.16em;
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
 }
 
@@ -104,52 +105,50 @@ h2,
 h3 {
   font-family: var(--serif);
   font-weight: 600;
-  line-height: 1.08;
+  line-height: 1.12;
   text-wrap: balance;
 }
 
 h1 {
-  max-width: 16ch;
+  max-width: 22ch;
   margin: 0;
-  font-size: clamp(3rem, 8vw, 7.4rem);
-  letter-spacing: -0.055em;
-  overflow-wrap: anywhere;
-}
-
-h2 {
-  margin: 0 0 1rem;
-  font-size: clamp(2rem, 4vw, 3.7rem);
+  font-size: clamp(2.45rem, 5.4vw, 4.8rem);
   letter-spacing: -0.035em;
 }
 
+h2 {
+  margin: 0 0 0.8rem;
+  font-size: clamp(1.65rem, 3vw, 2.65rem);
+  letter-spacing: -0.02em;
+}
+
 h3 {
-  margin: 0 0 0.5rem;
-  font-size: 1.35rem;
+  margin: 0 0 0.45rem;
+  font-size: 1.2rem;
 }
 
 .dek {
-  max-width: 44rem;
-  margin: 1.2rem 0 0;
+  max-width: var(--measure);
+  margin: 1rem 0 0;
   color: var(--ink-soft);
   font-family: var(--serif);
-  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  font-size: clamp(1.05rem, 1.8vw, 1.28rem);
 }
 
 .section {
-  padding: clamp(3rem, 7vw, 6rem) 0;
+  padding: clamp(2.5rem, 5vw, 4.5rem) 0;
   border-top: 1px solid var(--rule);
 }
 
 .section-heading {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.72fr);
   gap: 2rem;
-  margin-bottom: 2rem;
+  align-items: end;
+  margin-bottom: 1.75rem;
 }
 
 .section-heading > p {
-  max-width: 38rem;
   margin: 0;
   color: var(--ink-soft);
 }
@@ -157,14 +156,9 @@ h3 {
 .paper-card,
 .data-card,
 .notice {
-  border: 1px solid var(--rule);
-  background: rgb(255 250 240 / 82%);
-  box-shadow: var(--shadow);
-}
-
-.paper-card,
-.notice {
-  padding: clamp(1.2rem, 3vw, 2rem);
+  min-width: 0;
+  border-top: 2px solid var(--rule-dark);
+  padding: 1.25rem 0 0;
 }
 
 .paper-card p:last-child,
@@ -173,57 +167,55 @@ h3 {
 }
 
 .notice {
-  border-left: 0.35rem solid var(--burgundy);
+  border-top-color: var(--burgundy);
 }
 
 .stat {
-  border-top: 3px solid var(--burgundy);
-  padding-top: 0.9rem;
+  border-top: 2px solid var(--rule-dark);
+  padding-top: 0.75rem;
 }
 
 .stat strong {
   display: block;
   font-family: var(--serif);
-  font-size: clamp(1.75rem, 4vw, 3rem);
-  line-height: 1;
+  font-size: clamp(1.4rem, 2.7vw, 2.15rem);
+  line-height: 1.15;
 }
 
 .stat span {
   color: var(--ink-soft);
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
 }
 
 .button-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
+  gap: 0.65rem;
+  margin-top: 1.4rem;
 }
 
 .button {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-height: 2.75rem;
-  border: 1px solid var(--burgundy);
-  background: var(--burgundy);
-  color: white;
-  padding: 0.65rem 1rem;
-  font-weight: 750;
+  min-height: 2.6rem;
+  border-bottom: 1px solid currentColor;
+  color: var(--burgundy);
+  padding: 0.25rem 0;
+  font-weight: 700;
   text-decoration: none;
 }
 
-.button.secondary {
-  background: transparent;
-  color: var(--burgundy);
+.button + .button::before {
+  margin-right: 0.65rem;
+  color: var(--rule-dark);
+  content: "/";
 }
 
 .button:hover {
-  background: var(--burgundy-dark);
-  color: white;
+  color: var(--burgundy-dark);
 }
 
 .meta-list,
@@ -235,15 +227,24 @@ h3 {
 
 .meta-list li,
 .clean-list li {
-  padding: 0.65rem 0;
+  padding: 0.55rem 0;
   border-bottom: 1px solid var(--rule);
 }
 
 .table-wrap {
+  max-width: 100%;
   overflow-x: auto;
-  border: 1px solid var(--rule);
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid var(--rule-dark);
   background: var(--paper-raised);
-  box-shadow: var(--shadow);
+  scrollbar-color: var(--rule-dark) var(--paper-deep);
+}
+
+.table-wrap::before {
+  display: none;
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  content: "Scroll horizontally for complete standings";
 }
 
 table {
@@ -254,14 +255,16 @@ table {
 
 th,
 td {
-  padding: 0.85rem 1rem;
+  padding: 0.72rem 0.8rem;
   border-bottom: 1px solid var(--rule);
   text-align: left;
+  vertical-align: top;
 }
 
 th {
   color: var(--ink-soft);
-  font-size: 0.73rem;
+  font-size: 0.68rem;
+  font-weight: 750;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -270,11 +273,15 @@ tbody tr:last-child td {
   border-bottom: 0;
 }
 
+tbody tr:hover {
+  background: rgb(123 38 56 / 4%);
+}
+
 .rank {
   width: 4rem;
   color: var(--burgundy);
   font-family: var(--serif);
-  font-size: 1.3rem;
+  font-size: 1.15rem;
   font-weight: 700;
 }
 
@@ -287,37 +294,43 @@ tbody tr:last-child td {
 }
 
 .source-note {
-  font-size: 0.85rem;
   color: var(--ink-soft);
+  font-size: 0.82rem;
 }
 
 .prose {
-  max-width: 48rem;
+  max-width: var(--measure);
 }
 
 .prose p,
 .prose li {
-  font-size: 1.05rem;
+  font-size: 1.02rem;
 }
 
 .prose h2 {
   margin-top: 2.5rem;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 @media (max-width: 52rem) {
   .hero-grid,
   .split-grid,
   .card-grid,
-  .stats-grid {
-    grid-template-columns: 1fr;
+  .stats-grid,
+  .section-heading {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .section-heading {
-    display: block;
-  }
-
-  .section-heading > p {
-    margin-top: 1rem;
+    gap: 0.75rem;
   }
 }
 
@@ -327,47 +340,17 @@ tbody tr:last-child td {
   }
 
   h1 {
-    font-size: clamp(2.75rem, 17vw, 4.7rem);
+    font-size: clamp(2.25rem, 12vw, 3.5rem);
   }
 
-  .responsive-table thead {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-  }
-
-  .responsive-table,
-  .responsive-table tbody,
-  .responsive-table tr,
-  .responsive-table td {
+  .table-wrap::before {
     display: block;
-    width: 100%;
-  }
-
-  .responsive-table tr {
-    padding: 1rem;
+    padding: 0.55rem 0.7rem;
     border-bottom: 1px solid var(--rule);
   }
 
-  .responsive-table td {
-    display: grid;
-    grid-template-columns: 7rem minmax(0, 1fr);
-    gap: 0.75rem;
-    padding: 0.35rem 0;
-    border: 0;
-    text-align: left;
-  }
-
-  .responsive-table td::before {
-    content: attr(data-label);
-    color: var(--ink-soft);
-    font-size: 0.7rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+  .responsive-table {
+    min-width: 46rem;
   }
 }
 

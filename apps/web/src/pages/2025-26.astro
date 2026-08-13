@@ -19,46 +19,34 @@ const publishedAt = new Intl.DateTimeFormat("en-US", {
 
 <SiteLayout
   title="2025-2026 Reconstruction"
-  description="A retrospective automated reconstruction of the discontinued 2025-2026 National Points Race season."
+  description="The automated reconstruction of the discontinued 2025-2026 National Points Race season."
 >
   <header class="shell hero">
     <SeasonBadge classification="Automated reconstruction" />
-    <p class="eyebrow season-line">2025-2026 proof season</p>
-    <h1>The missing season, rebuilt.</h1>
+    <p class="eyebrow season-line">2025-2026 season</p>
+    <h1>Automated reconstruction</h1>
     <p class="dek">
-      This retrospective proof runs permitted official public results through the
-      production pipeline. It is not an official contemporaneous NPR.
+      A retrospective application of the last Extemp Central policy to permitted
+      official public results. This was not an official contemporaneous NPR.
     </p>
   </header>
 
-  <section class="section status-section">
-    <div class="shell split-grid">
-      <article class="paper-card status-card">
-        <p class="eyebrow">Reconstruction status</p>
-        <h2>Provisional, with one source withheld.</h2>
+  <section class="section summary-section">
+    <div class="shell reconstruction-summary">
+      <div class="champion">
+        <p class="eyebrow">Reconstructed champion</p>
+        <h2>Daphne Kalir-Starr</h2>
+        <p class="champion-points">619 points</p>
         <p>{report.caveat}</p>
-        <dl class="audit-metrics">
-          <div><dt>Verified result sources</dt><dd>{report.completeness.verifiedResultSources}</dd></div>
-          <div><dt>No eligible event</dt><dd>{report.completeness.notHeld}</dd></div>
-          <div><dt>Withheld source</dt><dd>{report.completeness.withheld}</dd></div>
-          <div><dt>Rebuild diagnostics</dt><dd>{report.diagnostics.rebuild}</dd></div>
-        </dl>
-      </article>
-      <article class="prose">
-        <p class="eyebrow">Reproducibility receipt</p>
-        <h2>656 normalized results. Zero guessed identities.</h2>
-        <p>
-          The rebuild generated {report.completeness.scoredAwards} scored awards
-          under policy <code>{report.policyVersion}</code>. Source snapshots are
-          pinned by SHA-256, and the complete output has a deterministic version
-          hash.
-        </p>
-        <dl class="receipt-list">
-          <div><dt>Published</dt><dd>{publishedAt}</dd></div>
-          <div><dt>Version</dt><dd><code>{report.standingsVersion}</code></dd></div>
-          <div><dt>Identity diagnostics</dt><dd>{report.diagnostics.identity}</dd></div>
-        </dl>
-      </article>
+      </div>
+      <dl class="audit-metrics">
+        <div><dt>Policy</dt><dd>{report.policyVersion}</dd></div>
+        <div><dt>Published</dt><dd>{publishedAt}</dd></div>
+        <div><dt>Verified sources</dt><dd>{report.completeness.verifiedResultSources}</dd></div>
+        <div><dt>Withheld sources</dt><dd>{report.completeness.withheld}</dd></div>
+        <div><dt>Normalized results</dt><dd>{report.completeness.normalizedResults}</dd></div>
+        <div><dt>Scored awards</dt><dd>{report.completeness.scoredAwards}</dd></div>
+      </dl>
     </div>
   </section>
 
@@ -67,15 +55,20 @@ const publishedAt = new Intl.DateTimeFormat("en-US", {
       <div class="section-heading">
         <div>
           <p class="eyebrow">2025-2026 reconstructed top 100</p>
-          <h2>Reconstructed standings</h2>
+          <h2>Standings</h2>
         </div>
         <p>
-          MBA points are not included because the official export did not provide
-          cumulative placements. These standings can change if verifiable MBA evidence
-          becomes available.
+          MBA points are withheld because the official export did not provide
+          cumulative placements. Verifiable correction evidence can produce a new
+          version.
         </p>
       </div>
       <StandingsTable standings={report.standings} />
+      <p class="source-note receipt">
+        Version <code>{report.standingsVersion}</code>. Identity diagnostics:
+        {report.diagnostics.identity}. Rebuild diagnostics:
+        {report.diagnostics.rebuild}.
+      </p>
     </div>
   </section>
 
@@ -83,12 +76,12 @@ const publishedAt = new Intl.DateTimeFormat("en-US", {
     <div class="shell">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">Twenty-lineage audit</p>
-          <h2>Every tournament has a public status.</h2>
+          <p class="eyebrow">Twenty-tournament audit</p>
+          <h2>Source status</h2>
         </div>
         <p>
-          Final means the official public evidence was normalized and scored. A
-          missing result is never replaced with a rumor or an inferred placement.
+          Final means permitted official evidence was normalized and scored. Missing
+          evidence is labeled rather than inferred.
         </p>
       </div>
       <TournamentStatusList tournaments={tournaments} />
@@ -96,42 +89,106 @@ const publishedAt = new Intl.DateTimeFormat("en-US", {
   </section>
 
   <section class="section">
-    <div class="shell split-grid">
+    <div class="shell method-note">
       <div>
-        <p class="eyebrow">What the proof establishes</p>
-        <h2>The old rules can be replayed from source evidence.</h2>
+        <p class="eyebrow">Reconstruction method</p>
+        <h2>Production pipeline, legacy policy</h2>
       </div>
-      <div class="prose">
-        <ol>
-          <li>Verify the tournament edition and permitted official result source.</li>
-          <li>Preserve source bytes and their SHA-256 digest.</li>
-          <li>Normalize results and resolve identities conservatively.</li>
-          <li>Apply policy version <code>legacy-2024-25-v1</code>.</li>
-          <li>Publish completeness, withheld evidence, and a standings hash.</li>
-        </ol>
-        <p><a href="/methodology/">Read the exact formulas and decision rules</a></p>
-      </div>
+      <ol>
+        <li>Verify each tournament edition and official result source.</li>
+        <li>Preserve bytes and the SHA-256 digest.</li>
+        <li>Normalize results and resolve identities conservatively.</li>
+        <li>Apply <code>legacy-2024-25-v1</code>.</li>
+        <li>Publish completeness, withheld evidence, and a version hash.</li>
+      </ol>
     </div>
   </section>
 </SiteLayout>
 
 <style>
-  .season-line { margin-top: 2rem; }
-  .status-section { padding-top: 0; }
-  .status-card h2 { max-width: 17ch; }
-  .audit-metrics,
-  .receipt-list { display: grid; gap: 0; margin: 1.5rem 0 0; }
-  .audit-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .audit-metrics div,
-  .receipt-list div { padding: 0.8rem 0; border-top: 1px solid var(--rule); }
-  .audit-metrics div:nth-child(odd) { padding-right: 1rem; }
-  .audit-metrics div:nth-child(even) { padding-left: 1rem; border-left: 1px solid var(--rule); }
-  dt { color: var(--ink-soft); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
-  dd { margin: 0.25rem 0 0; font-family: var(--serif); font-size: 1.35rem; font-weight: 700; overflow-wrap: anywhere; }
-  .receipt-list dd { font-family: var(--sans); font-size: 0.83rem; }
-  .standings-section { background: var(--paper-deep); }
-  @media (max-width: 35rem) {
-    .audit-metrics { grid-template-columns: 1fr; }
-    .audit-metrics div:nth-child(even) { padding-left: 0; border-left: 0; }
+  .season-line {
+    margin-top: 1.4rem;
+  }
+
+  .summary-section {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .reconstruction-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 3rem;
+    border-top: 2px solid var(--ink);
+    padding-top: 1.2rem;
+  }
+
+  .champion-points {
+    margin: -0.35rem 0 1rem;
+    color: var(--burgundy);
+    font-family: var(--serif);
+    font-size: 1.35rem;
+    font-weight: 700;
+  }
+
+  .audit-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+  }
+
+  .audit-metrics div {
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .audit-metrics div:nth-child(even) {
+    padding-left: 1rem;
+  }
+
+  dt {
+    color: var(--ink-soft);
+    font-size: 0.68rem;
+    font-weight: 750;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  dd {
+    margin: 0.15rem 0 0;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .receipt {
+    margin-top: 1rem;
+  }
+
+  .method-note {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: 3rem;
+  }
+
+  .method-note ol {
+    margin: 0;
+    padding-left: 1.25rem;
+  }
+
+  @media (max-width: 46rem) {
+    .reconstruction-summary,
+    .method-note {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 34rem) {
+    .audit-metrics {
+      grid-template-columns: 1fr;
+    }
+
+    .audit-metrics div:nth-child(even) {
+      padding-left: 0;
+    }
   }
 </style>

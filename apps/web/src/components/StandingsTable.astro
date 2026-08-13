@@ -16,7 +16,7 @@ interface Props {
 const { standings, seasonId } = Astro.props;
 ---
 
-<div class="table-wrap">
+<div class="table-wrap" role="region" aria-label="Standings table" tabindex="0">
   <table class="responsive-table">
     <caption class="sr-only">National Points Race standings</caption>
     <thead>
@@ -53,14 +53,3 @@ const { standings, seasonId } = Astro.props;
     </tbody>
   </table>
 </div>
-
-<style>
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-  }
-</style>

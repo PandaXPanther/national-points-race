@@ -125,7 +125,7 @@ describe("public methodology policy", () => {
   it("serializes the frozen scoring policy without changing its values", () => {
     const policy = getPolicyView();
 
-    expect(policy.version).toBe("legacy-2024-25-v1");
+    expect(policy.version).toBe("npr-2026-27-v1");
     expect(policy.tiers[2].placements).toEqual([150, 120, 105, 75, 60, 50]);
     expect(policy.tiers[5].placements).toEqual([40, 34, 28, 20, 16, 13]);
     expect(policy.nsda.multiplier).toEqual({
@@ -136,5 +136,8 @@ describe("public methodology policy", () => {
     expect(
       policy.tournaments.find(({ id }) => id === "mba-round-robin"),
     ).toMatchObject({ mbaTopSixOnly: true, finalCreditPlacementLimit: 5 });
+    expect(
+      policy.tournaments.find(({ id }) => id === "asu-hdshc-invitational"),
+    ).toMatchObject({ tier: 4 });
   });
 });

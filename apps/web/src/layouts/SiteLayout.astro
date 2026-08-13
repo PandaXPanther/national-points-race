@@ -28,12 +28,22 @@ const { title, description } = Astro.props;
         <DiscordCallout />
         <div class="legal">
           <p>
-            An independent project operated by Saras Totey. Not affiliated with
-            Extemp Central, Tabroom, SpeechWire, NSDA, NCFL, or tracked tournaments.
+            An independent project operated by <a href="https://sarastotey.com"
+              >Saras Totey</a
+            >. Not affiliated with Extemp Central, Tabroom, SpeechWire, NSDA,
+            NCFL, or tracked tournaments.
           </p>
           <p>
             Historical NPR records are credited to Extemp Central. Current scoring
-            uses the published legacy policy and auditable official sources.
+            uses published policy and auditable official sources.
+          </p>
+          <p class="support">
+            Support the NPR: <a
+              href="https://github.com/PandaXPanther/national-points-race"
+              >star the project on GitHub</a
+            > or <a href="https://buymeacoffee.com/sarast1"
+              >buy Saras a coffee</a
+            >.
           </p>
         </div>
       </div>
@@ -43,9 +53,9 @@ const { title, description } = Astro.props;
 
 <style>
   footer {
-    padding: 4rem 0 2rem;
+    padding: 3rem 0 2rem;
     border-top: 1px solid var(--rule);
-    background: rgb(23 21 18 / 4%);
+    background: var(--paper-deep);
   }
 
   .footer-grid {
@@ -54,21 +64,20 @@ const { title, description } = Astro.props;
   }
 
   .legal {
-    display: flex;
-    justify-content: space-between;
-    gap: 2rem;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr 0.8fr;
+    gap: 1.5rem;
     color: var(--ink-soft);
     font-size: 0.78rem;
   }
 
   .legal p {
-    max-width: 42rem;
     margin: 0;
   }
 
   @media (max-width: 42rem) {
     .legal {
-      display: block;
+      grid-template-columns: 1fr;
     }
 
     .legal p + p {

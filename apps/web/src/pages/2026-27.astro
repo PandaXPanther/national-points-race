@@ -3,31 +3,78 @@ import SeasonBadge from "../components/SeasonBadge.astro";
 import SiteLayout from "../layouts/SiteLayout.astro";
 ---
 
-<SiteLayout title="2026-2027 Current Race" description="The current live National Points Race for the 2026-2027 season.">
+<SiteLayout
+  title="2026-2027 Current Race"
+  description="The current live National Points Race for the 2026-2027 season."
+>
   <header class="shell hero">
     <SeasonBadge classification="Current live race" />
-    <p class="eyebrow season-line">2026-2027</p>
-    <h1>The current NPR.</h1>
-    <p class="dek">The season is initialized with all 20 frozen tournament lineages. The first standings will appear after eligible final results are published and verified.</p>
+    <p class="eyebrow season-line">2026-2027 season</p>
+    <h1>Current standings</h1>
+    <p class="dek">
+      The season is initialized under policy <code>npr-2026-27-v1</code>.
+      Standings remain empty until eligible final evidence is published and
+      verified.
+    </p>
   </header>
+
   <section class="section">
-    <div class="shell stats-grid">
-      <div class="stat"><span>Current status</span><strong>Initialized</strong></div>
-      <div class="stat"><span>Tracked lineages</span><strong>20</strong></div>
+    <div class="shell stats-grid" aria-label="Current season summary">
+      <div class="stat"><span>Status</span><strong>Initialized</strong></div>
+      <div class="stat"><span>Tracked tournaments</span><strong>21</strong></div>
       <div class="stat"><span>Scored events</span><strong>0</strong></div>
-      <div class="stat"><span>Policy</span><strong class="policy">legacy-2024-25-v1</strong></div>
+      <div class="stat"><span>Public limit</span><strong>Top 100</strong></div>
     </div>
   </section>
+
   <section class="section">
-    <div class="shell notice">
-      <h2>Why there are no standings yet</h2>
-      <p>It is August 2026. The race will not invent preseason scores. Published standings begin when a tracked tournament has eligible final evidence.</p>
-      <div class="button-row"><a class="button" href="/2026-27/tournaments/">View tournament audit</a><a class="button secondary" href="/methodology/">Read the scoring rules</a></div>
+    <div class="shell current-notes">
+      <article>
+        <p class="eyebrow">Current policy addition</p>
+        <h2>Arizona State HDSHC Invitational</h2>
+        <p>
+          The ASU tournament is tracked as a Tier 4 event beginning this season.
+          January discovery uses verified Arizona State University organizer
+          evidence and the annual Tabroom lineage. It remains in later seasons until
+          a published policy replaces it.
+        </p>
+        <p>
+          <a href="/methodology/">Review the 21-tournament policy</a>
+        </p>
+      </article>
+      <article>
+        <p class="eyebrow">Publication rule</p>
+        <h2>No preseason points</h2>
+        <p>
+          The race does not infer results from registrations, invitations, or prior
+          seasons. The first standings version will follow eligible final evidence
+          from a tracked tournament.
+        </p>
+        <p><a href="/2026-27/tournaments/">View the tournament audit</a></p>
+      </article>
     </div>
   </section>
 </SiteLayout>
 
 <style>
-  .season-line { margin-top: 2rem; }
-  .policy { font-size: clamp(1.1rem, 2.4vw, 1.6rem); overflow-wrap: anywhere; }
+  .season-line {
+    margin-top: 1.4rem;
+  }
+
+  .current-notes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3rem;
+  }
+
+  .current-notes article {
+    border-top: 2px solid var(--rule-dark);
+    padding-top: 1rem;
+  }
+
+  @media (max-width: 44rem) {
+    .current-notes {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>

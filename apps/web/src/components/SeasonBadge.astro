@@ -17,15 +17,13 @@ const kind = classification.startsWith("Extemp")
 
 <style>
   .season-badge {
-    display: inline-flex;
-    align-items: center;
+    display: inline-block;
     width: fit-content;
-    border: 1px solid currentColor;
-    border-radius: 999px;
-    padding: 0.3rem 0.65rem;
-    font-size: 0.7rem;
-    font-weight: 800;
-    letter-spacing: 0.05em;
+    border-left: 2px solid currentColor;
+    padding-left: 0.55rem;
+    font-size: 0.68rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
   }
 
@@ -39,14 +37,5 @@ const kind = classification.startsWith("Extemp")
 
   .live {
     color: var(--green);
-  }
-
-  .live::before {
-    width: 0.45rem;
-    height: 0.45rem;
-    margin-right: 0.4rem;
-    border-radius: 999px;
-    background: currentColor;
-    content: "";
   }
 </style>

@@ -5,98 +5,192 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 
 <SiteLayout
   title="2026-2027 Standings"
-  description="The current live, independently operated National Points Race for extemporaneous speaking."
+  description="The current independently operated National Points Race for high school extemporaneous speaking."
 >
-  <section class="hero">
+  <header class="hero">
     <div class="shell hero-grid">
       <div>
         <SeasonBadge classification="Current live race" />
         <p class="eyebrow season-line">2026-2027 season</p>
-        <h1>The race is live again.</h1>
+        <h1>National Points Race</h1>
         <p class="dek">
-          A transparent, autonomous National Points Race for high school
-          extemporaneous speaking, independently operated by Saras Totey.
+          The current season is independently operated by <a
+            href="https://sarastotey.com">Saras Totey</a
+          >. Standings will begin when a tracked tournament publishes eligible
+          final results.
         </p>
-        <div class="button-row">
-          <a class="button" href="/2026-27/">Open current season</a>
-          <a class="button secondary" href="/methodology/">See how points work</a>
-        </div>
+        <p class="text-links">
+          <a href="/2026-27/">Current season</a>
+          <a href="/methodology/">Scoring methodology</a>
+        </p>
       </div>
-      <aside class="paper-card season-card" aria-label="Current season state">
-        <p class="eyebrow">Season state</p>
-        <strong>Initialized</strong>
-        <p>
-          The 20-tournament ledger is ready. Standings begin when permitted final
-          results from the first tracked event are available.
-        </p>
-        <ul class="meta-list">
-          <li><span>Policy</span><b>legacy-2024-25-v1</b></li>
-          <li><span>Tracked lineages</span><b>20</b></li>
-          <li><span>Publication</span><b>Audited versions</b></li>
-        </ul>
+      <aside class="season-summary" aria-labelledby="season-summary-title">
+        <p class="eyebrow" id="season-summary-title">Current record</p>
+        <dl>
+          <div><dt>Status</dt><dd>Initialized</dd></div>
+          <div><dt>Policy</dt><dd>npr-2026-27-v1</dd></div>
+          <div><dt>Tracked tournaments</dt><dd>21</dd></div>
+          <div><dt>Published standings</dt><dd>Awaiting results</dd></div>
+        </dl>
       </aside>
     </div>
-  </section>
+  </header>
 
   <section class="section">
     <div class="shell">
       <div class="section-heading">
-        <div><p class="eyebrow">Three records, one transparent archive</p><h2>Know what you are reading.</h2></div>
+        <div>
+          <p class="eyebrow">Season register</p>
+          <h2>Official archive, reconstruction, and current race</h2>
+        </div>
         <p>
-          Original results remain original. The missing season is reconstructed and
-          labeled. The current race is independently operated and live.
+          Each record is labeled by who published it and how its standings were
+          produced.
         </p>
       </div>
-      <div class="card-grid">
-        <article class="paper-card">
-          <SeasonBadge classification="Extemp Central official archive" />
-          <h3>2008-09 through 2024-25</h3>
-          <p>Ten completed seasons preserved with attribution and original source links.</p>
-          <a href="/archive/">Browse the archive</a>
-        </article>
-        <article class="paper-card">
-          <SeasonBadge classification="Automated reconstruction" />
-          <h3>2025-26 proof season</h3>
-          <p>A retrospective system test using only permitted official public evidence.</p>
-          <a href="/2025-26/">Review the reconstruction</a>
-        </article>
-        <article class="paper-card">
-          <SeasonBadge classification="Current live race" />
-          <h3>2026-27 current NPR</h3>
-          <p>Autonomous collection, conservative identity resolution, and versioned scoring.</p>
-          <a href="/2026-27/">Follow the current race</a>
-        </article>
-      </div>
+      <ol class="season-register">
+        <li>
+          <span class="years">2008-09 to 2024-25</span>
+          <div>
+            <SeasonBadge classification="Extemp Central official archive" />
+            <h3>Ten completed Extemp Central seasons</h3>
+            <p>Preserved with attribution and original source links.</p>
+          </div>
+          <a href="/archive/">Open archive</a>
+        </li>
+        <li>
+          <span class="years">2025-26</span>
+          <div>
+            <SeasonBadge classification="Automated reconstruction" />
+            <h3>Daphne Kalir-Starr, 619 points</h3>
+            <p>Retrospective top 100 built from permitted official evidence.</p>
+          </div>
+          <a href="/2025-26/">Open reconstruction</a>
+        </li>
+        <li>
+          <span class="years">2026-27</span>
+          <div>
+            <SeasonBadge classification="Current live race" />
+            <h3>Current autonomous season</h3>
+            <p>Twenty-one tracked tournaments, including the ASU HDSHC Invitational.</p>
+          </div>
+          <a href="/2026-27/">Open current race</a>
+        </li>
+      </ol>
     </div>
   </section>
 
   <section class="section">
-    <div class="shell split-grid">
+    <div class="shell editorial-note">
       <div>
-        <p class="eyebrow">Built for verification</p>
-        <h2>Every point should have a receipt.</h2>
+        <p class="eyebrow">Audit method</p>
+        <h2>Published rules and source evidence</h2>
       </div>
       <div class="prose">
         <p>
-          The system preserves official source snapshots, normalizes results,
-          withholds ambiguous identities, applies the frozen policy, and publishes a
-          deterministic version hash. Corrections create a new version without erasing
-          the old one.
+          Official result snapshots are preserved, identities are resolved
+          conservatively, and every standings version is deterministic. Corrections
+          create a new version without replacing the earlier record.
         </p>
-        <p><a href="/methodology/">Read the complete methodology</a></p>
+        <p><a href="/methodology/">Read the exact calculations and edge cases</a></p>
       </div>
     </div>
   </section>
 </SiteLayout>
 
 <style>
-  .season-line { margin-top: 2rem; }
-  .season-card > strong {
-    color: var(--burgundy);
-    font-family: var(--serif);
-    font-size: clamp(2.3rem, 5vw, 4rem);
+  .season-line {
+    margin-top: 1.4rem;
   }
-  .season-card li { display: flex; justify-content: space-between; gap: 1rem; }
-  .season-card li span { color: var(--ink-soft); }
-  .paper-card h3 { margin-top: 1.25rem; }
+
+  .text-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+    font-weight: 700;
+  }
+
+  .season-summary {
+    border-top: 2px solid var(--ink);
+    padding-top: 0.8rem;
+  }
+
+  .season-summary dl {
+    margin: 0;
+  }
+
+  .season-summary div {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .season-summary dt {
+    color: var(--ink-soft);
+  }
+
+  .season-summary dd {
+    min-width: 0;
+    margin: 0;
+    font-weight: 700;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+
+  .season-register {
+    margin: 0;
+    padding: 0;
+    border-top: 2px solid var(--ink);
+    list-style: none;
+  }
+
+  .season-register li {
+    display: grid;
+    grid-template-columns: 10rem minmax(0, 1fr) auto;
+    gap: 2rem;
+    align-items: start;
+    padding: 1.35rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .season-register h3 {
+    margin-top: 0.55rem;
+  }
+
+  .season-register p {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  .years {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  .editorial-note {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: 3rem;
+  }
+
+  @media (max-width: 46rem) {
+    .season-register li,
+    .editorial-note {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.8rem;
+    }
+
+    .season-summary div {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.1rem;
+    }
+
+    .season-summary dd {
+      text-align: left;
+    }
+  }
 </style>

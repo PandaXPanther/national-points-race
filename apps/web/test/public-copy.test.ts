@@ -40,4 +40,33 @@ describe("public copy rules", () => {
     expect(callout).toContain("https://discord.gg/8RFTvCWPPv");
     expect(callout).toContain("@PandaXPanther");
   });
+
+  it("publishes restrained maintainer and support links", async () => {
+    const layout = await readFile(
+      `${sourceRoot}layouts/SiteLayout.astro`,
+      "utf8",
+    );
+    expect(layout).toContain('href="https://sarastotey.com"');
+    expect(layout).toContain(
+      'href="https://github.com/PandaXPanther/national-points-race"',
+    );
+    expect(layout).toContain('href="https://buymeacoffee.com/sarast1"');
+  });
+
+  it("uses an editorial register instead of generated landing-page patterns", async () => {
+    const [styles, home, reconstruction] = await Promise.all([
+      readFile(`${sourceRoot}styles/global.css`, "utf8"),
+      readFile(`${sourceRoot}pages/index.astro`, "utf8"),
+      readFile(`${sourceRoot}pages/2025-26.astro`, "utf8"),
+    ]);
+    expect(styles).not.toContain("linear-gradient");
+    expect(styles).not.toContain("box-shadow");
+    expect(styles).not.toContain("border-radius: 999px");
+    expect(styles).not.toMatch(
+      /\.responsive-table\s+tr\s*\{[^}]*display:\s*block/su,
+    );
+    expect(home).not.toContain("The race is live again");
+    expect(home).not.toContain("Every point should have a receipt");
+    expect(reconstruction).not.toContain("The missing season, rebuilt");
+  });
 });

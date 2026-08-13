@@ -17,6 +17,7 @@
     "@points-race/pipeline": "workspace:*",
     "@points-race/policy": "workspace:*",
     "hono": "4.13.1",
+    "pdfjs-dist": "6.2.108",
     "zod": "4.4.3"
   },
   "devDependencies": {

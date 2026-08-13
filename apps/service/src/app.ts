@@ -5,6 +5,7 @@ import type { ServiceBindings } from "./auth/hmac.js";
 import { registerCompetitorRoutes } from "./routes/competitors.js";
 import { registerExportRoutes } from "./routes/exports.js";
 import { registerIngestRoute } from "./routes/ingest.js";
+import { registerMbaRoutes, type MbaRouteDependencies } from "./routes/mba.js";
 import { registerSeasonRoutes } from "./routes/seasons.js";
 import { registerTournamentRoutes } from "./routes/tournaments.js";
 
@@ -23,7 +24,13 @@ function jsonResponse(
   });
 }
 
-export function createApp(): Hono<{ Bindings: ServiceBindings }> {
+export interface AppDependencies {
+  readonly mba?: MbaRouteDependencies;
+}
+
+export function createApp(
+  dependencies: AppDependencies = {},
+): Hono<{ Bindings: ServiceBindings }> {
   const app = new Hono<{ Bindings: ServiceBindings }>();
 
   app.get("/healthz", () =>
@@ -37,6 +44,7 @@ export function createApp(): Hono<{ Bindings: ServiceBindings }> {
   );
 
   registerIngestRoute(app);
+  registerMbaRoutes(app, dependencies.mba);
   registerSeasonRoutes(app);
   registerCompetitorRoutes(app);
   registerTournamentRoutes(app);

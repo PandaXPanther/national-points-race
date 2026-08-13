@@ -159,6 +159,8 @@ it("creates every versioned domain table", async () => {
       "identity_edges",
       "job_leases",
       "job_runs",
+      "mba_result_placements",
+      "mba_result_submissions",
       "normalized_evidence_groups",
       "normalized_results",
       "normalized_result_sets",
@@ -180,6 +182,11 @@ it("creates every versioned domain table", async () => {
 
 it("creates every required operational index", async () => {
   const expectedIndexes = [
+    {
+      table: "mba_result_submissions",
+      name: "idx_mba_submissions_season_status",
+      columns: ["season_id", "status", "submitted_at"],
+    },
     {
       table: "awards",
       name: "idx_awards_competitor_edition",
@@ -356,6 +363,27 @@ it("declares every lossless storage column added for repository round trips", as
     ],
     standings_rows: ["display_name"],
     job_runs: ["message_json", "dispatched_at"],
+    mba_result_submissions: [
+      "season_id",
+      "edition_id",
+      "status",
+      "submitter_name",
+      "submitter_nsda_digest",
+      "submitter_nsda_mask",
+      "evidence_sha256",
+      "evidence_kind",
+      "evidence_url",
+      "evidence_snapshot_id",
+      "submitted_at",
+      "accepted_at",
+      "rebuild_state",
+    ],
+    mba_result_placements: [
+      "submission_id",
+      "placement",
+      "competitor_id",
+      "submitted_name",
+    ],
   } as const;
 
   for (const [table, expected] of Object.entries(expectedColumns)) {
@@ -434,6 +462,14 @@ it("declares every required foreign-key column mapping", async () => {
     ],
     job_runs: [],
     job_leases: [],
+    mba_result_submissions: [
+      "source_snapshots:evidence_snapshot_id->id",
+      "tournament_editions:edition_id,season_id->id,season_id",
+    ],
+    mba_result_placements: [
+      "canonical_competitors:competitor_id->id",
+      "mba_result_submissions:submission_id->id",
+    ],
   } as const;
 
   for (const [table, expected] of Object.entries(expectedMappings)) {
@@ -445,7 +481,12 @@ it("declares every required primary and unique-key contract", async () => {
   const expectedUniqueColumns = {
     policy_versions: ["id", "ledger_sha256"],
     tournament_lineages: ["id"],
-    tournament_editions: ["id", "id,lineage_id", "lineage_id,season_id"],
+    tournament_editions: [
+      "id",
+      "id,lineage_id",
+      "id,season_id",
+      "lineage_id,season_id",
+    ],
     source_descriptors: ["id", "id,semantic_sha256"],
     source_snapshots: [
       "edition_id,descriptor_id,sha256",
@@ -485,6 +526,11 @@ it("declares every required primary and unique-key contract", async () => {
     standings_rows: ["standings_version_id,competitor_id"],
     job_runs: ["id", "job_type,natural_key,scheduled_for"],
     job_leases: ["lease_key"],
+    mba_result_submissions: ["id", "season_id"],
+    mba_result_placements: [
+      "submission_id,competitor_id",
+      "submission_id,placement",
+    ],
   } as const;
 
   for (const [table, expected] of Object.entries(expectedUniqueColumns)) {

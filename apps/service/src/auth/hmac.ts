@@ -5,6 +5,8 @@ const SHA256_HEX = /^[0-9a-f]{64}$/u;
 
 export type ServiceBindings = CloudflareBindings & {
   readonly DOCUMENT_INGEST_SECRET?: string;
+  readonly MBA_SUBMITTER_HMAC_KEY?: string;
+  readonly TURNSTILE_SECRET_KEY?: string;
 };
 
 export type DocumentAuthResult =

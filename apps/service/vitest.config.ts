@@ -19,6 +19,8 @@ export default defineConfig(async () => {
           bindings: {
             TEST_MIGRATIONS: migrations,
             DOCUMENT_INGEST_SECRET: "test-only-document-ingest-secret",
+            MBA_SUBMITTER_HMAC_KEY: "test-only-mba-submitter-secret",
+            TURNSTILE_SECRET_KEY: "test-only-turnstile-secret",
           },
         },
       }),

@@ -7,6 +7,7 @@
     "build": "pnpm run clean && tsc -p tsconfig.build.json",
     "clean": "node --eval \"require('node:fs').rmSync('dist', { force: true, recursive: true })\"",
     "rebuild:2025-26": "pnpm run build && node dist/generate-2025-26.js",
+    "verify:2025-26": "node scripts/verify-2025-26.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

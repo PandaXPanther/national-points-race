@@ -18,8 +18,7 @@ describe("GitHub Pages deployment workflow", () => {
     expect(workflow).toContain("pnpm lint");
     expect(workflow).toContain("pnpm typecheck");
     expect(workflow).toContain("pnpm test");
-    expect(workflow).toContain("rebuild:2025-26");
-    expect(workflow).toContain("git diff --exit-code");
+    expect(workflow).toContain("verify:2025-26");
     expect(workflow).toContain("pnpm --filter @points-race/web build");
     expect(workflow).toContain("project-name national-points-race");
     expect(workflow).toContain("--commit-hash $GITHUB_SHA");

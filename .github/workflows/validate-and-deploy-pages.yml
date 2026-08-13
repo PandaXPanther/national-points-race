@@ -41,9 +41,7 @@ jobs:
       - run: pnpm test
 
       - name: Verify the reconstructed 2025-26 table is reproducible
-        run: |
-          pnpm --filter @points-race/reconstruction rebuild:2025-26
-          git diff --exit-code -- apps/web/src/data/reconstruction/2025-26.json
+        run: pnpm --filter @points-race/reconstruction verify:2025-26
 
       - name: Build the public dashboard
         run: pnpm --filter @points-race/web build

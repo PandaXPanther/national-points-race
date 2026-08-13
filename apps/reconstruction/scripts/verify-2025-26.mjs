@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
+import process from "node:process";
+import { fileURLToPath, URL } from "node:url";
 
 const artifactPath = fileURLToPath(
   new URL("../../web/src/data/reconstruction/2025-26.json", import.meta.url),

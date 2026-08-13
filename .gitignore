@@ -2,6 +2,7 @@
 .pnpm-store/
 node_modules/
 dist/
+.astro/
 coverage/
 .wrangler/
 .dev.vars*

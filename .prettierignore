@@ -4,6 +4,7 @@ node_modules/
 .pnpm-store/
 coverage/
 dist/
+.astro/
 .wrangler/
 playwright-report/
 apps/service/migrations/*.sql

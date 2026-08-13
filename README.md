@@ -41,6 +41,8 @@ pnpm format:check
 pnpm --filter @points-race/reconstruction rebuild:2025-26
 ```
 
+The web build writes a Cloudflare Pages advanced-mode bundle to `apps/web/dist-pages`.
+
 ## Corrections
 
 If anything in the National Points Race looks wrong, join the [Discord server](https://discord.gg/8RFTvCWPPv) and ping `@PandaXPanther`. Include the season, tournament, competitor, and official source if possible.

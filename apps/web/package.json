@@ -6,7 +6,7 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "astro check",
-    "build": "astro build",
+    "build": "astro build && node scripts/package-pages.mjs",
     "dev": "astro dev",
     "preview": "astro preview"
   },

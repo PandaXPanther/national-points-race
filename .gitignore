@@ -2,9 +2,11 @@
 .pnpm-store/
 node_modules/
 dist/
+dist-pages/
 .astro/
 coverage/
 .wrangler/
 .dev.vars*
 playwright-report/
 work/
+tmp/

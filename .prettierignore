@@ -1,10 +1,12 @@
 .superpowers/
 .worktrees/
+tmp/
 node_modules/
 pnpm-lock.yaml
 .pnpm-store/
 coverage/
 dist/
+dist-pages/
 .astro/
 .wrangler/
 playwright-report/

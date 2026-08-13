@@ -69,7 +69,9 @@ describe("public information architecture", () => {
     const history = await readFile(`${sourceRoot}pages/history.astro`, "utf8");
     expect(history).toContain("Extemp Central");
     expect(history).toContain("Logan Scisco");
-    expect(history).toContain("Saras Totey");
+    expect(history).toContain(
+      '<a href="https://sarastotey.com">Saras Totey</a>',
+    );
     expect(history).toContain("independent");
   });
 });

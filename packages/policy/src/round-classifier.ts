@@ -1,6 +1,7 @@
 import type { RoundStage } from "./types.js";
 
 const aliases: Readonly<Record<string, RoundStage>> = {
+  of: "octafinal",
   octo: "octafinal",
   octa: "octafinal",
   octas: "octafinal",
@@ -10,12 +11,20 @@ const aliases: Readonly<Record<string, RoundStage>> = {
   octofinals: "octafinal",
   roundof16: "octafinal",
   top16: "octafinal",
+  qf: "quarterfinal",
+  qrt: "quarterfinal",
+  qrts: "quarterfinal",
+  qtr: "quarterfinal",
+  qtrs: "quarterfinal",
   quarter: "quarterfinal",
   quarterfinal: "quarterfinal",
   quarterfinals: "quarterfinal",
   quarters: "quarterfinal",
   roundof8: "quarterfinal",
   top8: "quarterfinal",
+  sf: "semifinal",
+  sem: "semifinal",
+  sems: "semifinal",
   semifinal: "semifinal",
   semifinals: "semifinal",
   semi: "semifinal",
@@ -23,6 +32,9 @@ const aliases: Readonly<Record<string, RoundStage>> = {
   roundof4: "semifinal",
   roundbeforefinal: "semifinal",
   top4: "semifinal",
+  michelecoodytutorial: "semifinal",
+  lannynaegelintutorial: "quarterfinal",
+  f: "final",
   exhibition: "final",
   final: "final",
   finals: "final",
@@ -36,5 +48,8 @@ function normalize(label: string): string {
 }
 
 export function classifyRoundLabel(label: string): RoundStage | null {
-  return aliases[normalize(label)] ?? null;
+  const normalized = normalize(label);
+  return (
+    aliases[normalized] ?? aliases[normalized.replace(/\d+$/u, "")] ?? null
+  );
 }

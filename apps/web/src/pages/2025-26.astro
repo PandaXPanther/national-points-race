@@ -1,42 +1,137 @@
 ---
 import SeasonBadge from "../components/SeasonBadge.astro";
+import StandingsTable from "../components/StandingsTable.astro";
+import TournamentStatusList from "../components/TournamentStatusList.astro";
+import report from "../data/reconstruction/2025-26.json";
 import SiteLayout from "../layouts/SiteLayout.astro";
+
+const tournaments = report.tournaments.map((tournament) => ({
+  name: tournament.name,
+  tier: tournament.tier,
+  status: tournament.status,
+  sourceUrl: tournament.source?.url ?? null,
+}));
+const publishedAt = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "long",
+  timeZone: "UTC",
+}).format(new Date(report.publishedAt));
 ---
 
-<SiteLayout title="2025-2026 Reconstruction" description="A retrospective automated reconstruction of the discontinued 2025-2026 National Points Race season.">
+<SiteLayout
+  title="2025-2026 Reconstruction"
+  description="A retrospective automated reconstruction of the discontinued 2025-2026 National Points Race season."
+>
   <header class="shell hero">
     <SeasonBadge classification="Automated reconstruction" />
     <p class="eyebrow season-line">2025-2026 proof season</p>
-    <h1>Rebuilding the missing season.</h1>
+    <h1>The missing season, rebuilt.</h1>
     <p class="dek">
       This retrospective proof runs permitted official public results through the
       production pipeline. It is not an official contemporaneous NPR.
     </p>
   </header>
-  <section class="section">
+
+  <section class="section status-section">
     <div class="shell split-grid">
-      <article class="paper-card">
+      <article class="paper-card status-card">
         <p class="eyebrow">Reconstruction status</p>
-        <h2>Evidence audit in progress</h2>
-        <p>
-          Each of the 20 frozen tournament lineages must have verified official
-          evidence or an explicit unavailable status. Standings will publish only
-          after the resulting report passes deterministic replay and source checks.
-        </p>
+        <h2>Provisional, with one source withheld.</h2>
+        <p>{report.caveat}</p>
+        <dl class="audit-metrics">
+          <div><dt>Verified result sources</dt><dd>{report.completeness.verifiedResultSources}</dd></div>
+          <div><dt>No eligible event</dt><dd>{report.completeness.notHeld}</dd></div>
+          <div><dt>Withheld source</dt><dd>{report.completeness.withheld}</dd></div>
+          <div><dt>Rebuild diagnostics</dt><dd>{report.diagnostics.rebuild}</dd></div>
+        </dl>
       </article>
       <article class="prose">
-        <p class="eyebrow">What counts</p>
-        <h2>No spreadsheet shortcut.</h2>
+        <p class="eyebrow">Reproducibility receipt</p>
+        <h2>656 normalized results. Zero guessed identities.</h2>
+        <p>
+          The rebuild generated {report.completeness.scoredAwards} scored awards
+          under policy <code>{report.policyVersion}</code>. Source snapshots are
+          pinned by SHA-256, and the complete output has a deterministic version
+          hash.
+        </p>
+        <dl class="receipt-list">
+          <div><dt>Published</dt><dd>{publishedAt}</dd></div>
+          <div><dt>Version</dt><dd><code>{report.standingsVersion}</code></dd></div>
+          <div><dt>Identity diagnostics</dt><dd>{report.diagnostics.identity}</dd></div>
+        </dl>
+      </article>
+    </div>
+  </section>
+
+  <section class="section standings-section">
+    <div class="shell">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">2025-2026 provisional top 25</p>
+          <h2>Reconstructed standings</h2>
+        </div>
+        <p>
+          MBA points are not included because the official export did not provide
+          cumulative placements. These standings can change if verifiable MBA evidence
+          becomes available.
+        </p>
+      </div>
+      <StandingsTable standings={report.standings} />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Twenty-lineage audit</p>
+          <h2>Every tournament has a public status.</h2>
+        </div>
+        <p>
+          Final means the official public evidence was normalized and scored. A
+          missing result is never replaced with a rumor or an inferred placement.
+        </p>
+      </div>
+      <TournamentStatusList tournaments={tournaments} />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell split-grid">
+      <div>
+        <p class="eyebrow">What the proof establishes</p>
+        <h2>The old rules can be replayed from source evidence.</h2>
+      </div>
+      <div class="prose">
         <ol>
           <li>Verify the tournament edition and permitted official result source.</li>
           <li>Preserve source bytes and their SHA-256 digest.</li>
           <li>Normalize results and resolve identities conservatively.</li>
-          <li>Apply policy version legacy-2024-25-v1.</li>
+          <li>Apply policy version <code>legacy-2024-25-v1</code>.</li>
           <li>Publish completeness, withheld evidence, and a standings hash.</li>
         </ol>
-      </article>
+        <p><a href="/methodology/">Read the exact formulas and decision rules</a></p>
+      </div>
     </div>
   </section>
 </SiteLayout>
 
-<style>.season-line { margin-top: 2rem; }</style>
+<style>
+  .season-line { margin-top: 2rem; }
+  .status-section { padding-top: 0; }
+  .status-card h2 { max-width: 17ch; }
+  .audit-metrics,
+  .receipt-list { display: grid; gap: 0; margin: 1.5rem 0 0; }
+  .audit-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .audit-metrics div,
+  .receipt-list div { padding: 0.8rem 0; border-top: 1px solid var(--rule); }
+  .audit-metrics div:nth-child(odd) { padding-right: 1rem; }
+  .audit-metrics div:nth-child(even) { padding-left: 1rem; border-left: 1px solid var(--rule); }
+  dt { color: var(--ink-soft); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+  dd { margin: 0.25rem 0 0; font-family: var(--serif); font-size: 1.35rem; font-weight: 700; overflow-wrap: anywhere; }
+  .receipt-list dd { font-family: var(--sans); font-size: 0.83rem; }
+  .standings-section { background: var(--paper-deep); }
+  @media (max-width: 35rem) {
+    .audit-metrics { grid-template-columns: 1fr; }
+    .audit-metrics div:nth-child(even) { padding-left: 0; border-left: 0; }
+  }
+</style>

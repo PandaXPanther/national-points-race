@@ -637,7 +637,7 @@ pnpm --filter @points-race/service exec wrangler secret put DOCUMENT_INGEST_SECR
 
 - [ ] **Step 4: Implement read-only routes and cache headers**
 
-Return Zod-validated JSON DTOs that contain public names, schools, awards, status, source URLs, hashes, rule IDs, and timestamps—never internal source metadata or contact data. Use strong ETags derived from standings-version hashes and `Cache-Control: public, max-age=60, s-maxage=300, stale-while-revalidate=86400`.
+Return Zod-validated JSON DTOs that contain public names, schools, awards, status, source URLs, hashes, rule IDs, and timestamps, never internal source metadata or contact data. Use strong ETags derived from standings-version hashes and `Cache-Control: public, max-age=60, s-maxage=300, stale-while-revalidate=86400`.
 
 - [ ] **Step 5: Verify API, CSV escaping, and commit**
 

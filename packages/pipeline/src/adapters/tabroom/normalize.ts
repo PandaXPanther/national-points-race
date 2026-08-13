@@ -1,5 +1,6 @@
 import {
   classifyRoundLabel,
+  LEGACY_POLICY,
   type Division,
   type RoundStage,
   type TournamentLineageId,
@@ -227,18 +228,18 @@ function normalizeResults(input: {
         `Tabroom entry ${join.entryId} was not registered in event ${input.eventId}.`,
       );
     }
-    const placement = parsePlacement(result.place);
-    if (placement !== null) {
-      if (placements.has(placement)) {
-        throw new TabroomParseError(
-          "TABROOM_DUPLICATE_PLACEMENT",
-          `Tabroom result set contained duplicate placement ${placement}.`,
-        );
-      }
-      placements.add(placement);
-    }
+    if (isPreliminaryPlacement(result.place)) continue;
     const stage = stageForResult(result.round, result.entry, input.rounds);
     if (stage === null) {
+      const numericPlacement = parseNumericPlacement(result.place);
+      const lastEliminationSize = maximumClassifiedRoundSize(input.rounds);
+      if (
+        numericPlacement !== null &&
+        lastEliminationSize > 0 &&
+        numericPlacement > lastEliminationSize
+      ) {
+        continue;
+      }
       input.diagnostics.push({
         code: "TABROOM_UNKNOWN_ROUND_LABEL",
         severity: "error",
@@ -247,6 +248,23 @@ function normalizeResults(input: {
         explanation: `Tabroom result for entry ${result.entry} referenced an unclassifiable round.`,
       });
       continue;
+    }
+    let placement = parsePlacement(result.place, stage !== "final");
+    if (
+      input.rule.lineageId === "nsda-nationals" &&
+      placement !== null &&
+      placement > LEGACY_POLICY.nsda.basePlacements.length
+    ) {
+      placement = null;
+    }
+    if (placement !== null) {
+      if (placements.has(placement)) {
+        throw new TabroomParseError(
+          "TABROOM_DUPLICATE_PLACEMENT",
+          `Tabroom result set contained duplicate placement ${placement}.`,
+        );
+      }
+      placements.add(placement);
     }
     output.push({
       sourceEntryId: `tabroom:entry:${join.entryId}`,
@@ -344,6 +362,7 @@ function classifyRound(round: IndexedRound): RoundStage | null {
 
 function parsePlacement(
   value: string | number | null | undefined,
+  allowEliminationLabel = false,
 ): number | null {
   if (value === null || value === undefined || value === "") return null;
   if (typeof value === "number") {
@@ -355,6 +374,15 @@ function parsePlacement(
   }
   const match = /^(\d+)(?:st|nd|rd|th)?$/i.exec(value.trim());
   if (match?.[1] === undefined) {
+    const label = value.trim();
+    if (
+      classifyRoundLabel(label) !== null ||
+      /^(?:of|qf|sf)$/iu.test(label) ||
+      isPreliminaryPlacement(label) ||
+      allowEliminationLabel
+    ) {
+      return null;
+    }
     throw new TabroomParseError(
       "TABROOM_INVALID_PLACEMENT",
       `Tabroom placement ${value} was not recognized.`,
@@ -365,6 +393,14 @@ function parsePlacement(
   throw new TabroomParseError(
     "TABROOM_INVALID_PLACEMENT",
     `Tabroom placement ${value} was not a positive safe integer.`,
+  );
+}
+
+function isPreliminaryPlacement(
+  value: string | number | null | undefined,
+): boolean {
+  return (
+    typeof value === "string" && /^(?:prelim|preliminary)$/iu.test(value.trim())
   );
 }
 
@@ -415,11 +451,49 @@ function compareResult(
   right: TabroomExport["categories"][number]["events"][number]["result_sets"][number]["results"][number],
 ): number {
   const placementDifference =
-    (parsePlacement(left.place) ?? Number.MAX_SAFE_INTEGER) -
-    (parsePlacement(right.place) ?? Number.MAX_SAFE_INTEGER);
+    placementForSort(left.place) - placementForSort(right.place);
   return placementDifference === 0
     ? left.entry.localeCompare(right.entry)
     : placementDifference;
+}
+
+function placementForSort(value: string | number | null | undefined): number {
+  if (typeof value === "number") {
+    return Number.isSafeInteger(value) && value > 0
+      ? value
+      : Number.MAX_SAFE_INTEGER;
+  }
+  if (typeof value !== "string") return Number.MAX_SAFE_INTEGER;
+  const match = /^(\d+)(?:st|nd|rd|th)?$/iu.exec(value.trim());
+  const parsed = match?.[1] === undefined ? NaN : Number(match[1]);
+  return Number.isSafeInteger(parsed) && parsed > 0
+    ? parsed
+    : Number.MAX_SAFE_INTEGER;
+}
+
+function parseNumericPlacement(
+  value: string | number | null | undefined,
+): number | null {
+  if (typeof value === "number") {
+    return Number.isSafeInteger(value) && value > 0 ? value : null;
+  }
+  if (typeof value !== "string") return null;
+  const match = /^(\d+)(?:st|nd|rd|th)?$/iu.exec(value.trim());
+  if (match?.[1] === undefined) return null;
+  const parsed = Number(match[1]);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function maximumClassifiedRoundSize(
+  rounds: ReadonlyMap<string, IndexedRound>,
+): number {
+  let maximum = 0;
+  for (const round of rounds.values()) {
+    if (classifyRound(round) !== null) {
+      maximum = Math.max(maximum, round.entryIds.size);
+    }
+  }
+  return maximum;
 }
 
 function compareResultSet(

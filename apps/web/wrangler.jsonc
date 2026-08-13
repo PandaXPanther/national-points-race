@@ -5,6 +5,6 @@
   "compatibility_date": "2026-08-11",
   "compatibility_flags": ["nodejs_compat"],
   "vars": {
-    "PUBLIC_API_BASE_URL": "http://localhost:8787",
+    "PUBLIC_API_BASE_URL": "https://points-race-service.pandaxpanther.workers.dev",
   },
 }

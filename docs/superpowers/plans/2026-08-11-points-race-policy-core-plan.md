@@ -588,7 +588,7 @@ Expected: FAIL with missing `buildStandings`.
 
 - [ ] **Step 3: Implement aggregation and deterministic output**
 
-Group by canonical competitor ID, sum points and boolean flags, sort descending by the four criteria, then use normalized display name and competitor ID only as deterministic output order—not as competitive tiebreakers. Assign competition ranks (`1, 1, 3`) when all four competitive fields tie.
+Group by canonical competitor ID, sum points and boolean flags, sort descending by the four criteria, then use normalized display name and competitor ID only as deterministic output order, not as competitive tiebreakers. Assign competition ranks (`1, 1, 3`) when all four competitive fields tie.
 
 - [ ] **Step 4: Verify standings and coverage**
 

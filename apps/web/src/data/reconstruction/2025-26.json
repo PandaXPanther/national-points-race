@@ -1,0 +1,603 @@
+{
+  "seasonId": "2025-26",
+  "classification": "Automated reconstruction",
+  "status": "provisional",
+  "policyVersion": "legacy-2024-25-v1",
+  "standingsVersion": "8cd7adc1cf2954235cf65632c62bad2d861ba135f1b7adfd4b6c4989aa19ffb2",
+  "publishedAt": "2026-08-13T03:51:38.000Z",
+  "completeness": {
+    "trackedLineages": 20,
+    "verifiedResultSources": 18,
+    "notHeld": 1,
+    "withheld": 1,
+    "normalizedResults": 656,
+    "scoredAwards": 456
+  },
+  "diagnostics": {
+    "identity": 0,
+    "rebuild": 0
+  },
+  "standings": [
+    {
+      "rank": 1,
+      "competitorId": "competitor:6d28d1de87e18df058e1e58df40ef13f8b8bc49231c9de9bb80a182c22dd14dd",
+      "name": "Daphne Kalir-Starr",
+      "school": "College Prep",
+      "points": 619,
+      "wins": 3,
+      "topThrees": 6,
+      "finals": 8
+    },
+    {
+      "rank": 2,
+      "competitorId": "competitor:cca4ad7a1fed42dd579cdc11cb3cb95e9c546e22ecd432bdb2a5f6f4fdc7da2e",
+      "name": "Zoe Becker",
+      "school": "School Without Walls High School",
+      "points": 526,
+      "wins": 2,
+      "topThrees": 2,
+      "finals": 3
+    },
+    {
+      "rank": 3,
+      "competitorId": "competitor:fa90f299f182541cb4486575f307cda67efb91e686a5e3e17cc1885f643fcf30",
+      "name": "Rehan Buvvaji",
+      "school": "Plano West Sr High School",
+      "points": 453,
+      "wins": 1,
+      "topThrees": 4,
+      "finals": 6
+    },
+    {
+      "rank": 4,
+      "competitorId": "competitor:572d630e5c22cfffdf89bbf7055d1ab6de75e18e211e23ff33761f06481d5b8d",
+      "name": "Roshan Shivnani",
+      "school": "Plano West Sr High School",
+      "points": 453,
+      "wins": 1,
+      "topThrees": 4,
+      "finals": 4
+    },
+    {
+      "rank": 5,
+      "competitorId": "competitor:60e48de42758ec23188f9b46db299bfee3917778ac151b6d40efe1f2132f4131",
+      "name": "Eric Qian",
+      "school": "Plano West Sr High School",
+      "points": 390,
+      "wins": 2,
+      "topThrees": 3,
+      "finals": 5
+    },
+    {
+      "rank": 6,
+      "competitorId": "competitor:c6a42f9f19b8670d2a09e72099d57bf7e7a4f95623992f16221b3de1f48d8ef4",
+      "name": "Al Zaidi",
+      "school": "Holy Trinity Episcopal Academy",
+      "points": 316,
+      "wins": 3,
+      "topThrees": 4,
+      "finals": 4
+    },
+    {
+      "rank": 7,
+      "competitorId": "competitor:a7a49e6a25e5ff7a56d291612e9392737014d0da7e4f9d1553e0e2808b6d1e5a",
+      "name": "Ryan Xu",
+      "school": "Plano West Sr High School",
+      "points": 316,
+      "wins": 0,
+      "topThrees": 2,
+      "finals": 2
+    },
+    {
+      "rank": 8,
+      "competitorId": "competitor:77224f171dccaccea8f1f6d2792e96ce6d4fdffffb2a4b3f69d16b088381e203",
+      "name": "Anushka Gupta",
+      "school": "Westwood",
+      "points": 292,
+      "wins": 0,
+      "topThrees": 2,
+      "finals": 4
+    },
+    {
+      "rank": 9,
+      "competitorId": "competitor:0d8c259d3daa333a65560aee5a503c4379c6dd5d24ac96e36b4be142c25fc415",
+      "name": "Natalia San Lucas",
+      "school": "Gabrielino High School",
+      "points": 253,
+      "wins": 0,
+      "topThrees": 3,
+      "finals": 3
+    },
+    {
+      "rank": 10,
+      "competitorId": "competitor:be919fdcd5633bc887487cd033520e16e23947796961def0cc50e9d2eb1b0b40",
+      "name": "Adyant Bhavsar",
+      "school": "Bellarmine College Preparatory",
+      "points": 247,
+      "wins": 0,
+      "topThrees": 2,
+      "finals": 3
+    },
+    {
+      "rank": 11,
+      "competitorId": "competitor:3f3ea41f7f695b2bc2dae502add2bc834ac3f003a6d9659b821d45dea028a094",
+      "name": "Connor Doherty",
+      "school": "Granite Bay High School",
+      "points": 240,
+      "wins": 1,
+      "topThrees": 3,
+      "finals": 3
+    },
+    {
+      "rank": 12,
+      "competitorId": "competitor:96f5ff56af0bd5e6b5f6d6bcb0d42c2a8911e920d6c76e94a50f74195e323591",
+      "name": "Sylvia Oglesbay",
+      "school": "Edina",
+      "points": 233,
+      "wins": 0,
+      "topThrees": 1,
+      "finals": 2
+    },
+    {
+      "rank": 13,
+      "competitorId": "competitor:8dcdfb7746def6fa31e6d38d917437c0a0fd943a9f5e523361ebef8dfd33a84b",
+      "name": "Grace Klausner",
+      "school": "Convent of the Sacred Heart, NYC",
+      "points": 227,
+      "wins": 1,
+      "topThrees": 2,
+      "finals": 2
+    },
+    {
+      "rank": 14,
+      "competitorId": "competitor:ba5b052a5c02300bf3013b616fcb126fc1793031777602dcf6d296f42be24dff",
+      "name": "Anthony Babu",
+      "school": "Concord Carlisle High School",
+      "points": 223,
+      "wins": 0,
+      "topThrees": 1,
+      "finals": 1
+    },
+    {
+      "rank": 15,
+      "competitorId": "competitor:61ba2175232a88ee84de4fdfd8ffd37b17600fa013ffff034769088893397433",
+      "name": "Sophia Amundgaard",
+      "school": "Stillwater Area High School",
+      "points": 195,
+      "wins": 0,
+      "topThrees": 1,
+      "finals": 1
+    },
+    {
+      "rank": 16,
+      "competitorId": "competitor:3c898b50b0007318311b187c72d32e137d6b463fe3c52dcdcdcec3d1fa3e7898",
+      "name": "Joy Hu",
+      "school": "The Harker School",
+      "points": 183,
+      "wins": 1,
+      "topThrees": 1,
+      "finals": 2
+    },
+    {
+      "rank": 17,
+      "competitorId": "competitor:4f45c2f720324751bc14e58531a09e78a3830a6e3184fe26ca03b6e9bc291418",
+      "name": "Robert Zhang",
+      "school": "Elkins Independent",
+      "points": 178,
+      "wins": 0,
+      "topThrees": 1,
+      "finals": 1
+    },
+    {
+      "rank": 18,
+      "competitorId": "competitor:e31b4bb2aa7697997ea743fc08f52e7943467ce25dd07b182faa944620cd2ab0",
+      "name": "Kajal Parmar",
+      "school": "Cary Academy",
+      "points": 177,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 4
+    },
+    {
+      "rank": 19,
+      "competitorId": "competitor:ee003da06676bc36c5e23a15118b7dfea386ffca40e9b1416f560bb9f69af9f3",
+      "name": "Rowan Seipp",
+      "school": "A and M Consolidated High School",
+      "points": 173,
+      "wins": 0,
+      "topThrees": 1,
+      "finals": 1
+    },
+    {
+      "rank": 20,
+      "competitorId": "competitor:c35aa170f2600acec3895947a1dc414612320690822300f4ce11e11976088051",
+      "name": "Neil Alappatt",
+      "school": "Bellarmine College Preparatory",
+      "points": 168,
+      "wins": 0,
+      "topThrees": 1,
+      "finals": 2
+    },
+    {
+      "rank": 21,
+      "competitorId": "competitor:f0bec63da8adf2cbf5cb3fd2024a1f594260281538f91b53dd426166e2e0dc63",
+      "name": "Manuela Mejia-Fanjul",
+      "school": "Convent of the Sacred Heart, NYC",
+      "points": 161,
+      "wins": 0,
+      "topThrees": 1,
+      "finals": 3
+    },
+    {
+      "rank": 22,
+      "competitorId": "competitor:a3bf000ad07c4e81b376ddadbc3dccfb04639e229f9e66921048a626719353a7",
+      "name": "Aparna Iyer",
+      "school": "Ridge High School",
+      "points": 158,
+      "wins": 1,
+      "topThrees": 1,
+      "finals": 3
+    },
+    {
+      "rank": 23,
+      "competitorId": "competitor:e9e871bc6616c219a13141a8ee23564c4b80b4bb832673cb73959955081de8ef",
+      "name": "Boyana Nikolova",
+      "school": "Irondale High School",
+      "points": 158,
+      "wins": 0,
+      "topThrees": 1,
+      "finals": 2
+    },
+    {
+      "rank": 24,
+      "competitorId": "competitor:4e46c976db7b684bdda848826585b4d55d741cf42f3637c5ec4882f255dc8a6b",
+      "name": "Lexie Toshav",
+      "school": "Isidore Newman School",
+      "points": 155,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 1
+    },
+    {
+      "rank": 25,
+      "competitorId": "competitor:a59051df478ac3b90c8e8ab0331be0360ed9e7265e0d9302df3ffaf223319c5d",
+      "name": "Thomas Guo",
+      "school": "Bellarmine College Preparatory",
+      "points": 148,
+      "wins": 0,
+      "topThrees": 1,
+      "finals": 1
+    }
+  ],
+  "tournaments": [
+    {
+      "order": 1,
+      "lineageId": "uk-season-opener",
+      "name": "National Speech and Debate Season Opener at the University of Kentucky",
+      "tier": 5,
+      "status": "final",
+      "resultCount": 25,
+      "awardCount": 6,
+      "source": {
+        "url": "https://www.tabroom.com/api/download_data.mhtml?tourn_id=36144",
+        "sha256": "9aff39923c0abe031ad0b386fb401343ade4d5bd79b36a6e49ce3faa13de5db6",
+        "retrievedAt": "2026-08-13T03:24:00.206Z",
+        "parserVersion": "tabroom-stream-reconstruction-v1",
+        "permission": "official-public-export"
+      },
+      "note": "Official public result evidence was normalized and scored."
+    },
+    {
+      "order": 2,
+      "lineageId": "yale",
+      "name": "Yale Invitational",
+      "tier": 4,
+      "status": "final",
+      "resultCount": 44,
+      "awardCount": 12,
+      "source": {
+        "url": "https://www.tabroom.com/api/download_data.mhtml?tourn_id=35805",
+        "sha256": "0fe871ce538a32d1c89a3738b00d27fab13754365282fe49dc8530e6e949024a",
+        "retrievedAt": "2026-08-13T03:14:46.500Z",
+        "parserVersion": "tabroom-stream-reconstruction-v1",
+        "permission": "official-public-export"
+      },
+      "note": "Official public result evidence was normalized and scored."
+    },
+    {
+      "order": 3,
+      "lineageId": "nyc-invitational",
+      "name": "New York City Invitational",
+      "tier": 5,
+      "status": "final",
+      "resultCount": 19,
+      "awardCount": 6,
+      "source": {
+        "url": "https://www.tabroom.com/api/download_data.mhtml?tourn_id=35754",
+        "sha256": "7ddf2e180dc4bf7ebcbcae5bfd0d9501cf9ff5c1b6ad0ddfbc6d690c6d8d7442",
+        "retrievedAt": "2026-08-13T03:14:02.480Z",
+        "parserVersion": "tabroom-stream-reconstruction-v1",
+        "permission": "official-public-export"
+      },
+      "note": "Official public result evidence was normalized and scored."
+    },
+    {
+      "order": 4,
+      "lineageId": "florida-blue-key",
+      "name": "Florida Blue Key",
+      "tier": 4,
+      "status": "final",
+      "resultCount": 28,
+      "awardCount": 12,
+      "source": {
+        "url": "https://www.tabroom.com/api/download_data.mhtml?tourn_id=36201",
+        "sha256": "66a16b8e4b08565de35365b9abc5645996bca6c87d07d724a3b42dbf96a5a633",
+        "retrievedAt": "2026-08-13T03:17:19.923Z",
+        "parserVersion": "tabroom-stream-reconstruction-v1",
+        "permission": "official-public-export"
+      },
+      "note": "Official public result evidence was normalized and scored."
+    },
+    {
+      "order": 5,
+      "lineageId": "glenbrooks",
+      "name": "Glenbrooks",
+      "tier": 3,
+      "status": "final",
+      "resultCount": 27,
+      "awardCount": 27,
+      "source": {
+        "url": "https://www.tabroom.com/api/download_data.mhtml?tourn_id=35020",
+        "sha256": "da3bd047e8d8de953e12a384cf3f235338aade54e25c62496b5952329b1cd72e",
+        "retrievedAt": "2026-08-13T03:16:16.286Z",
+        "parserVersion": "tabroom-stream-reconstruction-v1",
+        "permission": "official-public-export"
+      },
+      "note": "Official public result evidence was normalized and scored."
+    },
+    {
+      "order": 6,
+      "lineageId": "george-mason",
+      "name": "George Mason Patriot Games",
+      "tier": 5,
+      "status": "final",
+      "resultCount": 6,
+      "awardCount": 6,
+      "source": {
+        "url": "https://www.speechwire.com/files/19709-packet-pg25.pdf",
+        "sha256": "71389783a91b7646c3eddde3b9fe8e25e9284f60f1595248da94db52fc471bf9",
+        "retrievedAt": "2026-08-13T03:51:38.000Z",
+        "parserVersion": "speechwire-pdf-ocr-reviewed-v1",
+        "permission": "official-public-document"
+      },
+      "note": "Official public result evidence was normalized and scored."
+    },
+    {
+      "order": 7,
+      "lineageId": "princeton-classic",
+      "name": "Princeton Classic",
+      "tier": 4,
+      "status": "final",
+      "resultCount": 25,
+      "awardCount": 12,
+      "source": {
+        "url": "https://www.tabroom.com/api/download_data.mhtml?tourn_id=37048",
+        "sha256": "35104a6789b56f0c1a312cd439d7c6d5bf1bfc47e953caa8c5aa2b06ee9045cd",
+        "retrievedAt": "2026-08-13T03:15:48.298Z",
+        "parserVersion": "tabroom-stream-reconstruction-v1",
+        "permission": "official-public-export"
+      },
+      "note": "Official public result evidence was normalized and scored."
+    },
+    {
+      "order": 8,
+      "lineageId": "longhorn-classic",
+      "name": "University of Texas Longhorn Classic",
+      "tier": 3,
+      "status": "final",
+      "resultCount": 30,
+      "awardCount": 30,
+      "source": {
+        "url": "https://www.tabroom.com/api/download_data.mhtml?tourn_id=35025",
+        "sha256": "07abb3923b9acb8d5dabcd7dc6f673c20176b69681d2285d9e83d7f08cb21ef2",
+        "retrievedAt": "2026-08-13T03:16:18.238Z",
+        "parserVersion": "tabroom-stream-reconstruction-v1",
+        "permission": "official-public-export"
+      },
+      "note": "Official public result evidence was normalized and scored."
+    },
+    {
+      "order": 9,
+      "lineageId": "apple-valley-minneapple",
+      "name": "Apple Valley Minneapple Speech Tournament",
+      "tier": 5,
+      "status": "not-held",
+      "resultCount": 0,
+      "awardCount": 0,
+      "source": null,
+      "note": "The official 2025 tournament page lists debate and congress but no eligible extemp event."
+    },
+    {
+      "order": 10,
+      "lineageId": "mba-round-robin",
+      "name": "Montgomery Bell Academy Extemp Round Robin",
+      "tier": 2,
+      "status": "source-unavailable",
+      "resultCount": 0,
+      "awardCount": 0,
+      "source": null,
+      "note": "The official export identifies the event but contains no cumulative result set or ballot ranks. Points are withheld rather than inferred."
+    },
+    {
+      "order": 11,
+      "lineageId": "james-logan-mlk",
+      "name": "James Logan MLK Invitational",
+      "tier": 5,
+      "status": "final",
+      "resultCount": 54,
+      "awardCount": 9,
+      "source": {
+        "url": "https://www.tabroom.com/api/download_data.mhtml?tourn_id=36275",
+        "sha256": "e407841bc8d1ae43a6216f050dbca6cb5ead10a5d3a296083ee52aca8436540d",
+        "retrievedAt": "2026-08-13T03:17:44.000Z",
+        "parserVersion": "tabroom-stream-reconstruction-v1",
+        "permission": "official-public-export"
+      },
+      "note": "Official public result evidence was normalized and scored."
+    },
+    {
+      "order": 12,
+      "lineageId": "barkley-forum",
+      "name": "Barkley Forum",
+      "tier": 4,
+      "status": "final",
+      "resultCount": 24,
+      "awardCount": 12,
+      "source": {
+        "url": "https://www.tabroom.com/api/download_data.mhtml?tourn_id=35556",
+        "sha256": "b16be044e409e6241662c8a1fcaa7ce993ca0779bc18564c437e7d2ad24249a3",
+        "retrievedAt": "2026-08-13T03:18:50.228Z",
+        "parserVersion": "tabroom-stream-reconstruction-v1",
+        "permission": "official-public-export"
+      },
+      "note": "Official public result evidence was normalized and scored."
+    },
+    {
+      "order": 13,
+      "lineageId": "harvard",
+      "name": "Harvard National Speech and Debate Tournament",
+      "tier": 2,
+      "status": "final",
+      "resultCount": 50,
+      "awardCount": 50,
+      "source": {
+        "url": "https://www.tabroom.com/api/download_data.mhtml?tourn_id=36222",
+        "sha256": "dc65de173a6b199bac41f5f221d79ebe2fa69ff70bff07b2788f01805427d806",
+        "retrievedAt": "2026-08-13T03:18:17.453Z",
+        "parserVersion": "tabroom-stream-reconstruction-v1",
+        "permission": "official-public-export"
+      },
+      "note": "Official public result evidence was normalized and scored."
+    },
+    {
+      "order": 14,
+      "lineageId": "stanford",
+      "name": "Stanford National Invitational",
+      "tier": 4,
+      "status": "final",
+      "resultCount": 48,
+      "awardCount": 21,
+      "source": {
+        "url": "https://www.tabroom.com/api/download_data.mhtml?tourn_id=35262",
+        "sha256": "31c7306379fd25094cf97fce812aabc2e2b310bb0e1a7278fc4f5da6af7dd4e3",
+        "retrievedAt": "2026-08-13T03:27:11.820Z",
+        "parserVersion": "tabroom-stream-reconstruction-v1",
+        "permission": "official-public-export"
+      },
+      "note": "Official public result evidence was normalized and scored."
+    },
+    {
+      "order": 15,
+      "lineageId": "california-invitational",
+      "name": "California Invitational",
+      "tier": 3,
+      "status": "final",
+      "resultCount": 48,
+      "awardCount": 25,
+      "source": {
+        "url": "https://www.tabroom.com/api/download_data.mhtml?tourn_id=35299",
+        "sha256": "5ab7506d58c1f81c5a2ac8054511a5e1688370874a8ba7cec542ff2d98451c3e",
+        "retrievedAt": "2026-08-13T03:20:26.114Z",
+        "parserVersion": "tabroom-stream-reconstruction-v1",
+        "permission": "official-public-export"
+      },
+      "note": "Official public result evidence was normalized and scored."
+    },
+    {
+      "order": 16,
+      "lineageId": "uk-toc",
+      "name": "University of Kentucky Tournament of Champions",
+      "tier": 3,
+      "status": "final",
+      "resultCount": 24,
+      "awardCount": 24,
+      "source": {
+        "url": "https://www.tabroom.com/api/download_data.mhtml?tourn_id=36156",
+        "sha256": "06c74b9d2e05d709acfbba3eb91a845fdf753857ab015cac8786ee790f166e29",
+        "retrievedAt": "2026-08-13T03:20:31.772Z",
+        "parserVersion": "tabroom-stream-reconstruction-v1",
+        "permission": "official-public-export"
+      },
+      "note": "Official public result evidence was normalized and scored."
+    },
+    {
+      "order": 17,
+      "lineageId": "extemp-toc",
+      "name": "Tournament of Champions of Extemporaneous Speaking",
+      "tier": 4,
+      "status": "final",
+      "resultCount": 12,
+      "awardCount": 12,
+      "source": {
+        "url": "https://www.speechwire.com/files/21511-packet-etoc26.pdf",
+        "sha256": "ab4acd48980f65c649e6ae274202f6d613f98678cc19be1577428ab5961df36d",
+        "retrievedAt": "2026-08-13T02:53:21.000Z",
+        "parserVersion": "speechwire-pdf-ocr-reviewed-v1",
+        "permission": "official-public-document"
+      },
+      "note": "Official public result evidence was normalized and scored."
+    },
+    {
+      "order": 18,
+      "lineageId": "nietoc",
+      "name": "National Individual Events Tournament of Champions",
+      "tier": 4,
+      "status": "final",
+      "resultCount": 24,
+      "awardCount": 24,
+      "source": {
+        "url": "https://www.speechwire.com/files/20612-packet-nietoc26.pdf",
+        "sha256": "70ceddab67477fd454e62cac41986caded0bce3b99971341a02a67f675351a3a",
+        "retrievedAt": "2026-08-13T02:53:21.000Z",
+        "parserVersion": "speechwire-pdf-ocr-reviewed-v1",
+        "permission": "official-public-document"
+      },
+      "note": "Official public result evidence was normalized and scored."
+    },
+    {
+      "order": 19,
+      "lineageId": "ncfl-nationals",
+      "name": "NCFL Grand National Tournament",
+      "tier": 2,
+      "status": "final",
+      "resultCount": 48,
+      "awardCount": 48,
+      "source": {
+        "url": "https://www.tabroom.com/api/download_data.mhtml?tourn_id=39322",
+        "sha256": "18c7dbfc3322de7b103e966f7b4da0e6ef0a04a624921296aafb1ad2a062eeef",
+        "retrievedAt": "2026-08-13T03:28:47.679Z",
+        "parserVersion": "tabroom-stream-reconstruction-v1",
+        "permission": "official-public-export"
+      },
+      "note": "Official public result evidence was normalized and scored."
+    },
+    {
+      "order": 20,
+      "lineageId": "nsda-nationals",
+      "name": "NSDA National Tournament",
+      "tier": 1,
+      "status": "final",
+      "resultCount": 120,
+      "awardCount": 120,
+      "source": {
+        "url": "https://www.tabroom.com/api/download_data.mhtml?tourn_id=37602",
+        "sha256": "310ecf063e31d704af24bfe51499dfb6a5966a12691eebd83130be82dd62ff73",
+        "retrievedAt": "2026-08-13T03:39:58.574Z",
+        "parserVersion": "tabroom-stream-reconstruction-v1",
+        "permission": "official-public-export"
+      },
+      "note": "Official public result evidence was normalized and scored."
+    }
+  ],
+  "caveat": "The official MBA export did not contain cumulative result evidence, so MBA points are withheld. All other tracked lineages are resolved, including Apple Valley, whose official page listed no eligible extemp event."
+}

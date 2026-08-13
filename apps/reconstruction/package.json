@@ -1,0 +1,24 @@
+{
+  "name": "@points-race/reconstruction",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm run clean && tsc -p tsconfig.build.json",
+    "clean": "node --eval \"require('node:fs').rmSync('dist', { force: true, recursive: true })\"",
+    "rebuild:2025-26": "pnpm run build && node dist/generate-2025-26.js",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@points-race/pipeline": "workspace:*",
+    "@points-race/policy": "workspace:*",
+    "stream-json": "3.5.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "26.2.0",
+    "typescript": "7.0.2",
+    "vitest": "4.1.10"
+  }
+}

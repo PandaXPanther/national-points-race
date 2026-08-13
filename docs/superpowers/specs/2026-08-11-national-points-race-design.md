@@ -1,4 +1,4 @@
-# Autonomous National Points Race — Design Specification
+# Autonomous National Points Race: Design Specification
 
 **Status:** Approved design, awaiting written-spec review
 
@@ -205,7 +205,7 @@ The public leaderboard may display numeric ranks through the full field. Equal r
 ### 5.6 Tournament continuity
 
 - Each roster member has a permanent `tournament_lineage_id`, historical aliases, organizer/host fingerprints, normal date window, locations, known platform identifiers, and eligible event patterns.
-- Stable platform lineage signals—such as a Tabroom webname and its Past Years chain—have highest priority.
+- Stable platform lineage signals, such as a Tabroom webname and its Past Years chain, have highest priority.
 - A renamed candidate is accepted only when the lineage score passes a strict threshold and contains no hard contradiction. Required evidence includes a stable edition chain or organizer/host continuity plus date-window and event-structure agreement.
 - A candidate with a conflicting organizer, overlapping independent edition, or substantially different event purpose is rejected.
 - If no valid edition is found after the lineage’s normal date window plus 30 days, mark it `not held or no official edition found`; award no points and continue discovery in case evidence appears later.

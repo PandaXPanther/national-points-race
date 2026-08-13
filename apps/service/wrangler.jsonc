@@ -5,8 +5,19 @@
   "compatibility_date": "2026-08-11",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true, "head_sampling_rate": 1 },
-  "d1_databases": [{ "binding": "DB" }],
-  "r2_buckets": [{ "binding": "RAW_SNAPSHOTS" }],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "points-race",
+      "database_id": "03d10faf-7103-4b41-a733-35482c8aace9",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "RAW_SNAPSHOTS",
+      "bucket_name": "points-race-raw-snapshots",
+    },
+  ],
   "queues": {
     "producers": [{ "binding": "JOBS", "queue": "points-race-jobs" }],
     "consumers": [
@@ -21,7 +32,7 @@
   },
   "triggers": { "crons": ["17 8 * * *"] },
   "vars": {
-    "APP_ENV": "development",
-    "PUBLIC_ORIGIN": "http://localhost:4321",
+    "APP_ENV": "production",
+    "PUBLIC_ORIGIN": "https://national-points-race.pages.dev",
   },
 }

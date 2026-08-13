@@ -278,7 +278,7 @@ describe("Unicode normalization and school provenance", () => {
   });
 
   it("rejects names that normalize to empty with a stable error", () => {
-    expect(() => normalizePersonName("—...!!!")).toThrowError(
+    expect(() => normalizePersonName("\u2014...!!!")).toThrowError(
       expect.objectContaining({ code: "IDENTITY_EMPTY_NAME" }),
     );
   });

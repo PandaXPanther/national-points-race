@@ -407,6 +407,173 @@ describe("Tabroom public export adapter", () => {
     );
   });
 
+  it("treats provider elimination labels as stages rather than placements", () => {
+    const input = mutableFixtureInput();
+    const payload = input.payload as {
+      categories: Array<{
+        events: Array<{
+          result_sets: Array<{
+            results: Array<{ place: string; round: string }>;
+          }>;
+        }>;
+      }>;
+    };
+    const result =
+      payload.categories[0]!.events[0]!.result_sets[0]!.results[0]!;
+    result.place = "SF";
+    result.round = "1463288";
+
+    expect(
+      normalizeTabroomExport(input)[0]?.results.find(
+        ({ sourceEntryId }) => sourceEntryId === "tabroom:entry:entry-1",
+      ),
+    ).toMatchObject({ placement: null, furthestStage: "semifinal" });
+  });
+
+  it("omits explicit preliminary rows without reporting an unknown stage", () => {
+    const input = mutableFixtureInput();
+    const payload = input.payload as {
+      categories: Array<{
+        events: Array<{
+          rounds: Array<{ id: string; label: string; type: string }>;
+          result_sets: Array<{
+            results: Array<{ entry: string; place: string; round: string }>;
+          }>;
+        }>;
+      }>;
+    };
+    const event = payload.categories[0]!.events[0]!;
+    const preliminaryRound = event.rounds[0]!;
+    preliminaryRound.label = "R1";
+    preliminaryRound.type = "prelim";
+    const result = event.result_sets[0]!.results[0]!;
+    result.place = "Prelim";
+    result.round = preliminaryRound.id;
+
+    const [normalized] = normalizeTabroomExport(input);
+
+    expect(
+      normalized?.results.some(
+        ({ sourceEntryId }) => sourceEntryId === "tabroom:entry:entry-1",
+      ),
+    ).toBe(false);
+    expect(normalized?.parserDiagnostics).toEqual([]);
+  });
+
+  it("uses an official named elimination round when place is not numeric", () => {
+    const input = mutableFixtureInput();
+    const payload = input.payload as {
+      categories: Array<{
+        events: Array<{
+          rounds: Array<{ id: string; label: string; type: string }>;
+          result_sets: Array<{
+            results: Array<{ place: string; round: string }>;
+          }>;
+        }>;
+      }>;
+    };
+    const event = payload.categories[0]!.events[0]!;
+    const tutorial = event.rounds[0]!;
+    tutorial.label = "Michele Coody Tutorial";
+    tutorial.type = "elim";
+    const result = event.result_sets[0]!.results[0]!;
+    result.place = "Michele";
+    result.round = tutorial.id;
+
+    expect(
+      normalizeTabroomExport(input)[0]?.results.find(
+        ({ sourceEntryId }) => sourceEntryId === "tabroom:entry:entry-1",
+      ),
+    ).toMatchObject({ placement: null, furthestStage: "semifinal" });
+  });
+
+  it("omits numeric ranks outside the last classified elimination", () => {
+    const input = mutableFixtureInput();
+    const payload = input.payload as {
+      categories: Array<{
+        events: Array<{
+          rounds: Array<{
+            label: string;
+            type: string;
+            sections: Array<{
+              id: string;
+              round: string;
+              ballots: Array<{ entry: string }>;
+            }>;
+            id: string;
+          }>;
+          result_sets: Array<{
+            results: Array<{
+              entry: string;
+              place: string;
+              round?: string;
+            }>;
+          }>;
+        }>;
+      }>;
+    };
+    const event = payload.categories[0]!.events[0]!;
+    const octafinal = event.rounds[0]!;
+    octafinal.label = "Octa 1";
+    octafinal.type = "elim";
+    octafinal.sections = [
+      {
+        id: "octa-a",
+        round: octafinal.id,
+        ballots: [{ entry: "entry-2" }],
+      },
+    ];
+    const outsideBreak = event.result_sets[0]!.results[0]!;
+    outsideBreak.place = "61st";
+    delete outsideBreak.round;
+
+    const [normalized] = normalizeTabroomExport(input);
+
+    expect(
+      normalized?.results.some(
+        ({ sourceEntryId }) => sourceEntryId === "tabroom:entry:entry-1",
+      ),
+    ).toBe(false);
+    expect(normalized?.parserDiagnostics).toEqual([]);
+  });
+
+  it("keeps tied NSDA elimination results without treating them as placements", () => {
+    const base = mutableFixtureInput();
+    const input: TabroomNormalizeInput = {
+      ...base,
+      eventRules: base.eventRules.map((rule) => ({
+        ...rule,
+        lineageId: "nsda-nationals",
+      })),
+    };
+    const payload = input.payload as {
+      categories: Array<{
+        events: Array<{
+          result_sets: Array<{
+            results: Array<{ place: string; round: string }>;
+          }>;
+        }>;
+      }>;
+    };
+    const results = payload.categories[0]!.events[0]!.result_sets[0]!.results;
+    for (const result of results) {
+      result.place = "15th";
+      result.round = "1463288";
+    }
+
+    const [normalized] = normalizeTabroomExport(input);
+
+    expect(normalized?.results).toHaveLength(2);
+    expect(normalized?.results).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          placement: null,
+          furthestStage: "semifinal",
+        }),
+      ]),
+    );
+  });
+
   it("reports an unknown provider round label without inventing a stage", () => {
     const input = mutableFixtureInput();
     const payload = input.payload as {

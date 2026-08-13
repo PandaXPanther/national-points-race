@@ -1,6 +1,7 @@
 .superpowers/
 .worktrees/
 node_modules/
+pnpm-lock.yaml
 .pnpm-store/
 coverage/
 dist/

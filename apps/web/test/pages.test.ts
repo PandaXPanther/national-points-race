@@ -34,6 +34,37 @@ describe("public information architecture", () => {
     expect(reconstruction).toContain("not an official contemporaneous NPR");
   });
 
+  it("publishes the audited 2025-26 proof standings and source status", async () => {
+    const reconstruction = await readFile(
+      `${sourceRoot}pages/2025-26.astro`,
+      "utf8",
+    );
+    const report = JSON.parse(
+      await readFile(`${sourceRoot}data/reconstruction/2025-26.json`, "utf8"),
+    ) as {
+      readonly standings: readonly { readonly name: string }[];
+      readonly completeness: {
+        readonly verifiedResultSources: number;
+        readonly notHeld: number;
+        readonly withheld: number;
+      };
+    };
+
+    expect(reconstruction).toContain("StandingsTable");
+    expect(reconstruction).toContain("report.standings");
+    expect(reconstruction).not.toContain("Evidence audit in progress");
+    expect(report.standings).toHaveLength(25);
+    expect(report.standings[0]?.name).toBe("Daphne Kalir-Starr");
+    expect(report.completeness).toEqual({
+      trackedLineages: 20,
+      verifiedResultSources: 18,
+      notHeld: 1,
+      withheld: 1,
+      normalizedResults: 656,
+      scoredAwards: 456,
+    });
+  });
+
   it("credits the original race and describes independent stewardship", async () => {
     const history = await readFile(`${sourceRoot}pages/history.astro`, "utf8");
     expect(history).toContain("Extemp Central");

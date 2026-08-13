@@ -114,7 +114,7 @@ describe("frozen tournament registry", () => {
   });
 
   it("normalizes NFKC, Unicode whitespace, case, and punctuation without fuzzy matching", () => {
-    expect(normalizeExactKey("  Harvard\u00a0University—Speech  ")).toBe(
+    expect(normalizeExactKey("  Harvard\u00a0University\u2014Speech  ")).toBe(
       "harvard university speech",
     );
     expect(normalizeExactKey("ＨＡＲＶＡＲＤ UNIVERSITY")).toBe(

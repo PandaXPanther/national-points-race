@@ -4,7 +4,12 @@ import {
   env,
   waitOnExecutionContext,
 } from "cloudflare:test";
-import { LEGACY_POLICY, POLICY_VERSION } from "@points-race/policy";
+import {
+  CURRENT_POLICY,
+  LEGACY_POLICY,
+  NPR_2026_27_POLICY_VERSION,
+  POLICY_VERSION,
+} from "@points-race/policy";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -122,11 +127,11 @@ describe("scheduled season lifecycle", () => {
     const count = await env.DB.prepare(
       "SELECT COUNT(*) AS count FROM tournament_editions WHERE season_id = '2054-55'",
     ).first<{ count: number }>();
-    expect(count?.count).toBe(20);
+    expect(count?.count).toBe(21);
     expect(fixture.messages).not.toHaveLength(0);
   });
 
-  it("ensures immutable policy facts, literal 20 lineages, and exactly 20 editions idempotently", async () => {
+  it("ensures immutable current policy facts and exactly 21 editions idempotently", async () => {
     const fixture = recordingQueue();
     const input = {
       scheduledAt: "2040-08-20T08:17:00.000Z",
@@ -138,12 +143,12 @@ describe("scheduled season lifecycle", () => {
     const policy = await env.DB.prepare(
       "SELECT id, created_at, ledger_sha256 FROM policy_versions WHERE id = ?1",
     )
-      .bind(POLICY_VERSION)
+      .bind(NPR_2026_27_POLICY_VERSION)
       .first<{ id: string; created_at: string; ledger_sha256: string }>();
     const lineages = await env.DB.prepare(
       "SELECT id, tier, canonical_name, aliases_json FROM tournament_lineages WHERE policy_version_id = ?1 ORDER BY id",
     )
-      .bind(POLICY_VERSION)
+      .bind(NPR_2026_27_POLICY_VERSION)
       .all<{
         id: string;
         tier: number;
@@ -158,16 +163,16 @@ describe("scheduled season lifecycle", () => {
     expect(first).toMatchObject({
       diagnosticCode: "SCHEDULED_JOBS_ENQUEUED",
       seasonId: "2040-41",
-      editionCount: 20,
+      editionCount: 21,
     });
-    expect(second).toMatchObject({ editionCount: 20 });
+    expect(second).toMatchObject({ editionCount: 21 });
     expect(policy).toMatchObject({
-      id: POLICY_VERSION,
-      created_at: "2024-08-01T00:00:00.000Z",
+      id: NPR_2026_27_POLICY_VERSION,
+      created_at: "2026-08-01T00:00:00.000Z",
       ledger_sha256: expect.stringMatching(/^[0-9a-f]{64}$/u),
     });
     expect(lineages.results).toEqual(
-      [...LEGACY_POLICY.tournaments]
+      [...CURRENT_POLICY.tournaments]
         .sort((left, right) => left.id.localeCompare(right.id))
         .map((lineage) => ({
           id: lineage.id,
@@ -177,7 +182,7 @@ describe("scheduled season lifecycle", () => {
         })),
     );
     expect(editions.results).toEqual(
-      [...LEGACY_POLICY.tournaments]
+      [...CURRENT_POLICY.tournaments]
         .sort((left, right) => left.id.localeCompare(right.id))
         .map(({ id }) => ({
           id: `2040-41:${id}`,
@@ -200,6 +205,23 @@ describe("scheduled season lifecycle", () => {
         scheduledFor: row.scheduled_for,
       });
     }
+  });
+
+  it("keeps the 2025-26 reconstruction season on the 20-lineage legacy policy", async () => {
+    const fixture = recordingQueue();
+    const output = await runScheduledTick({
+      scheduledAt: "2025-08-20T08:17:00.000Z",
+      env: bindings(fixture.queue),
+    });
+    const editions = await env.DB.prepare(
+      "SELECT policy_version_id, COUNT(*) AS count FROM tournament_editions WHERE season_id = '2025-26' GROUP BY policy_version_id",
+    ).all<{ policy_version_id: string; count: number }>();
+
+    expect(output.editionCount).toBe(20);
+    expect(editions.results).toEqual([
+      { policy_version_id: POLICY_VERSION, count: 20 },
+    ]);
+    expect(LEGACY_POLICY.tournaments).toHaveLength(20);
   });
 
   it("uses daily discovery in-window and one Monday bucket outside the window", async () => {
@@ -357,7 +379,7 @@ describe("scheduled season lifecycle", () => {
       "SELECT COUNT(*) AS count FROM tournament_editions WHERE season_id = '2052-53'",
     ).first<{ count: number }>();
     const rows = await rowsForSeason("2052-53");
-    expect(editions?.count).toBe(20);
+    expect(editions?.count).toBe(21);
     expect(new Set(rows.map(({ id }) => id)).size).toBe(rows.length);
     expect(new Set(fixture.messages.map(({ id }) => id)).size).toBe(
       fixture.messages.length,

@@ -1,4 +1,4 @@
-import { LEGACY_POLICY } from "@points-race/policy";
+import { CURRENT_POLICY } from "@points-race/policy";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -41,6 +41,7 @@ const EXPECTED_WINDOWS = {
   "george-mason": [11, 1],
   "james-logan-mlk": [12, 2],
   "apple-valley-minneapple": [10, 12],
+  "asu-hdshc-invitational": [1, 2],
 } as const;
 
 function candidate(
@@ -76,10 +77,10 @@ function harvard(
 
 describe("frozen tournament registry", () => {
   it("has literal coverage, verbatim policy facts, conservative windows, and no fabricated keys", () => {
-    expect(TOURNAMENT_FINGERPRINTS).toHaveLength(20);
+    expect(TOURNAMENT_FINGERPRINTS).toHaveLength(21);
     expect(
       new Set(TOURNAMENT_FINGERPRINTS.map(({ lineageId }) => lineageId)).size,
-    ).toBe(20);
+    ).toBe(21);
     expect(
       TOURNAMENT_FINGERPRINTS.map((fingerprint) => ({
         id: fingerprint.lineageId,
@@ -91,14 +92,20 @@ describe("frozen tournament registry", () => {
         past: fingerprint.verifiedOfficialPastEditionKeys,
       })),
     ).toEqual(
-      LEGACY_POLICY.tournaments.map((lineage) => ({
+      CURRENT_POLICY.tournaments.map((lineage) => ({
         id: lineage.id,
         canonicalName: lineage.canonicalName,
         aliases: lineage.aliases,
         tier: lineage.tier,
         window: [...EXPECTED_WINDOWS[lineage.id]],
-        platform: [],
-        past: [],
+        platform:
+          lineage.id === "asu-hdshc-invitational"
+            ? ["tabroom:tourn:37484"]
+            : [],
+        past:
+          lineage.id === "asu-hdshc-invitational"
+            ? ["tabroom:edition:37484"]
+            : [],
       })),
     );
     expect(ELIGIBLE_EVENT_LABELS).toEqual([
@@ -111,6 +118,20 @@ describe("frozen tournament registry", () => {
       "United States Extemp",
       "USX",
     ]);
+  });
+
+  it("tracks the Arizona State HDSHC Invitational as a verified January Tier 4 lineage", () => {
+    expect(fingerprintFor("asu-hdshc-invitational")).toEqual(
+      expect.objectContaining({
+        canonicalName: "Arizona State HDSHC Invitational",
+        aliases: ["HDSHC Invitational", "ASU HDSHC Invitational"],
+        tier: 4,
+        window: { startMonth: 1, endMonth: 2 },
+        organizerKeys: ["Arizona State University"],
+        verifiedPlatformLineageKeys: ["tabroom:tourn:37484"],
+        verifiedOfficialPastEditionKeys: ["tabroom:edition:37484"],
+      }),
+    );
   });
 
   it("normalizes NFKC, Unicode whitespace, case, and punctuation without fuzzy matching", () => {

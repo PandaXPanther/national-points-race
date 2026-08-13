@@ -6,7 +6,7 @@ import {
   getQueueResult,
   waitOnExecutionContext,
 } from "cloudflare:test";
-import { LEGACY_POLICY } from "@points-race/policy";
+import { CURRENT_POLICY } from "@points-race/policy";
 import { describe, expect, it } from "vitest";
 
 import { TOURNAMENT_FINGERPRINTS } from "../../src/discovery/registry.js";
@@ -53,7 +53,7 @@ async function discoverAllEditions(): Promise<void> {
   const messages = response.results.map(({ message_json }) =>
     JobMessageSchema.parse(JSON.parse(message_json)),
   );
-  expect(messages).toHaveLength(20);
+  expect(messages).toHaveLength(21);
   for (const [ordinal, fingerprint] of TOURNAMENT_FINGERPRINTS.entries()) {
     const message = messages.find(
       ({ editionId }) => editionId === `${SEASON_ID}:${fingerprint.lineageId}`,
@@ -109,7 +109,7 @@ describe("complete unattended season", () => {
     )
       .bind(SEASON_ID)
       .first<{ count: number }>();
-    expect(created?.count).toBe(20);
+    expect(created?.count).toBe(21);
 
     await discoverAllEditions();
     const discovered = await env.DB.prepare(
@@ -117,7 +117,7 @@ describe("complete unattended season", () => {
     )
       .bind(SEASON_ID)
       .first<{ count: number }>();
-    expect(discovered?.count).toBe(20);
+    expect(discovered?.count).toBe(21);
 
     const tier3 = lineageForTier(3);
     const tier4 = lineageForTier(4);
@@ -304,7 +304,7 @@ describe("complete unattended season", () => {
     )
       .bind(NEXT_SEASON_ID)
       .first<{ count: number }>();
-    expect(nextSeason?.count).toBe(20);
-    expect(LEGACY_POLICY.tournaments).toHaveLength(20);
+    expect(nextSeason?.count).toBe(21);
+    expect(CURRENT_POLICY.tournaments).toHaveLength(21);
   }, 60_000);
 });

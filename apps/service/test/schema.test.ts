@@ -110,8 +110,8 @@ async function seedResultParents(prefix: string): Promise<{
       "INSERT INTO tournament_lineages (id, policy_version_id, tier, canonical_name, aliases_json) VALUES (?1, ?2, 1, 'Tournament', '[]')",
     ).bind(lineageId, policyId),
     env.DB.prepare(
-      "INSERT INTO tournament_editions (id, lineage_id, season_id, status) VALUES (?1, ?2, ?3, 'upcoming')",
-    ).bind(editionId, lineageId, `${prefix}-season`),
+      "INSERT INTO tournament_editions (id, lineage_id, season_id, status, policy_version_id) VALUES (?1, ?2, ?3, 'upcoming', ?4)",
+    ).bind(editionId, lineageId, `${prefix}-season`, policyId),
     env.DB.prepare(
       "INSERT INTO source_descriptors (id, source_class, allowlisted_hostnames_json, allowed_media_types_json, permission, semantic_sha256) VALUES (?1, 'organizer-html-pdf', '[\"example.test\"]', '[\"text/html\"]', 'official-public-document', ?2)",
     ).bind(descriptorId, descriptorSha256),
@@ -370,7 +370,10 @@ it("declares every required foreign-key column mapping", async () => {
   const expectedMappings = {
     policy_versions: [],
     tournament_lineages: ["policy_versions:policy_version_id->id"],
-    tournament_editions: ["tournament_lineages:lineage_id->id"],
+    tournament_editions: [
+      "policy_versions:policy_version_id->id",
+      "tournament_lineages:lineage_id->id",
+    ],
     source_descriptors: [],
     source_snapshots: [
       "source_descriptors:descriptor_id,descriptor_sha256->id,semantic_sha256",
@@ -532,7 +535,7 @@ it("rejects invalid lineage, edition, and standings states", async () => {
   ).run();
   await expect(
     env.DB.prepare(
-      "INSERT INTO tournament_editions (id, lineage_id, season_id, status) VALUES ('edition-state', 'lineage-state', 'state-season', 'unknown')",
+      "INSERT INTO tournament_editions (id, lineage_id, season_id, status, policy_version_id) VALUES ('edition-state', 'lineage-state', 'state-season', 'unknown', 'policy-state')",
     ).run(),
   ).rejects.toThrow(/CHECK constraint failed/);
 

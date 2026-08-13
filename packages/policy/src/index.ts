@@ -1,7 +1,15 @@
-export const POLICY_VERSION = "legacy-2024-25-v1" as const;
-export type PolicyVersionId = typeof POLICY_VERSION;
-
-export { getTournamentPolicy, LEGACY_POLICY } from "./legacy-2024-25-v1.js";
+export { LEGACY_POLICY } from "./legacy-2024-25-v1.js";
+export {
+  CURRENT_POLICY,
+  NPR_2026_27_POLICY_VERSION,
+} from "./npr-2026-27-v1.js";
+export {
+  getTournamentPolicy,
+  POLICY_VERSION,
+  policyLedgerForVersion,
+  policyVersionForSeason,
+} from "./policy-selector.js";
+export type { PolicyVersionId } from "./policy-selector.js";
 export { classifyRoundLabel } from "./round-classifier.js";
 export { DivisionSchema, RoundStageSchema } from "./result-schemas.js";
 export {

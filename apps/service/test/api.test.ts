@@ -206,7 +206,7 @@ describe("public standings API", () => {
     expect(body).toMatchObject({
       seasonId: SEASON_ID,
       status: "provisional",
-      policyVersion: "legacy-2024-25-v1",
+      policyVersion: "npr-2026-27-v1",
       standings: [
         {
           rank: 1,
@@ -278,7 +278,7 @@ describe("public standings API", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(body.tournaments).toHaveLength(20);
+    expect(body.tournaments).toHaveLength(21);
     expect(harvard).toMatchObject({
       lineageId: "harvard",
       tier: 2,

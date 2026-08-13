@@ -1,6 +1,7 @@
 import {
+  CURRENT_POLICY,
   DivisionSchema,
-  LEGACY_POLICY,
+  NPR_2026_27_POLICY_VERSION,
   POLICY_VERSION,
   RoundStageSchema,
   type TournamentLineageId,
@@ -10,10 +11,13 @@ import { z } from "zod";
 import { DiagnosticSchema } from "./diagnostic.js";
 
 const lineageIds = new Set<string>(
-  LEGACY_POLICY.tournaments.map(({ id }) => id),
+  CURRENT_POLICY.tournaments.map(({ id }) => id),
 );
 
-export const PolicyVersionIdSchema = z.literal(POLICY_VERSION);
+export const PolicyVersionIdSchema = z.enum([
+  POLICY_VERSION,
+  NPR_2026_27_POLICY_VERSION,
+]);
 
 export const TournamentLineageIdSchema = z.custom<TournamentLineageId>(
   (value) => typeof value === "string" && lineageIds.has(value),

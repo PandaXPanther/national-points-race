@@ -156,7 +156,9 @@ export type {
 
 export {
   DivisionSchema,
+  NPR_2026_27_POLICY_VERSION,
   POLICY_VERSION,
+  policyVersionForSeason,
   RoundStageSchema,
 } from "@points-race/policy";
 export type {

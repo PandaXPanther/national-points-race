@@ -105,7 +105,12 @@ function assertLineageMatches(
   existing: TournamentLineageRecord,
   expected: TournamentLineageRecord,
 ): void {
-  if (!sameJson(existing, expected)) {
+  if (
+    existing.id !== expected.id ||
+    existing.tier !== expected.tier ||
+    existing.canonicalName !== expected.canonicalName ||
+    !sameJson(existing.aliases, expected.aliases)
+  ) {
     throw new StorageError(
       "EDITION_CONFLICT",
       `Tournament lineage ${expected.id} conflicts with immutable storage.`,
@@ -142,7 +147,7 @@ export function createEditionRepository(db: D1Database): EditionRepository {
     const parsedId = NonEmptyStringSchema.parse(id);
     const row = await db
       .prepare(
-        "SELECT e.id, e.lineage_id, e.season_id, l.policy_version_id, l.tier, e.start_at, e.end_at, e.status, e.discovered_from FROM tournament_editions e JOIN tournament_lineages l ON l.id = e.lineage_id WHERE e.id = ?1",
+        "SELECT e.id, e.lineage_id, e.season_id, e.policy_version_id, l.tier, e.start_at, e.end_at, e.status, e.discovered_from FROM tournament_editions e JOIN tournament_lineages l ON l.id = e.lineage_id WHERE e.id = ?1",
       )
       .bind(parsedId)
       .first<EditionRow>();
@@ -155,7 +160,7 @@ export function createEditionRepository(db: D1Database): EditionRepository {
   ): Promise<EditionRecord | null> {
     const row = await db
       .prepare(
-        "SELECT e.id, e.lineage_id, e.season_id, l.policy_version_id, l.tier, e.start_at, e.end_at, e.status, e.discovered_from FROM tournament_editions e JOIN tournament_lineages l ON l.id = e.lineage_id WHERE e.lineage_id = ?1 AND e.season_id = ?2",
+        "SELECT e.id, e.lineage_id, e.season_id, e.policy_version_id, l.tier, e.start_at, e.end_at, e.status, e.discovered_from FROM tournament_editions e JOIN tournament_lineages l ON l.id = e.lineage_id WHERE e.lineage_id = ?1 AND e.season_id = ?2",
       )
       .bind(lineageId, seasonId)
       .first<EditionRow>();
@@ -208,7 +213,7 @@ export function createEditionRepository(db: D1Database): EditionRepository {
       const existing = await findLineageById(input.id);
       if (existing !== null) {
         assertLineageMatches(existing, input);
-        return existing;
+        return input;
       }
       try {
         await db
@@ -240,11 +245,8 @@ export function createEditionRepository(db: D1Database): EditionRepository {
     async ensureEdition(rawInput) {
       const input = EnsureEditionInputSchema.parse(rawInput);
       const lineage = await findLineageById(input.lineageId);
-      if (
-        lineage === null ||
-        lineage.policyVersionId !== input.policyVersionId ||
-        lineage.tier !== input.tier
-      ) {
+      const policy = await findPolicyById(input.policyVersionId);
+      if (lineage === null || policy === null || lineage.tier !== input.tier) {
         throw new StorageError(
           "EDITION_CONFLICT",
           `Edition ${input.id} contradicts its immutable lineage, policy, or tier.`,
@@ -273,7 +275,7 @@ export function createEditionRepository(db: D1Database): EditionRepository {
       try {
         await db
           .prepare(
-            "INSERT INTO tournament_editions (id, lineage_id, season_id, start_at, end_at, status, discovered_from) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            "INSERT INTO tournament_editions (id, lineage_id, season_id, start_at, end_at, status, discovered_from, policy_version_id) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
           )
           .bind(
             input.id,
@@ -283,6 +285,7 @@ export function createEditionRepository(db: D1Database): EditionRepository {
             input.endAt,
             input.status,
             input.discoveredFrom,
+            input.policyVersionId,
           )
           .run();
       } catch {
@@ -306,7 +309,7 @@ export function createEditionRepository(db: D1Database): EditionRepository {
       const parsedSeasonId = NonEmptyStringSchema.parse(seasonId);
       const response = await db
         .prepare(
-          "SELECT e.id, e.lineage_id, e.season_id, l.policy_version_id, l.tier, e.start_at, e.end_at, e.status, e.discovered_from FROM tournament_editions e JOIN tournament_lineages l ON l.id = e.lineage_id WHERE e.season_id = ?1 ORDER BY CASE WHEN e.start_at IS NULL THEN 1 ELSE 0 END, e.start_at, e.lineage_id, e.id",
+          "SELECT e.id, e.lineage_id, e.season_id, e.policy_version_id, l.tier, e.start_at, e.end_at, e.status, e.discovered_from FROM tournament_editions e JOIN tournament_lineages l ON l.id = e.lineage_id WHERE e.season_id = ?1 ORDER BY CASE WHEN e.start_at IS NULL THEN 1 ELSE 0 END, e.start_at, e.lineage_id, e.id",
         )
         .bind(parsedSeasonId)
         .all<EditionRow>();

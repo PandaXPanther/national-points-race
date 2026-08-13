@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   AwardRebuildInputSchema,
+  NPR_2026_27_POLICY_VERSION,
   POLICY_VERSION,
   rebuildSeason,
   type AwardRebuildInput,
@@ -19,6 +20,63 @@ const CAROL =
   "competitor:d20c52a4a79de4bbb61a3d505e4454bb9679d75cc46ac6225a081dd8f6c6af9d";
 
 describe("rebuildSeason", () => {
+  it("rejects ASU evidence under the frozen legacy policy", () => {
+    const asu = set(
+      "2025-26:asu-hdshc-invitational",
+      "asu-hdshc-invitational",
+      "asu-extemp",
+      [person("alice", 1)],
+    );
+    const input = inputFromSets(
+      [asu],
+      [
+        {
+          seasonId: "2024-25",
+          editionId: "2025-26:asu-hdshc-invitational",
+          tournamentOrder: 10,
+          date: "2025-01-12T00:00:00.000Z",
+        },
+      ],
+    );
+
+    expect(() => AwardRebuildInputSchema.parse(input)).toThrow(
+      "selected policy version",
+    );
+  });
+
+  it("scores ASU evidence under the 2026-27 policy", () => {
+    const asu = set(
+      "2026-27:asu-hdshc-invitational",
+      "asu-hdshc-invitational",
+      "asu-extemp",
+      [person("alice", 1)],
+      { publishedAt: "2027-01-12T00:00:00.000Z" },
+    );
+    const input = inputFromSets(
+      [asu],
+      [
+        {
+          seasonId: "2026-27",
+          editionId: "2026-27:asu-hdshc-invitational",
+          tournamentOrder: 10,
+          date: "2027-01-12T00:00:00.000Z",
+        },
+      ],
+    );
+    input.seasonId = "2026-27";
+    input.policyVersion = NPR_2026_27_POLICY_VERSION;
+
+    const output = rebuildSeason(input);
+
+    expect(output.policyVersion).toBe(NPR_2026_27_POLICY_VERSION);
+    expect(output.awards).toHaveLength(1);
+    expect(output.awards[0]).toMatchObject({
+      lineageId: "asu-hdshc-invitational",
+      points: 70,
+      ruleId: "placement",
+    });
+  });
+
   it("returns the literal deterministic empty-season contract", () => {
     const output = rebuildSeason(emptyInput());
 

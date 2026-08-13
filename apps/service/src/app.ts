@@ -1,4 +1,4 @@
-import { POLICY_VERSION } from "@points-race/policy";
+import { NPR_2026_27_POLICY_VERSION } from "@points-race/policy";
 import { Hono } from "hono";
 
 import type { ServiceBindings } from "./auth/hmac.js";
@@ -27,9 +27,13 @@ export function createApp(): Hono<{ Bindings: ServiceBindings }> {
   const app = new Hono<{ Bindings: ServiceBindings }>();
 
   app.get("/healthz", () =>
-    jsonResponse({ status: "ok", policyVersion: POLICY_VERSION }, 200, {
-      "Cache-Control": "no-store",
-    }),
+    jsonResponse(
+      { status: "ok", policyVersion: NPR_2026_27_POLICY_VERSION },
+      200,
+      {
+        "Cache-Control": "no-store",
+      },
+    ),
   );
 
   registerIngestRoute(app);

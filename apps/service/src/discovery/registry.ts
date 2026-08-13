@@ -1,4 +1,4 @@
-import { LEGACY_POLICY, type TournamentLineageId } from "@points-race/policy";
+import { CURRENT_POLICY, type TournamentLineageId } from "@points-race/policy";
 
 export const ELIGIBLE_EVENT_LABELS = Object.freeze([
   "Extemporaneous Speaking",
@@ -56,6 +56,7 @@ const WINDOWS: Readonly<
   "george-mason": [11, 1],
   "james-logan-mlk": [12, 2],
   "apple-valley-minneapple": [10, 12],
+  "asu-hdshc-invitational": [1, 2],
 };
 
 const ORGANIZERS: Readonly<Record<TournamentLineageId, readonly string[]>> = {
@@ -79,6 +80,16 @@ const ORGANIZERS: Readonly<Record<TournamentLineageId, readonly string[]>> = {
   "george-mason": ["George Mason University"],
   "james-logan-mlk": ["James Logan High School"],
   "apple-valley-minneapple": ["Apple Valley High School"],
+  "asu-hdshc-invitational": ["Arizona State University"],
+};
+
+const VERIFIED_HISTORY: Readonly<
+  Partial<Record<TournamentLineageId, VerifiedLineageHistory>>
+> = {
+  "asu-hdshc-invitational": {
+    verifiedPlatformLineageKeys: ["tabroom:tourn:37484"],
+    verifiedOfficialPastEditionKeys: ["tabroom:edition:37484"],
+  },
 };
 
 export function normalizeExactKey(value: string): string {
@@ -107,7 +118,7 @@ export function buildTournamentFingerprintRegistry(
     Partial<Record<TournamentLineageId, VerifiedLineageHistory>>
   > = {},
 ): readonly TournamentFingerprint[] {
-  const records = LEGACY_POLICY.tournaments.map((lineage) => {
+  const records = CURRENT_POLICY.tournaments.map((lineage) => {
     const [startMonth, endMonth] = WINDOWS[lineage.id];
     const verified = history[lineage.id];
     return Object.freeze({
@@ -127,17 +138,18 @@ export function buildTournamentFingerprintRegistry(
     });
   });
   if (
-    records.length !== 20 ||
-    new Set(records.map(({ lineageId }) => lineageId)).size !== 20
+    records.length !== 21 ||
+    new Set(records.map(({ lineageId }) => lineageId)).size !== 21
   ) {
     throw new Error(
-      "Tournament fingerprint registry must cover 20 unique policy lineages.",
+      "Tournament fingerprint registry must cover 21 unique policy lineages.",
     );
   }
   return Object.freeze(records);
 }
 
-export const TOURNAMENT_FINGERPRINTS = buildTournamentFingerprintRegistry();
+export const TOURNAMENT_FINGERPRINTS =
+  buildTournamentFingerprintRegistry(VERIFIED_HISTORY);
 
 export function fingerprintFor(
   lineageId: TournamentLineageId,

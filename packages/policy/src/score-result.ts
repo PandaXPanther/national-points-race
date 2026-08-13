@@ -1,4 +1,5 @@
 import { LEGACY_POLICY } from "./legacy-2024-25-v1.js";
+import { getTournamentPolicy } from "./policy-selector.js";
 import type {
   PolicyInputErrorCode,
   RoundStage,
@@ -54,16 +55,16 @@ function scored(
 }
 
 export function scoreResult(input: ScoreResultInput): ScoredResult {
-  const tournament = LEGACY_POLICY.tournaments.find(
-    ({ id }) => id === input.lineageId,
-  );
-
-  if (tournament === undefined) {
-    throw new PolicyInputError(
-      "UNKNOWN_TOURNAMENT",
-      `Unknown tournament lineage: ${input.lineageId}`,
-    );
-  }
+  const tournament = (() => {
+    try {
+      return getTournamentPolicy(input.lineageId);
+    } catch {
+      throw new PolicyInputError(
+        "UNKNOWN_TOURNAMENT",
+        `Unknown tournament lineage: ${input.lineageId}`,
+      );
+    }
+  })();
 
   if (
     input.placement !== null &&

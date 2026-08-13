@@ -181,7 +181,7 @@ describe("Worker module surface and HTTP runtime", () => {
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(await response.json()).toEqual({
       status: "ok",
-      policyVersion: "legacy-2024-25-v1",
+      policyVersion: "npr-2026-27-v1",
     });
   });
 

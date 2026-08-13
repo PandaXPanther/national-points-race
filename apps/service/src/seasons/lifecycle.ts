@@ -1,4 +1,8 @@
-import { LEGACY_POLICY, POLICY_VERSION } from "@points-race/policy";
+import {
+  NPR_2026_27_POLICY_VERSION,
+  policyLedgerForVersion,
+  policyVersionForSeason,
+} from "@points-race/policy";
 import { z } from "zod";
 
 import {
@@ -15,7 +19,8 @@ import {
 } from "../jobs/enqueue.js";
 import { createEditionRepository } from "../storage/editions.js";
 
-const POLICY_CREATED_AT = "2024-08-01T00:00:00.000Z";
+const LEGACY_POLICY_CREATED_AT = "2024-08-01T00:00:00.000Z";
+const CURRENT_POLICY_CREATED_AT = "2026-08-01T00:00:00.000Z";
 const DAY_MS = 86_400_000;
 const STABILITY_DAYS = 7;
 const NOT_HELD_DAYS = 30;
@@ -39,7 +44,7 @@ export interface ScheduledTickInput {
 export interface ScheduledTickOutput {
   readonly diagnosticCode: "SCHEDULED_JOBS_ENQUEUED";
   readonly seasonId: string;
-  readonly editionCount: 20;
+  readonly editionCount: 20 | 21;
   readonly dispatchedJobs: number;
 }
 
@@ -119,16 +124,21 @@ async function ensureSeason(
   input: ScheduledTickInput,
   seasonId: string,
 ): Promise<void> {
+  const policyVersion = policyVersionForSeason(seasonId);
+  const policy = policyLedgerForVersion(policyVersion);
   const editions = createEditionRepository(input.env.DB);
   await editions.ensurePolicyVersion({
-    id: POLICY_VERSION,
-    createdAt: POLICY_CREATED_AT,
-    ledgerSha256: await sha256(canonicalJson(LEGACY_POLICY)),
+    id: policyVersion,
+    createdAt:
+      policyVersion === NPR_2026_27_POLICY_VERSION
+        ? CURRENT_POLICY_CREATED_AT
+        : LEGACY_POLICY_CREATED_AT,
+    ledgerSha256: await sha256(canonicalJson(policy)),
   });
-  for (const lineage of LEGACY_POLICY.tournaments) {
+  for (const lineage of policy.tournaments) {
     await editions.ensureLineage({
       id: lineage.id,
-      policyVersionId: POLICY_VERSION,
+      policyVersionId: policyVersion,
       tier: lineage.tier,
       canonicalName: lineage.canonicalName,
       aliases: lineage.aliases,
@@ -137,7 +147,7 @@ async function ensureSeason(
       id: `${seasonId}:${lineage.id}`,
       lineageId: lineage.id,
       seasonId,
-      policyVersionId: POLICY_VERSION,
+      policyVersionId: policyVersion,
       tier: lineage.tier,
       startAt: null,
       endAt: null,
@@ -350,10 +360,13 @@ export async function runScheduledTick(
   assertValidDate(now);
   const input: ScheduledTickInput = { scheduledAt, env: rawInput.env };
   const seasonId = seasonIdFor(now);
+  const policy = policyLedgerForVersion(policyVersionForSeason(seasonId));
   await ensureSeason(input, seasonId);
   const editions = await editionStates(input.env.DB, seasonId);
-  if (editions.length !== 20)
-    throw new Error("Current season must contain exactly 20 editions.");
+  if (editions.length !== policy.tournaments.length)
+    throw new Error(
+      "Current season edition count must match the selected policy.",
+    );
   const finalSeason = await isFinalSeason(input.env.DB, seasonId);
   let dispatchedJobs = 0;
   for (const edition of editions) {
@@ -386,7 +399,7 @@ export async function runScheduledTick(
   return Object.freeze({
     diagnosticCode: "SCHEDULED_JOBS_ENQUEUED",
     seasonId,
-    editionCount: 20,
+    editionCount: editions.length as 20 | 21,
     dispatchedJobs,
   });
 }

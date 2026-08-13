@@ -28,7 +28,8 @@ export type TournamentLineageId =
   | "nyc-invitational"
   | "george-mason"
   | "james-logan-mlk"
-  | "apple-valley-minneapple";
+  | "apple-valley-minneapple"
+  | "asu-hdshc-invitational";
 
 export interface TierPolicy {
   readonly placements: readonly [

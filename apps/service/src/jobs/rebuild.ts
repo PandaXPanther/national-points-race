@@ -1,5 +1,5 @@
 import {
-  POLICY_VERSION,
+  policyVersionForSeason,
   rebuildSeason,
   type AwardRebuildInput,
   type ExplicitIdentityEdge,
@@ -70,6 +70,10 @@ export async function runRebuild(
   const editions = await createEditionRepository(env.DB).listSeason(
     message.seasonId,
   );
+  const policyVersion = policyVersionForSeason(message.seasonId);
+  if (editions.some((edition) => edition.policyVersionId !== policyVersion)) {
+    return { kind: "permanent", code: "POLICY_VERSION_MISMATCH" };
+  }
   const evidenceRows = await env.DB.prepare(
     "SELECT g.id FROM normalized_evidence_groups g JOIN tournament_editions e ON e.id = g.edition_id WHERE e.season_id = ?1 ORDER BY g.edition_id, g.snapshot_id, g.id",
   )
@@ -149,7 +153,7 @@ export async function runRebuild(
     ({ date }) => Date.parse(date) <= Date.parse(cutoffDate),
   ).length;
   const rebuildInput: AwardRebuildInput = {
-    policyVersion: POLICY_VERSION,
+    policyVersion,
     seasonId: message.seasonId,
     editions: datedEditions,
     resultSets: uniqueCanonical(resultSets),

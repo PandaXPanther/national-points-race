@@ -2,6 +2,7 @@ import {
   PolicyInputError,
   buildStandings,
   computeNsdaBonusDivision,
+  policyLedgerForVersion,
   scoreNsdaResult,
   scoreResult,
   selectTournamentAwards,
@@ -170,6 +171,11 @@ export const AwardRebuildInputSchema = z
     const editionIds = new Set(
       input.editions.map(({ editionId }) => editionId),
     );
+    const policyLineageIds = new Set(
+      policyLedgerForVersion(input.policyVersion).tournaments.map(
+        ({ id }) => id,
+      ),
+    );
     input.resultSets.forEach((resultSet, index) => {
       if (!editionIds.has(resultSet.editionId)) {
         context.addIssue({
@@ -177,6 +183,14 @@ export const AwardRebuildInputSchema = z
           path: ["resultSets", index, "editionId"],
           message:
             "Every result set edition must be configured for the rebuild season.",
+        });
+      }
+      if (!policyLineageIds.has(resultSet.lineageId)) {
+        context.addIssue({
+          code: "custom",
+          path: ["resultSets", index, "lineageId"],
+          message:
+            "Every result set lineage must belong to the selected policy version.",
         });
       }
     });

@@ -1,0 +1,227 @@
+[
+  {
+    "rank": 1,
+    "name": "Robert Zhang",
+    "school": "Elkins HS (Missouri City, TX)",
+    "points": 758,
+    "wins": 5,
+    "topThrees": 6,
+    "finals": 6
+  },
+  {
+    "rank": 2,
+    "name": "Daphne Kalir-Starr",
+    "school": "The College Preparatory School (Oakland, CA)",
+    "points": 622,
+    "wins": 1,
+    "topThrees": 5,
+    "finals": 10
+  },
+  {
+    "rank": 3,
+    "name": "Waleed Haider",
+    "school": "Hendrickson HS (Pflugerville, TX)",
+    "points": 593,
+    "wins": 1,
+    "topThrees": 6,
+    "finals": 6
+  },
+  {
+    "rank": 4,
+    "name": "Anthony Babu",
+    "school": "Concord-Carlisle HS (Concord, MA)",
+    "points": 577,
+    "wins": 2,
+    "topThrees": 3,
+    "finals": 5
+  },
+  {
+    "rank": 5,
+    "name": "Anushka Gupta",
+    "school": "Westwood HS (Austin, TX)",
+    "points": 373,
+    "wins": 1,
+    "topThrees": 2,
+    "finals": 5
+  },
+  {
+    "rank": 6,
+    "name": "Rowan Seipp",
+    "school": "A&M Consolidated HS (College Station, TX)",
+    "points": 317,
+    "wins": null,
+    "topThrees": 3,
+    "finals": 4
+  },
+  {
+    "rank": 7,
+    "name": "Charlotte Reitman",
+    "school": "NSU University School (Fort Lauderdale, FL)",
+    "points": 284,
+    "wins": 1,
+    "topThrees": 2,
+    "finals": 4
+  },
+  {
+    "rank": 8,
+    "name": "Al Zaidi",
+    "school": "Holy Trinity Episcopal Academy (Melbourne, FL)",
+    "points": 282,
+    "wins": null,
+    "topThrees": 3,
+    "finals": 3
+  },
+  {
+    "rank": 9,
+    "name": "Andrew Zheng",
+    "school": "Acalanes HS (Lafayette, CA)",
+    "points": 256,
+    "wins": null,
+    "topThrees": 2,
+    "finals": 4
+  },
+  {
+    "rank": 10,
+    "name": "Aparna Iyer",
+    "school": "Ridge HS (Somerset County, NJ)",
+    "points": 254,
+    "wins": null,
+    "topThrees": 3,
+    "finals": 4
+  },
+  {
+    "rank": 11,
+    "name": "Sahana Srikanth",
+    "school": "Mason HS (Mason, OH)",
+    "points": 253,
+    "wins": null,
+    "topThrees": 1,
+    "finals": 3
+  },
+  {
+    "rank": 12,
+    "name": "Anwen Williams",
+    "school": "Lawrence Free State HS (Lawrence, KS)",
+    "points": 245,
+    "wins": 1,
+    "topThrees": 2,
+    "finals": 2
+  },
+  {
+    "rank": 13,
+    "name": "Ryan Xu",
+    "school": "Plano West Senior HS (Plano, TX)",
+    "points": 238,
+    "wins": null,
+    "topThrees": 1,
+    "finals": 1
+  },
+  {
+    "rank": 14,
+    "name": "Kate Liu",
+    "school": "Plano West Senior HS (Plano, TX)",
+    "points": 232,
+    "wins": 1,
+    "topThrees": 2,
+    "finals": 2
+  },
+  {
+    "rank": 15,
+    "name": "Pranav Gorty",
+    "school": "Plano East Senior HS (Plano, TX)",
+    "points": 221,
+    "wins": null,
+    "topThrees": 2,
+    "finals": 4
+  },
+  {
+    "rank": 16,
+    "name": "Nicholas Zylstra",
+    "school": "Eastview HS (Apple Valley, MN)",
+    "points": 207,
+    "wins": 1,
+    "topThrees": 1,
+    "finals": 1
+  },
+  {
+    "rank": 17,
+    "name": "Zoe Becker",
+    "school": "The School Without Walls (Washington, D.C.)",
+    "points": 193,
+    "wins": 1,
+    "topThrees": 2,
+    "finals": 2
+  },
+  {
+    "rank": 18,
+    "name": "Tea Shouldice",
+    "school": "Half Hollow Hills High School East (Dix Hills, NY)",
+    "points": 186,
+    "wins": 1,
+    "topThrees": 2,
+    "finals": 2
+  },
+  {
+    "rank": 19,
+    "name": "Kajal Parmar",
+    "school": "Cary Academy (Cary, NC)",
+    "points": 177,
+    "wins": 1,
+    "topThrees": 1,
+    "finals": 2
+  },
+  {
+    "rank": 20,
+    "name": "Sovia Villagra",
+    "school": "Gabrielino HS (San Gabriel, CA)",
+    "points": 170,
+    "wins": null,
+    "topThrees": 1,
+    "finals": 1
+  },
+  {
+    "rank": 21,
+    "name": "Rehan Buvvaji",
+    "school": "Plano West Senior HS (Plano, TX)",
+    "points": 145,
+    "wins": null,
+    "topThrees": 1,
+    "finals": 2
+  },
+  {
+    "rank": 22,
+    "name": "Lindsey Zhao",
+    "school": "Plano Senior HS (Plano, TX)",
+    "points": 144,
+    "wins": null,
+    "topThrees": null,
+    "finals": 2
+  },
+  {
+    "rank": 23,
+    "name": "Samuel Ma",
+    "school": "Bellarmine College Preparatory (San Jose, CA)",
+    "points": 139,
+    "wins": null,
+    "topThrees": null,
+    "finals": 3
+  },
+  {
+    "rank": 24,
+    "name": "Sven Stumbauer",
+    "school": "Christopher Columbus HS (Miami, FL)",
+    "points": 130,
+    "wins": 1,
+    "topThrees": 2,
+    "finals": 2
+  },
+  {
+    "rank": 25,
+    "name": "Ali Malik",
+    "school": "Monta Vista HS (Cupertino, CA)",
+    "points": 128,
+    "wins": 1,
+    "topThrees": 2,
+    "finals": 2
+  }
+]

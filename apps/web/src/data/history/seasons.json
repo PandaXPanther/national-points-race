@@ -1,0 +1,298 @@
+[
+  {
+    "seasonId": "2008-09",
+    "displaySeason": "2008–2009",
+    "classification": "Extemp Central official archive",
+    "winner": {
+      "name": "Stacey Chen",
+      "school": "North Allegheny Senior High School (PA)",
+      "points": 515
+    },
+    "runnerUp": {
+      "name": "Evan Larson",
+      "school": "Bellarmine College Preparatory (CA)",
+      "points": 285
+    },
+    "sources": [
+      {
+        "title": "2008–2009 final individual standings",
+        "url": "https://extemp.com/natl-points-race/2008-2009-national-points-race/",
+        "sha256": "2b873437562cc2d90277b85dfa48888c750f89d4c682685bd03aaf38bb24e533",
+        "format": "xls",
+        "attribution": "Extemp Central"
+      }
+    ],
+    "standingsFile": null,
+    "note": "The original legacy XLS download is preserved as the authoritative full table."
+  },
+  {
+    "seasonId": "2009-10",
+    "displaySeason": "2009–2010",
+    "classification": "Extemp Central official archive",
+    "winner": {
+      "name": "Jacob Baker",
+      "school": "Bellarmine College Preparatory (CA)",
+      "points": 395
+    },
+    "runnerUp": {
+      "name": "James Mohan",
+      "school": "Danville High School (KY)",
+      "points": 380
+    },
+    "sources": [
+      {
+        "title": "2009–2010 final individual standings",
+        "url": "https://extemp.com/wp-content/uploads/2009/07/2009-2010-National-Points-Race.xls",
+        "sha256": "84f587247ce746e54c506f30c25ec8dc3ea7a6a7da5911a3450a3f172d043970",
+        "format": "xls",
+        "attribution": "Extemp Central"
+      }
+    ],
+    "standingsFile": null,
+    "note": "The original legacy XLS download is preserved as the authoritative full table."
+  },
+  {
+    "seasonId": "2010-11",
+    "displaySeason": "2010–2011",
+    "classification": "Extemp Central official archive",
+    "winner": {
+      "name": "Nathaniel Donahue",
+      "school": "Durham Academy (NC)",
+      "points": 680
+    },
+    "runnerUp": {
+      "name": "Dylan Slinger",
+      "school": "Lakeville South High School (MN)",
+      "points": 535
+    },
+    "sources": [
+      {
+        "title": "2010–2011 final individual standings",
+        "url": "https://extemp.com/wp-content/uploads/2011/06/2010-2011-National-Points-Race.xls",
+        "sha256": "ba0276e0ea4783c311aa32e65fed09d21a0ed88b48bff52fbed2171e12047de2",
+        "format": "xls",
+        "attribution": "Extemp Central"
+      }
+    ],
+    "standingsFile": null,
+    "note": "The original legacy XLS download is preserved as the authoritative full table."
+  },
+  {
+    "seasonId": "2011-12",
+    "displaySeason": "2011–2012",
+    "classification": "Extemp Central official archive",
+    "winner": {
+      "name": "Lily Nellans",
+      "school": "Des Moines Roosevelt High School (IA)",
+      "points": 796
+    },
+    "runnerUp": {
+      "name": "Isabelle Taft",
+      "school": "Henry W. Grady High School (GA)",
+      "points": 565
+    },
+    "sources": [
+      {
+        "title": "2011–2012 final individual standings",
+        "url": "https://docs.google.com/spreadsheet/ccc?key=0Au9LtK7oWropdG5USktSVFFuaXB5bWlhRnlPWDBiRlE",
+        "sha256": "13bd9d3b6009d6afc34113acc1ce2f163eaf40098afe3f352cf3a43ae5169d4b",
+        "format": "google-sheet",
+        "attribution": "Extemp Central"
+      }
+    ],
+    "standingsFile": null,
+    "note": "The original Google Sheet contains the complete published standings."
+  },
+  {
+    "seasonId": "2014-15",
+    "displaySeason": "2014–2015",
+    "classification": "Extemp Central official archive",
+    "winner": {
+      "name": "Brian Anderson",
+      "school": "LaRue County High School (KY)",
+      "points": 775
+    },
+    "runnerUp": {
+      "name": "Justin Graham",
+      "school": "Trinity Preparatory School (FL)",
+      "points": 725
+    },
+    "sources": [
+      {
+        "title": "2014–2015 final individual standings",
+        "url": "https://extemp.com/wp-content/uploads/2009/07/2014-2015-National-Points-Race.xlsx",
+        "sha256": "681f8c3a76a070f4826091a8a553743b148d95d2a8511096043b72b724b0c26c",
+        "format": "xlsx",
+        "attribution": "Extemp Central"
+      }
+    ],
+    "standingsFile": null,
+    "note": "The original workbook contains the complete published standings."
+  },
+  {
+    "seasonId": "2015-16",
+    "displaySeason": "2015–2016",
+    "classification": "Extemp Central official archive",
+    "winner": {
+      "name": "Justin Graham",
+      "school": "Trinity Preparatory School (FL)",
+      "points": 876
+    },
+    "runnerUp": {
+      "name": "Marshall Sloane",
+      "school": "Milton Academy (MA)",
+      "points": 637
+    },
+    "sources": [
+      {
+        "title": "2015–2016 final individual standings",
+        "url": "https://extemp.com/wp-content/uploads/2009/07/2015-2016-National-Points-Race.xlsx",
+        "sha256": "ed45d912559ceaeada3b8fd2c26a95abbc2b124962352accb727da1b07e6e617",
+        "format": "xlsx",
+        "attribution": "Extemp Central"
+      }
+    ],
+    "standingsFile": null,
+    "note": "The original workbook contains the complete published standings."
+  },
+  {
+    "seasonId": "2021-22",
+    "displaySeason": "2021–2022",
+    "classification": "Extemp Central official archive",
+    "winner": {
+      "name": "Daniel Kind",
+      "school": "Lake Highland Preparatory (FL)",
+      "points": 1063
+    },
+    "runnerUp": {
+      "name": "McKinley Paltzik",
+      "school": "Phoenix Country Day School (AZ)",
+      "points": 611
+    },
+    "sources": [
+      {
+        "title": "2021–2022 final individual standings",
+        "url": "https://extemp.com/natl-points-race/2021-2022-national-points-race/",
+        "sha256": "ca0a2b8425468d5163e1436d8dd0295d5ed6f2b4dd86ab3438f20ce95ac9e453",
+        "format": "xlsx",
+        "attribution": "Extemp Central"
+      }
+    ],
+    "standingsFile": null,
+    "note": "The original workbook contains the complete published standings."
+  },
+  {
+    "seasonId": "2022-23",
+    "displaySeason": "2022–2023",
+    "classification": "Extemp Central official archive",
+    "winner": {
+      "name": "McKinley Paltzik",
+      "school": "Phoenix Country Day School (AZ)",
+      "points": 1130
+    },
+    "runnerUp": {
+      "name": "Phoena Lin",
+      "school": "Plano West Senior High School (TX)",
+      "points": 531
+    },
+    "sources": [
+      {
+        "title": "2022–2023 final individual standings",
+        "url": "https://docs.google.com/spreadsheets/d/1ULnIvtzw_BCeIXmkx0_F3UslszSCSnDR/edit?usp=sharing",
+        "sha256": "fefb18f611d629bd5df362dcc2a538174e4ee21add4d87c871ef3e7d6260b25b",
+        "format": "google-sheet",
+        "attribution": "Extemp Central"
+      }
+    ],
+    "standingsFile": null,
+    "note": "The original Google Sheet contains the complete published standings."
+  },
+  {
+    "seasonId": "2023-24",
+    "displaySeason": "2023–2024",
+    "classification": "Extemp Central official archive",
+    "winner": {
+      "name": "Brandon Cheng",
+      "school": "Flintridge Preparatory School (CA)",
+      "points": 493
+    },
+    "runnerUp": {
+      "name": "Sruti Peddi",
+      "school": "BASIS Scottsdale (AZ)",
+      "points": 454
+    },
+    "sources": [
+      {
+        "title": "2023–2024 final individual standings",
+        "url": "https://extemp.com/natl-points-race/2023-2024-national-points-race/",
+        "sha256": "8f2a0ed338c8dd93d71cd763311d3aefdd6b40788e2ea2d55d48c54b9767149e",
+        "format": "xlsx",
+        "attribution": "Extemp Central"
+      }
+    ],
+    "standingsFile": null,
+    "note": "The original workbook contains the complete published standings."
+  },
+  {
+    "seasonId": "2024-25",
+    "displaySeason": "2024–2025",
+    "classification": "Extemp Central official archive",
+    "winner": {
+      "name": "Robert Zhang",
+      "school": "Elkins High School (TX)",
+      "points": 758
+    },
+    "runnerUp": {
+      "name": "Daphne Kalir-Starr",
+      "school": "The College Preparatory School (CA)",
+      "points": 622
+    },
+    "sources": [
+      {
+        "title": "2024–2025 final individual standings",
+        "url": "https://docs.google.com/spreadsheets/d/1zKg4DMD9OwQaBFVPBPRIkgsTueH86TQV/edit?gid=508191381",
+        "sha256": "f3219909b41133e907c3a4300bff50d1019f794e7247e5a55464e0d0243df8e0",
+        "format": "google-sheet",
+        "attribution": "Extemp Central"
+      }
+    ],
+    "standingsFile": "2024-25.json",
+    "note": "This was the final season published by Extemp Central."
+  },
+  {
+    "seasonId": "2025-26",
+    "displaySeason": "2025–2026",
+    "classification": "Automated reconstruction",
+    "winner": null,
+    "runnerUp": null,
+    "sources": [
+      {
+        "title": "Automated reconstruction evidence report",
+        "url": "https://github.com/PandaXPanther/national-points-race",
+        "sha256": null,
+        "format": "html",
+        "attribution": "Saras Totey"
+      }
+    ],
+    "standingsFile": null,
+    "note": "A retrospective proof built from permitted official public results after the original race stopped publishing."
+  },
+  {
+    "seasonId": "2026-27",
+    "displaySeason": "2026–2027",
+    "classification": "Current live race",
+    "winner": null,
+    "runnerUp": null,
+    "sources": [
+      {
+        "title": "Live audited standings",
+        "url": "https://github.com/PandaXPanther/national-points-race",
+        "sha256": null,
+        "format": "html",
+        "attribution": "Saras Totey"
+      }
+    ],
+    "standingsFile": null,
+    "note": "The current independently operated autonomous National Points Race."
+  }
+]

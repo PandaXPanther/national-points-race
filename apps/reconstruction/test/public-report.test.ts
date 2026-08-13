@@ -12,7 +12,8 @@ import { build2025_26RebuildInput } from "../src/season-2025-26.js";
 describe("public reconstruction report", () => {
   it("publishes a complete twenty-lineage audit without overstating gaps", () => {
     const input = build2025_26RebuildInput([], REVIEWED_SPEECHWIRE_2025_26);
-    const report = buildPublicReconstructionReport(input, rebuildSeason(input));
+    const output = rebuildSeason(input);
+    const report = buildPublicReconstructionReport(input, output);
 
     expect(report.tournaments).toHaveLength(20);
     expect(
@@ -29,7 +30,10 @@ describe("public reconstruction report", () => {
       ),
     ).toMatchObject({ status: "source-unavailable" });
     expect(report.status).toBe("provisional");
-    expect(report.standings).toHaveLength(25);
+    expect(report.standings).toHaveLength(
+      Math.min(100, output.standings.length),
+    );
+    expect(report.standings[0]?.rank).toBe(1);
     expect(report.diagnostics).toEqual({ identity: 0, rebuild: 0 });
   });
 

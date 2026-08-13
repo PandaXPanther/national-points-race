@@ -30,8 +30,13 @@ export type TrackedSource =
       readonly reason: string;
     };
 
+export type LegacyTournamentLineageId = Exclude<
+  TournamentLineageId,
+  "asu-hdshc-invitational"
+>;
+
 export interface TrackedTournament {
-  readonly lineageId: TournamentLineageId;
+  readonly lineageId: LegacyTournamentLineageId;
   readonly order: number;
   readonly source: TrackedSource;
 }
@@ -210,7 +215,7 @@ export function build2025_26RebuildInput(
 }
 
 function tabroom(
-  lineageId: TournamentLineageId,
+  lineageId: LegacyTournamentLineageId,
   order: number,
   tournamentId: number,
 ): TrackedTournament {
@@ -218,7 +223,7 @@ function tabroom(
 }
 
 function speechwire(
-  lineageId: TournamentLineageId,
+  lineageId: LegacyTournamentLineageId,
   order: number,
   tournamentId: number,
   groupingIds: readonly number[],
@@ -231,7 +236,7 @@ function speechwire(
 }
 
 function unavailable(
-  lineageId: TournamentLineageId,
+  lineageId: LegacyTournamentLineageId,
   order: number,
   evidenceUrl: string,
   reason: string,

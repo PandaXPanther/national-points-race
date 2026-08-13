@@ -267,6 +267,756 @@
       "wins": 0,
       "topThrees": 1,
       "finals": 1
+    },
+    {
+      "rank": 26,
+      "competitorId": "competitor:df35aa4d063161af483c3e5b13211d7df3b4627e9aefa634e898ceec49fc0860",
+      "name": "Anna Benjamin",
+      "school": "Cary Academy",
+      "points": 143,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 2
+    },
+    {
+      "rank": 27,
+      "competitorId": "competitor:49fee5e9737eea730e16b3f9d5bb9e1de36f4ff5c9f005452965e408c94d4e04",
+      "name": "Varshini Arun",
+      "school": "Plano West Sr High School",
+      "points": 141,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 2
+    },
+    {
+      "rank": 28,
+      "competitorId": "competitor:d19e8b148ae9e6900daca37a84d5c2712ef81cd4fe18bbb6fb9da0857bfcfd13",
+      "name": "Charlie Hui",
+      "school": "Westwood",
+      "points": 136,
+      "wins": 1,
+      "topThrees": 1,
+      "finals": 2
+    },
+    {
+      "rank": 29,
+      "competitorId": "competitor:4376a4aeff7620a7d334838f8d349af295b9c44d38a1d0e3b02614f4d4f594b7",
+      "name": "Akshara Krishnan",
+      "school": "Dublin High Independent",
+      "points": 131,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 2
+    },
+    {
+      "rank": 30,
+      "competitorId": "competitor:bc7375e1d86752d002133ce81b1ff49fc628155c75132367ba13500fceeaf023",
+      "name": "Soham Dwivedi",
+      "school": "Monta Vista High School",
+      "points": 129,
+      "wins": 1,
+      "topThrees": 1,
+      "finals": 1
+    },
+    {
+      "rank": 31,
+      "competitorId": "competitor:499f61a5a1ea687191e357a88ef3755200df29709368637fd310717657376aeb",
+      "name": "Jake Silberstein",
+      "school": "Millburn High School",
+      "points": 129,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 1
+    },
+    {
+      "rank": 32,
+      "competitorId": "competitor:a1277fa8ed79dc1663a5aad52cfa8e66df3e33ef595dd98c1c5825cb03fb22b7",
+      "name": "Moumita Balakundhi",
+      "school": "Monte Vista",
+      "points": 128,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 2
+    },
+    {
+      "rank": 33,
+      "competitorId": "competitor:0ebd814e403bf4ac6ada029426f79c5609314df17501b9eb1abc524a4418bbd0",
+      "name": "Rohan Dash",
+      "school": "Pine View School",
+      "points": 125,
+      "wins": 1,
+      "topThrees": 1,
+      "finals": 1
+    },
+    {
+      "rank": 34,
+      "competitorId": "competitor:381b5ab0d08776e3ab6f753d4c0326b8503c579cdb02d9d5916aed641a5a6577",
+      "name": "Sadie Zwonitzer",
+      "school": "Zwonitzer Independent",
+      "points": 124,
+      "wins": 0,
+      "topThrees": 2,
+      "finals": 3
+    },
+    {
+      "rank": 35,
+      "competitorId": "competitor:fd8d5b5f01d6a0b20acd69ae2d0b9e3ea94a63f50342e8f27ce8da7955e15403",
+      "name": "Max Goldstein",
+      "school": "Syosset High School",
+      "points": 123,
+      "wins": 0,
+      "topThrees": 1,
+      "finals": 2
+    },
+    {
+      "rank": 36,
+      "competitorId": "competitor:347413ff96bc9494fbbad541803c83bb013faff629e12e5fe08239bf4ebdc3ef",
+      "name": "Samuel Ma",
+      "school": "Bellarmine College Preparatory",
+      "points": 114,
+      "wins": 0,
+      "topThrees": 1,
+      "finals": 1
+    },
+    {
+      "rank": 37,
+      "competitorId": "competitor:9f21faf5f7009149a2b2dd7e6c902d1990a3ef5d833c5bf6f19b131e01903e75",
+      "name": "Angelo Ferris",
+      "school": "Plano East Sr. High",
+      "points": 107,
+      "wins": 0,
+      "topThrees": 1,
+      "finals": 1
+    },
+    {
+      "rank": 38,
+      "competitorId": "competitor:458706d260ad7a883e61f7f5094afadcd7688f90a8e1534a0bfe53cb1c611e99",
+      "name": "Lindsey Zhao",
+      "school": "Plano Senior",
+      "points": 106,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 39,
+      "competitorId": "competitor:ec47abf347d0b0b6706b21cee7c14396cd1e37994ec2e5b1f8b09b8b3e4b587a",
+      "name": "Shamini Biju",
+      "school": "Shrewsbury",
+      "points": 98,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 1
+    },
+    {
+      "rank": 40,
+      "competitorId": "competitor:63a7f726ff4c2a878c02975f74424032c61e09cc6dcc440a1bb76c7e4f9d4df9",
+      "name": "John Germak",
+      "school": "Regis High School",
+      "points": 91,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 2
+    },
+    {
+      "rank": 41,
+      "competitorId": "competitor:8cda40d29d3323f9120378dd4a6f908426aa519348ac3b4f87389cb6f2cdf754",
+      "name": "Daniel Lobato",
+      "school": "Regis High School",
+      "points": 91,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 1
+    },
+    {
+      "rank": 42,
+      "competitorId": "competitor:47fb39892b44e54c0e304ea9a95e6cce39e4578a33d6371fe4c3349bf6a960e6",
+      "name": "Hudson Turman",
+      "school": "Amarillo Tascosa",
+      "points": 88,
+      "wins": 1,
+      "topThrees": 1,
+      "finals": 1
+    },
+    {
+      "rank": 43,
+      "competitorId": "competitor:b0277f379b4794805c2944c469f8206db701297f477565515a4323ecc6a9151e",
+      "name": "Pradnya Chakka",
+      "school": "Melissa High School",
+      "points": 88,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 1
+    },
+    {
+      "rank": 44,
+      "competitorId": "competitor:638a758833ca0bba0a89cadb66258002e5b3fa07c162d8d16981ea0a87eb608c",
+      "name": "Ty Tan",
+      "school": "Coral Academy of Science Las Vegas",
+      "points": 87,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 1
+    },
+    {
+      "rank": 44,
+      "competitorId": "competitor:bb2138fa1fa8220cd9021d455f31bae5ff8ddb11405ef18e72f3ab9c3b87b437",
+      "name": "Myles Vuong",
+      "school": "Stuyvesant High School",
+      "points": 87,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 1
+    },
+    {
+      "rank": 46,
+      "competitorId": "competitor:beb66c8415ee31150bea9bc9410d7ef237140ce3c4833976fc10c788c1106bd4",
+      "name": "Claire Liu",
+      "school": "ModernBrain",
+      "points": 83,
+      "wins": 1,
+      "topThrees": 1,
+      "finals": 1
+    },
+    {
+      "rank": 47,
+      "competitorId": "competitor:dd5210ce58b12175e40ebf1466ea76a8ceb3f3cda5c43fc4dd10b576bb25ac24",
+      "name": "Carter Mak",
+      "school": "Gabrielino High School",
+      "points": 83,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 1
+    },
+    {
+      "rank": 48,
+      "competitorId": "competitor:3ba867ca6a327dd6ddea71f3bca946293cb117e91f10d542662715ebf65a8356",
+      "name": "Cody Brown",
+      "school": "Jenks High School",
+      "points": 83,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 49,
+      "competitorId": "competitor:6a80e2b974f2aa828194f826af88da7401aef89b190a1006d5c48b67ba34dba5",
+      "name": "Anokhi Shah",
+      "school": "Eagan",
+      "points": 81,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 1
+    },
+    {
+      "rank": 50,
+      "competitorId": "competitor:d7cf9e407a34d7376ee77d43b75fe0490a65540a2d3479b163e873ec511ed2be",
+      "name": "Mihir Singla",
+      "school": "Granite Bay High School",
+      "points": 74,
+      "wins": 0,
+      "topThrees": 1,
+      "finals": 1
+    },
+    {
+      "rank": 51,
+      "competitorId": "competitor:9711773ab8b271f1fa6697efb65e9632dac280df31236f04c291bd44d6e8aa5b",
+      "name": "Rohan Agarwal",
+      "school": "Monta Vista High School",
+      "points": 73,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 1
+    },
+    {
+      "rank": 51,
+      "competitorId": "competitor:f4276db102b8652085c92a4236b4d4487ff64777abee2c192a4e2b4b7ae1769b",
+      "name": "Rohan Saarang",
+      "school": "Eastview",
+      "points": 73,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 1
+    },
+    {
+      "rank": 53,
+      "competitorId": "competitor:4d789e271604f9c9c4b4de5f50fac4e85558111942c7cffd8d72091c16a97461",
+      "name": "Harry Reitman",
+      "school": "NSU University School",
+      "points": 72,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 54,
+      "competitorId": "competitor:04990fcec77232d1d26a9fd93c9612de0ae5055a611e94a5d2bd43e8aff13e10",
+      "name": "Akash Vukoti",
+      "school": "San Angelo Central",
+      "points": 71,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 1
+    },
+    {
+      "rank": 55,
+      "competitorId": "competitor:4f4282e3311262beed6a6c41bafc25925f4562925a442db4d4a90baba255364b",
+      "name": "Sahana Chandran",
+      "school": "Chandrinski Independent",
+      "points": 70,
+      "wins": 0,
+      "topThrees": 1,
+      "finals": 1
+    },
+    {
+      "rank": 56,
+      "competitorId": "competitor:afccfa02861df1ebb4daa274367bef1a46e1a298f7ac42bfe5179fb7bf391065",
+      "name": "Jake Caravello",
+      "school": "Delbarton School",
+      "points": 68,
+      "wins": 0,
+      "topThrees": 1,
+      "finals": 1
+    },
+    {
+      "rank": 57,
+      "competitorId": "competitor:9e702a9d7e607a8b937b9c361ea581983c032306c378e97b577160c2b106fbb9",
+      "name": "Simon Forbes",
+      "school": "Orono",
+      "points": 68,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 2
+    },
+    {
+      "rank": 58,
+      "competitorId": "competitor:6920764d80d007ce9ce7a91ead894ffc6092c14b9f0647dd9bc87e4aa6711568",
+      "name": "Nathan Cook",
+      "school": "School unavailable in official source",
+      "points": 66,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 1
+    },
+    {
+      "rank": 59,
+      "competitorId": "competitor:66f3f49fbc36532bde394078aa0e1810b76dbe115d59dd31984af14d673da941",
+      "name": "Andrew Lei",
+      "school": "Bellarmine College Preparatory",
+      "points": 63,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 59,
+      "competitorId": "competitor:883558cef417b75c2a438394c792e0464ddee3a03a1b778c7917cca2f32bc998",
+      "name": "Siyona Kher",
+      "school": "Archbishop Mitty",
+      "points": 63,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 61,
+      "competitorId": "competitor:c19d1aa9cf8e35c8f06c10808be26ec7d22a514f334b15ddc5cb90b4d894a207",
+      "name": "Kai Forbach",
+      "school": "Durham Academy",
+      "points": 61,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 1
+    },
+    {
+      "rank": 62,
+      "competitorId": "competitor:155b46f95ef9ced3ff72482e619e745d537b7e665a3059e9f6581a30926f4f52",
+      "name": "Zoey Qin",
+      "school": "Ridge High School",
+      "points": 60,
+      "wins": 0,
+      "topThrees": 1,
+      "finals": 1
+    },
+    {
+      "rank": 62,
+      "competitorId": "competitor:e7ea784eac97634e956d394dc42e9425255f92a5fa38fbd1493b84634edd24f3",
+      "name": "Maximilian Guo",
+      "school": "BASIS Silicon Valley",
+      "points": 60,
+      "wins": 0,
+      "topThrees": 1,
+      "finals": 1
+    },
+    {
+      "rank": 64,
+      "competitorId": "competitor:8e2db323e179205e83f1d7d91035818aa473c3f5c5c6225e63c88c4a67cfaa13",
+      "name": "Ana Rubio-Calvillo",
+      "school": "Laurel School",
+      "points": 59,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 65,
+      "competitorId": "competitor:9d8836391bb285ebfc6b36aac57108227bd9d4155686275c8a4a044740ac3829",
+      "name": "Gary Hao",
+      "school": "Millard West",
+      "points": 58,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 1
+    },
+    {
+      "rank": 66,
+      "competitorId": "competitor:4b694bfea6d940543a6956622674d14d0dddcd9dce213ac3db99e8ac3d703ae5",
+      "name": "Deepika Sujay",
+      "school": "Archbishop Mitty",
+      "points": 56,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 67,
+      "competitorId": "competitor:34259a64556877d2ecbe4e36e44d6fbe1904dc4ca384da401731b7a0fb263909",
+      "name": "Arjun Kumar",
+      "school": "Ridge High School",
+      "points": 54,
+      "wins": 0,
+      "topThrees": 1,
+      "finals": 1
+    },
+    {
+      "rank": 68,
+      "competitorId": "competitor:af246623a172c2da273d8773ba246f5604a5d1aa89426dfb1ce31bd4b1de1884",
+      "name": "Andrew Zheng",
+      "school": "Acalanes High School",
+      "points": 53,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 2
+    },
+    {
+      "rank": 69,
+      "competitorId": "competitor:fe3f0f8f2a2621321e0dbb9bf933bc075d8bad2d8fe4944c9e780e0f3c673097",
+      "name": "Andrew Lu",
+      "school": "Seipp Squad",
+      "points": 53,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 1
+    },
+    {
+      "rank": 70,
+      "competitorId": "competitor:482a8d0c4009b554356d3cb853278742ba39111cf52c71295e79e7530aa31e9c",
+      "name": "Siddharth Belegere",
+      "school": "Archbishop Mitty",
+      "points": 53,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 71,
+      "competitorId": "competitor:4e6d90150f1b5a1d5f0bda3ede2dc9a53494871a402d917740d06930287f574d",
+      "name": "Amedeo Bettauer",
+      "school": "School unavailable in official source",
+      "points": 51,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 72,
+      "competitorId": "competitor:477a18a55ba1b6bb4b82ed7b00945c63aafe40db0ef2323b7e26dfbad1d0290a",
+      "name": "Albert Yao",
+      "school": "The Harker School",
+      "points": 50,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 1
+    },
+    {
+      "rank": 73,
+      "competitorId": "competitor:4ff9b593793b408e023fec805006980642833d480d26aacb1882ef82ef42a3e9",
+      "name": "Charlotte Williams",
+      "school": "The Village High School",
+      "points": 48,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 1
+    },
+    {
+      "rank": 74,
+      "competitorId": "competitor:51b17fccd38b659cc2a4f30455eead87a113702aa44c3238b65b3b588887a866",
+      "name": "Melinda Zhao",
+      "school": "Monta Vista High School",
+      "points": 48,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 74,
+      "competitorId": "competitor:db2955ed13855a799de00a81e0b2b74377c3245455d75c2d15d94ae847478745",
+      "name": "Arkana Anwar",
+      "school": "Memorial High School",
+      "points": 48,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 76,
+      "competitorId": "competitor:86ab0c4e0d252587728f561af32ddffa21b9c790feee458631d729a6b98940f2",
+      "name": "Sanath Seetharam",
+      "school": "Brophy College Prep",
+      "points": 46,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 1
+    },
+    {
+      "rank": 77,
+      "competitorId": "competitor:dbffda820fffeb899f106fa0b764bdc6f834ce6f457e4cdd0364e89f3032a0e5",
+      "name": "Shresta Antil",
+      "school": "Ridge High School",
+      "points": 46,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 78,
+      "competitorId": "competitor:7e0fbda46dd927b7518c2f8a9fa1cb4212185c7a34d4ceeb4a448b4b36eff54f",
+      "name": "Aniruddha Janakiraman",
+      "school": "Bellarmine College Preparatory",
+      "points": 45,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 78,
+      "competitorId": "competitor:853ac93d3aa53d3b5c553925dcd42c67ed3b34daf3fad4ebd406e60d37a8881b",
+      "name": "Phillipe Rieber",
+      "school": "NSU University School",
+      "points": 45,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 78,
+      "competitorId": "competitor:d1b4053fb5234cf319143ff534bfd05acce2afd049363e910d1c7a8ca961ddeb",
+      "name": "Mohamed Elrayah",
+      "school": "Plano West Sr High School",
+      "points": 45,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 81,
+      "competitorId": "competitor:ff73f02f71d68eb4b6e87c78256f05a3aa1fce1979f61558c06df79fe00446e2",
+      "name": "Sashwath Sivaraman",
+      "school": "Riverside HS",
+      "points": 43,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 82,
+      "competitorId": "competitor:75c11a83ae46fa5541f89b9a951b14b7191854dd233858ff11f7884c1f46317d",
+      "name": "Blake McFalls",
+      "school": "Spencer Yoho School of Change Independent",
+      "points": 41,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 82,
+      "competitorId": "competitor:fd5dfd10c9655747c1422e253f3a532560cfd917472ca9d5007f7de4ec0ae7df",
+      "name": "MJ Chu",
+      "school": "Ridge High School",
+      "points": 41,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 84,
+      "competitorId": "competitor:f2348e7c116081de53f7d4f691335ffb0c6b39a0c04f1845d63397eacff4ae48",
+      "name": "Jack Aaron",
+      "school": "Trinity Preparatory School",
+      "points": 40,
+      "wins": 1,
+      "topThrees": 1,
+      "finals": 1
+    },
+    {
+      "rank": 85,
+      "competitorId": "competitor:06cfcb51861c2e883854699c797dbde39d9056d428fbc5cde6296e14f293dc00",
+      "name": "Vedant Parikh",
+      "school": "Dougherty Valley High School",
+      "points": 40,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 86,
+      "competitorId": "competitor:7094d898da766ff60615837d8b5f51b9b45eee7ab1e5a325ba553f0d016a9fa8",
+      "name": "Mateo Delgado",
+      "school": "Ransom Everglades",
+      "points": 39,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 87,
+      "competitorId": "competitor:112334acf356b09bc120eca7731481fcb573447ef9d9753b44f40262d700b241",
+      "name": "Larkyn Kellen",
+      "school": "School unavailable in official source",
+      "points": 38,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 87,
+      "competitorId": "competitor:a3852d8f206737f3f8063bf5a0c8d67dfdd84581d1915cf78448a82e29d09665",
+      "name": "Prachi Chetlur",
+      "school": "School unavailable in official source",
+      "points": 38,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 87,
+      "competitorId": "competitor:afcd8e3c629af0c0be0490b2fac0723440831fc12f7d18119f6cbf87084992a2",
+      "name": "Valerie Schmitt",
+      "school": "Edina High School",
+      "points": 38,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 87,
+      "competitorId": "competitor:ecc807da99f56bd2fca823f59022455c5f55dc8852578190d9fb0bbe38881749",
+      "name": "Ashmiza Shaik",
+      "school": "School unavailable in official source",
+      "points": 38,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 87,
+      "competitorId": "competitor:fcfc54fe5125810a773e1028066705a5d63f00f4cc8903806b138e51afac061c",
+      "name": "Linus Mak",
+      "school": "School unavailable in official source",
+      "points": 38,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 92,
+      "competitorId": "competitor:1e5d01c42bc4b1902bdb4d5085f8aaab5c1807efa421fddc0b64b474415a9342",
+      "name": "Robert Liu Meng",
+      "school": "Syosset High School",
+      "points": 34,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 93,
+      "competitorId": "competitor:06b32a9c9b3aaaebca40e7f41d4cbc62a08915754eb12932057bac45c57ad6c8",
+      "name": "Emily Zhang",
+      "school": "Flower Mound High School",
+      "points": 33,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 93,
+      "competitorId": "competitor:4a01b06dca4099abae9c08a5e74feaad452238d388b18b82801385f4d8ca8fe9",
+      "name": "Luke Chung",
+      "school": "Pine Creek High School",
+      "points": 33,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 93,
+      "competitorId": "competitor:aa53a85ff172c6ed4b1a783925a71f7fb31ca234fe8e05f39b5281233cac3e17",
+      "name": "Pradnya Cowlagi",
+      "school": "School unavailable in official source",
+      "points": 33,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 96,
+      "competitorId": "competitor:859bed211ab7ce341b0a51e41f96b4d25d6908924c788740583bf950e472a1bd",
+      "name": "Krishna Mano",
+      "school": "Grand Rapids City",
+      "points": 31,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 96,
+      "competitorId": "competitor:c57a0f22e293aa1a712cf522420ac94a250ba0d1fce40c278d8c9802804164cc",
+      "name": "Isaiah Perry",
+      "school": "Bellevue West",
+      "points": 31,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 98,
+      "competitorId": "competitor:14c9fe3c34876df3d5fc703a80124866e0b2928c2d490e6a657b73be52da7e18",
+      "name": "Lainey Marz",
+      "school": "School unavailable in official source",
+      "points": 30,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 98,
+      "competitorId": "competitor:19ba514cd7db924ac0af7e2fb56e8e2316eee248562b6e29af282aaaf6c79a55",
+      "name": "Wayne Lu",
+      "school": "Archbishop Mitty",
+      "points": 30,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
+    },
+    {
+      "rank": 98,
+      "competitorId": "competitor:2071ac798fb9889308aaae05e516a95787762494fc7bd11a98a57b19ada3b335",
+      "name": "Kavi Rajan",
+      "school": "Bellarmine College Preparatory",
+      "points": 30,
+      "wins": 0,
+      "topThrees": 0,
+      "finals": 0
     }
   ],
   "tournaments": [

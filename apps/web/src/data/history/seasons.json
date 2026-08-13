@@ -263,7 +263,11 @@
     "seasonId": "2025-26",
     "displaySeason": "2025–2026",
     "classification": "Automated reconstruction",
-    "winner": null,
+    "winner": {
+      "name": "Daphne Kalir-Starr",
+      "school": "College Prep",
+      "points": 619
+    },
     "runnerUp": null,
     "sources": [
       {

@@ -160,7 +160,7 @@ export function buildPublicReconstructionReport(
       identity: output.identity.diagnostics.length,
       rebuild: output.diagnostics.length,
     },
-    standings: output.standings.slice(0, 25).map((standing) => ({
+    standings: output.standings.slice(0, 100).map((standing) => ({
       rank: standing.rank,
       competitorId: standing.competitorId,
       name: standing.displayName,

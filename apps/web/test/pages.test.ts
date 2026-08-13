@@ -42,7 +42,10 @@ describe("public information architecture", () => {
     const report = JSON.parse(
       await readFile(`${sourceRoot}data/reconstruction/2025-26.json`, "utf8"),
     ) as {
-      readonly standings: readonly { readonly name: string }[];
+      readonly standings: readonly {
+        readonly name: string;
+        readonly points: number;
+      }[];
       readonly completeness: {
         readonly verifiedResultSources: number;
         readonly notHeld: number;
@@ -53,8 +56,9 @@ describe("public information architecture", () => {
     expect(reconstruction).toContain("StandingsTable");
     expect(reconstruction).toContain("report.standings");
     expect(reconstruction).not.toContain("Evidence audit in progress");
-    expect(report.standings).toHaveLength(25);
+    expect(report.standings).toHaveLength(100);
     expect(report.standings[0]?.name).toBe("Daphne Kalir-Starr");
+    expect(report.standings[0]?.points).toBe(619);
     expect(report.completeness).toEqual({
       trackedLineages: 20,
       verifiedResultSources: 18,
@@ -63,6 +67,25 @@ describe("public information architecture", () => {
       normalizedResults: 656,
       scoredAwards: 456,
     });
+  });
+
+  it("records Daphne Kalir-Starr as the reconstructed 2025-26 champion", async () => {
+    const seasons = JSON.parse(
+      await readFile(`${sourceRoot}data/history/seasons.json`, "utf8"),
+    ) as readonly {
+      readonly seasonId: string;
+      readonly winner: {
+        readonly name: string;
+        readonly points: number;
+      } | null;
+    }[];
+    const reconstruction = seasons.find(
+      ({ seasonId }) => seasonId === "2025-26",
+    );
+
+    expect(reconstruction?.winner).toEqual(
+      expect.objectContaining({ name: "Daphne Kalir-Starr", points: 619 }),
+    );
   });
 
   it("credits the original race and describes independent stewardship", async () => {

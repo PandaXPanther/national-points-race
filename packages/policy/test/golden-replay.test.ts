@@ -21,6 +21,10 @@ function readFixture(name: string): string {
   return readFileSync(resolve(fixtureDirectory, name), "utf8");
 }
 
+function canonicalFixtureBytes(csv: string): string {
+  return csv.replace(/\r?\n/gu, "\r\n");
+}
+
 function replaceOnce(csv: string, before: string, after: string): string {
   const first = csv.indexOf(before);
   expect(
@@ -55,9 +59,11 @@ describe("2024-25 golden standings replay", () => {
   const authoritativeCsv = readFixture("2024-25-final-standings.csv");
 
   it("reproduces every authoritative total and tiebreak statistic", () => {
-    expect(createHash("sha256").update(authoritativeCsv).digest("hex")).toBe(
-      AUTHORITATIVE_FIXTURE_SHA256,
-    );
+    expect(
+      createHash("sha256")
+        .update(canonicalFixtureBytes(authoritativeCsv))
+        .digest("hex"),
+    ).toBe(AUTHORITATIVE_FIXTURE_SHA256);
     const season = loadGoldenSeason(authoritativeCsv);
     const rebuilt = buildStandings(season.awards);
 

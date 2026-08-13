@@ -1,0 +1,113 @@
+---
+import Calculator from "../components/Calculator.astro";
+import PointsTables from "../components/PointsTables.astro";
+import SiteLayout from "../layouts/SiteLayout.astro";
+import { getPolicyView } from "../lib/policy.js";
+
+const policy = getPolicyView();
+const tierGroups = [1, 2, 3, 4, 5].map((tier) => ({
+  tier,
+  tournaments: policy.tournaments.filter((tournament) => tournament.tier === tier),
+}));
+---
+
+<SiteLayout
+  title="Methodology"
+  description="The exact National Points Race scoring policy, calculation rules, sources, and correction process."
+>
+  <header class="shell hero">
+    <p class="eyebrow">Policy {policy.version}</p>
+    <h1>Exactly how the race is calculated.</h1>
+    <p class="dek">
+      These tables are rendered from the same frozen policy ledger used by the scoring
+      engine. No separate editorial spreadsheet controls the result.
+    </p>
+  </header>
+
+  <section class="section">
+    <div class="shell">
+      <div class="section-heading"><div><p class="eyebrow">Tier 2 through Tier 5</p><h2>Placement and elimination points</h2></div></div>
+      <PointsTables {policy} />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="section-heading">
+        <div><p class="eyebrow">Tier 1</p><h2>NSDA Nationals</h2></div>
+        <p>International and United States Extemp are scored separately, then one division may receive the strong-field multiplier.</p>
+      </div>
+      <div class="split-grid">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Place</th><th class="numeric" scope="col">Base points</th></tr></thead>
+            <tbody>{policy.nsda.basePlacements.map((points, index) => <tr><td>{index + 1}</td><td class="numeric"><strong>{points}</strong></td></tr>)}</tbody>
+          </table>
+        </div>
+        <div class="paper-card prose">
+          <h3>NSDA adjustments</h3>
+          <ul>
+            <li>The division containing more competitors from the post-NCFL top 25 receives a 1.25 multiplier.</li>
+            <li>Multiplication uses half-up rounding to the nearest whole point.</li>
+            <li>The final-round winner receives a 40-point base bonus. It is also multiplied in the strong-field division.</li>
+            <li>Quarterfinalists receive 30 base points. Octafinalists receive 10.</li>
+            <li>If both divisions contain the same number of top-25 competitors, neither receives the multiplier.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell"><Calculator {policy} /></div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="section-heading"><div><p class="eyebrow">Frozen roster</p><h2>Twenty tracked lineages</h2></div><p>Names and tiers come directly from the executable policy.</p></div>
+      <div class="tier-roster">
+        {tierGroups.map(({ tier, tournaments }) => (
+          <article class="paper-card">
+            <p class="eyebrow">Tier {tier}</p>
+            <ul class="clean-list">
+              {tournaments.map((tournament) => <li><strong>{tournament.canonicalName}</strong>{tournament.mbaTopSixOnly && <span>MBA top-six exception</span>}</li>)}
+            </ul>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell split-grid">
+      <article class="prose">
+        <p class="eyebrow">Finals and divisions</p>
+        <h2>Edge cases are policy, too.</h2>
+        <ul>
+          <li>Places 1 through 6 receive placement points in a standard final.</li>
+          <li>In an oversized final, seventh place or lower falls to the preceding elimination bucket when the tier has one.</li>
+          <li>MBA awards points only to its top six. Its legacy final-credit limit is five for the finals tiebreak.</li>
+          <li>When a competitor enters multiple eligible divisions at one tournament, only the highest single award counts.</li>
+        </ul>
+      </article>
+      <article class="prose">
+        <p class="eyebrow">Standings and evidence</p>
+        <h2>Sorting, corrections, and restraint.</h2>
+        <ul>
+          <li>Standings sort by points, wins, top-three finishes, then finals. Exact competitive ties share a rank.</li>
+          <li>Official corrections produce a new standings version and preserve prior history.</li>
+          <li>Ambiguous identities and contradictory sources are withheld. The system does not guess.</li>
+          <li>Unavailable or not-held tournaments remain visible with that status and award no points.</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+</SiteLayout>
+
+<style>
+  .tier-roster { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  .tier-roster article:first-child { grid-column: 1 / -1; }
+  .tier-roster li { display: flex; justify-content: space-between; gap: 1rem; }
+  .tier-roster li span { color: var(--burgundy); font-size: 0.75rem; }
+  @media (max-width: 44rem) { .tier-roster { grid-template-columns: 1fr; } .tier-roster article:first-child { grid-column: auto; } }
+</style>

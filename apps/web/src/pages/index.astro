@@ -1,0 +1,102 @@
+---
+import SeasonBadge from "../components/SeasonBadge.astro";
+import SiteLayout from "../layouts/SiteLayout.astro";
+---
+
+<SiteLayout
+  title="2026-2027 Standings"
+  description="The current live, independently operated National Points Race for extemporaneous speaking."
+>
+  <section class="hero">
+    <div class="shell hero-grid">
+      <div>
+        <SeasonBadge classification="Current live race" />
+        <p class="eyebrow season-line">2026-2027 season</p>
+        <h1>The race is live again.</h1>
+        <p class="dek">
+          A transparent, autonomous National Points Race for high school
+          extemporaneous speaking, independently operated by Saras Totey.
+        </p>
+        <div class="button-row">
+          <a class="button" href="/2026-27/">Open current season</a>
+          <a class="button secondary" href="/methodology/">See how points work</a>
+        </div>
+      </div>
+      <aside class="paper-card season-card" aria-label="Current season state">
+        <p class="eyebrow">Season state</p>
+        <strong>Initialized</strong>
+        <p>
+          The 20-tournament ledger is ready. Standings begin when permitted final
+          results from the first tracked event are available.
+        </p>
+        <ul class="meta-list">
+          <li><span>Policy</span><b>legacy-2024-25-v1</b></li>
+          <li><span>Tracked lineages</span><b>20</b></li>
+          <li><span>Publication</span><b>Audited versions</b></li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="section-heading">
+        <div><p class="eyebrow">Three records, one transparent archive</p><h2>Know what you are reading.</h2></div>
+        <p>
+          Original results remain original. The missing season is reconstructed and
+          labeled. The current race is independently operated and live.
+        </p>
+      </div>
+      <div class="card-grid">
+        <article class="paper-card">
+          <SeasonBadge classification="Extemp Central official archive" />
+          <h3>2008-09 through 2024-25</h3>
+          <p>Ten completed seasons preserved with attribution and original source links.</p>
+          <a href="/archive/">Browse the archive</a>
+        </article>
+        <article class="paper-card">
+          <SeasonBadge classification="Automated reconstruction" />
+          <h3>2025-26 proof season</h3>
+          <p>A retrospective system test using only permitted official public evidence.</p>
+          <a href="/2025-26/">Review the reconstruction</a>
+        </article>
+        <article class="paper-card">
+          <SeasonBadge classification="Current live race" />
+          <h3>2026-27 current NPR</h3>
+          <p>Autonomous collection, conservative identity resolution, and versioned scoring.</p>
+          <a href="/2026-27/">Follow the current race</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell split-grid">
+      <div>
+        <p class="eyebrow">Built for verification</p>
+        <h2>Every point should have a receipt.</h2>
+      </div>
+      <div class="prose">
+        <p>
+          The system preserves official source snapshots, normalizes results,
+          withholds ambiguous identities, applies the frozen policy, and publishes a
+          deterministic version hash. Corrections create a new version without erasing
+          the old one.
+        </p>
+        <p><a href="/methodology/">Read the complete methodology</a></p>
+      </div>
+    </div>
+  </section>
+</SiteLayout>
+
+<style>
+  .season-line { margin-top: 2rem; }
+  .season-card > strong {
+    color: var(--burgundy);
+    font-family: var(--serif);
+    font-size: clamp(2.3rem, 5vw, 4rem);
+  }
+  .season-card li { display: flex; justify-content: space-between; gap: 1rem; }
+  .season-card li span { color: var(--ink-soft); }
+  .paper-card h3 { margin-top: 1.25rem; }
+</style>

@@ -1,0 +1,111 @@
+---
+const { pathname } = Astro.url;
+const links = [
+  ["Standings", "/"],
+  ["History", "/history/"],
+  ["Methodology", "/methodology/"],
+  ["Archive", "/archive/"],
+  ["Corrections", "/corrections/"],
+] as const;
+---
+
+<header class="site-header">
+  <div class="header-inner shell">
+    <a class="wordmark" href="/" aria-label="National Points Race home">
+      <span>NPR</span>
+      <small>National Points Race</small>
+    </a>
+    <nav aria-label="Primary navigation">
+      <ul>
+        {links.map(([label, href]) => (
+          <li>
+            <a href={href} aria-current={pathname === href ? "page" : undefined}>
+              {label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    border-bottom: 1px solid var(--rule);
+    background: rgb(244 239 228 / 92%);
+    backdrop-filter: blur(14px);
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 5rem;
+    gap: 2rem;
+  }
+
+  .wordmark {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .wordmark span {
+    color: var(--burgundy);
+    font-family: var(--serif);
+    font-size: 1.7rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+  }
+
+  .wordmark small {
+    max-width: 8rem;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    line-height: 1.1;
+    text-transform: uppercase;
+  }
+
+  nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  nav a {
+    display: block;
+    border-bottom: 2px solid transparent;
+    color: var(--ink);
+    padding: 0.65rem 0.7rem;
+    font-size: 0.83rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  nav a[aria-current="page"] {
+    border-color: var(--burgundy);
+    color: var(--burgundy);
+  }
+
+  @media (max-width: 46rem) {
+    .header-inner {
+      display: block;
+      padding-block: 1rem;
+    }
+
+    nav {
+      margin-top: 0.6rem;
+      overflow-x: auto;
+    }
+
+    nav ul {
+      width: max-content;
+    }
+  }
+</style>

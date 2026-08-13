@@ -1,0 +1,77 @@
+---
+import type { PublicPolicyView } from "../lib/policy.js";
+
+interface Props {
+  policy: PublicPolicyView;
+}
+const { policy } = Astro.props;
+const tiers = [2, 3, 4, 5] as const;
+---
+
+<div class="tier-tables">
+  {tiers.map((tier) => (
+    <article class="paper-card">
+      <p class="eyebrow">Tier {tier}</p>
+      <h3>Placement points</h3>
+      <div class="table-wrap compact">
+        <table>
+          <thead><tr><th scope="col">Place</th><th class="numeric" scope="col">Points</th></tr></thead>
+          <tbody>
+            {policy.tiers[tier].placements.map((points, index) => (
+              <tr><td>{index + 1}</td><td class="numeric"><strong>{points}</strong></td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <h3 class="elim-heading">Elimination points</h3>
+      {Object.entries(policy.tiers[tier].eliminations).length > 0 ? (
+        <ul class="clean-list">
+          {Object.entries(policy.tiers[tier].eliminations).map(([stage, points]) => (
+            <li><span>{stage}</span><strong>{points}</strong></li>
+          ))}
+        </ul>
+      ) : (
+        <p class="muted">No elimination-round bucket.</p>
+      )}
+    </article>
+  ))}
+</div>
+
+<style>
+  .tier-tables {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .paper-card {
+    min-width: 0;
+  }
+
+  .compact {
+    box-shadow: none;
+  }
+
+  .elim-heading {
+    margin-top: 1.5rem;
+    font-size: 1rem;
+  }
+
+  .clean-list li {
+    display: flex;
+    justify-content: space-between;
+    text-transform: capitalize;
+  }
+
+  @media (max-width: 66rem) {
+    .tier-tables {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 35rem) {
+    .tier-tables {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

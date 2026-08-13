@@ -1,0 +1,52 @@
+---
+interface Props {
+  classification:
+    | "Extemp Central official archive"
+    | "Automated reconstruction"
+    | "Current live race";
+}
+const { classification } = Astro.props;
+const kind = classification.startsWith("Extemp")
+  ? "archive"
+  : classification.startsWith("Automated")
+    ? "reconstruction"
+    : "live";
+---
+
+<span class:list={["season-badge", kind]}>{classification}</span>
+
+<style>
+  .season-badge {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .archive {
+    color: var(--blue);
+  }
+
+  .reconstruction {
+    color: var(--burgundy);
+  }
+
+  .live {
+    color: var(--green);
+  }
+
+  .live::before {
+    width: 0.45rem;
+    height: 0.45rem;
+    margin-right: 0.4rem;
+    border-radius: 999px;
+    background: currentColor;
+    content: "";
+  }
+</style>

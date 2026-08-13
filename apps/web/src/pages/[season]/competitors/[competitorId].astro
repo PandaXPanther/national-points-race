@@ -1,0 +1,25 @@
+---
+import SiteLayout from "../../../layouts/SiteLayout.astro";
+import { getCompetitor, type ApiContext } from "../../../lib/api.js";
+
+const seasonId = Astro.params.season ?? "";
+const competitorId = Astro.params.competitorId ?? "";
+const apiBase = import.meta.env.PUBLIC_API_BASE_URL;
+let competitor = null;
+if (apiBase) {
+  const context: ApiContext = { baseUrl: apiBase };
+  competitor = await getCompetitor(seasonId, competitorId, context).catch(() => null);
+}
+---
+
+<SiteLayout title={competitor ? competitor.name : "Competitor audit"} description="Award-level National Points Race competitor audit trail.">
+  {competitor ? (
+    <>
+      <header class="shell hero"><p class="eyebrow">Competitor audit</p><h1>{competitor.name}</h1><p class="dek">{competitor.school}</p></header>
+      <section class="section"><div class="shell stats-grid"><div class="stat"><span>Rank</span><strong>{competitor.total.rank}</strong></div><div class="stat"><span>Points</span><strong>{competitor.total.points}</strong></div><div class="stat"><span>Wins</span><strong>{competitor.total.wins}</strong></div><div class="stat"><span>Finals</span><strong>{competitor.total.finals}</strong></div></div></section>
+      <section class="section"><div class="shell"><div class="section-heading"><div><p class="eyebrow">Award provenance</p><h2>Every counted result</h2></div></div><div class="card-grid">{competitor.awards.map((award) => <article class="paper-card"><p class="eyebrow">{award.division} extemp</p><h3>{award.editionId}</h3><p><strong>{award.points} points</strong> via {award.ruleId}</p><p class="source-note"><a href={award.source.url}>Official source</a> · SHA-256 {award.source.sha256.slice(0, 12)}...</p></article>)}</div></div></section>
+    </>
+  ) : (
+    <section class="shell hero"><p class="eyebrow">Competitor audit</p><h1>Audit record unavailable.</h1><p class="dek">The public API has no verified competitor record at this route yet. No result is being guessed.</p><p><a href={`/${seasonId}/`}>Return to the season</a></p></section>
+  )}
+</SiteLayout>

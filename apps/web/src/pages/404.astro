@@ -1,0 +1,8 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+Astro.response.status = 404;
+---
+
+<SiteLayout title="Not found" description="The requested National Points Race page was not found.">
+  <section class="shell hero"><p class="eyebrow">404</p><h1>That result is not on the ballot.</h1><p class="dek">The page may have moved, or the season record may not exist.</p><div class="button-row"><a class="button" href="/">Return home</a><a class="button secondary" href="/archive/">Open the archive</a></div></section>
+</SiteLayout>

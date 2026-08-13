@@ -1,0 +1,33 @@
+---
+import SeasonBadge from "../components/SeasonBadge.astro";
+import SiteLayout from "../layouts/SiteLayout.astro";
+---
+
+<SiteLayout title="2026-2027 Current Race" description="The current live National Points Race for the 2026-2027 season.">
+  <header class="shell hero">
+    <SeasonBadge classification="Current live race" />
+    <p class="eyebrow season-line">2026-2027</p>
+    <h1>The current NPR.</h1>
+    <p class="dek">The season is initialized with all 20 frozen tournament lineages. The first standings will appear after eligible final results are published and verified.</p>
+  </header>
+  <section class="section">
+    <div class="shell stats-grid">
+      <div class="stat"><span>Current status</span><strong>Initialized</strong></div>
+      <div class="stat"><span>Tracked lineages</span><strong>20</strong></div>
+      <div class="stat"><span>Scored events</span><strong>0</strong></div>
+      <div class="stat"><span>Policy</span><strong class="policy">legacy-2024-25-v1</strong></div>
+    </div>
+  </section>
+  <section class="section">
+    <div class="shell notice">
+      <h2>Why there are no standings yet</h2>
+      <p>It is August 2026. The race will not invent preseason scores. Published standings begin when a tracked tournament has eligible final evidence.</p>
+      <div class="button-row"><a class="button" href="/2026-27/tournaments/">View tournament audit</a><a class="button secondary" href="/methodology/">Read the scoring rules</a></div>
+    </div>
+  </section>
+</SiteLayout>
+
+<style>
+  .season-line { margin-top: 2rem; }
+  .policy { font-size: clamp(1.1rem, 2.4vw, 1.6rem); overflow-wrap: anywhere; }
+</style>

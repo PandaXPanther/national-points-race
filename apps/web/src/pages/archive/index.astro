@@ -1,0 +1,43 @@
+---
+import SeasonBadge from "../../components/SeasonBadge.astro";
+import { HISTORICAL_SEASONS } from "../../data/history.js";
+import SiteLayout from "../../layouts/SiteLayout.astro";
+---
+
+<SiteLayout title="Archive" description="Every published, reconstructed, and current National Points Race season.">
+  <header class="shell hero">
+    <p class="eyebrow">Complete season index</p>
+    <h1>The National Points Race archive.</h1>
+    <p class="dek">Ten Extemp Central seasons, one clearly labeled reconstruction, and the current independently operated race.</p>
+  </header>
+  <section class="section">
+    <div class="shell archive-grid">
+      {HISTORICAL_SEASONS.map((season) => (
+        <article class="paper-card">
+          <SeasonBadge classification={season.classification} />
+          <p class="season">{season.displaySeason}</p>
+          {season.winner ? (
+            <div class="winner">
+              <span>Winner</span>
+              <strong>{season.winner.name}</strong>
+              <small>{season.winner.points} points</small>
+            </div>
+          ) : (
+            <p class="muted">{season.note}</p>
+          )}
+          <a href={`/archive/${season.seasonId}/`}>Open season record</a>
+        </article>
+      ))}
+    </div>
+  </section>
+</SiteLayout>
+
+<style>
+  .archive-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+  .season { margin: 1.4rem 0 1rem; font-family: var(--serif); font-size: 2rem; font-weight: 700; }
+  .winner { display: grid; margin-bottom: 1.2rem; }
+  .winner span, .winner small { color: var(--ink-soft); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .winner strong { font-family: var(--serif); font-size: 1.25rem; }
+  @media (max-width: 58rem) { .archive-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 36rem) { .archive-grid { grid-template-columns: 1fr; } }
+</style>

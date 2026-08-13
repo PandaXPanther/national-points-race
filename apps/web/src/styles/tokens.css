@@ -1,0 +1,19 @@
+:root {
+  color-scheme: light;
+  --paper: #f4efe4;
+  --paper-raised: #fffaf0;
+  --ink: #171512;
+  --ink-soft: #605b52;
+  --rule: #c9bfae;
+  --burgundy: #781f32;
+  --burgundy-dark: #511421;
+  --gold: #b89048;
+  --green: #2f634d;
+  --blue: #345a71;
+  --serif: Georgia, "Times New Roman", serif;
+  --sans:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --shadow: 0 18px 48px rgb(48 37 23 / 9%);
+  --content: 76rem;
+}

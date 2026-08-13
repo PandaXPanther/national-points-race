@@ -1,0 +1,38 @@
+<aside class="discord-callout" aria-labelledby="discord-heading">
+  <div>
+    <p class="eyebrow">Community corrections</p>
+    <h2 id="discord-heading">Think something is wrong with the NPR?</h2>
+    <p>Join the Discord server and ping <strong>@PandaXPanther</strong>.</p>
+  </div>
+  <a class="button" href="https://discord.gg/8RFTvCWPPv">Join the Discord</a>
+</aside>
+
+<style>
+  .discord-callout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    border: 1px solid var(--rule);
+    border-top: 0.35rem solid var(--burgundy);
+    background: var(--paper-raised);
+    padding: clamp(1.4rem, 4vw, 2.5rem);
+    box-shadow: var(--shadow);
+  }
+
+  h2 {
+    margin-bottom: 0.5rem;
+    font-size: clamp(1.7rem, 3vw, 2.5rem);
+  }
+
+  p {
+    margin: 0;
+  }
+
+  @media (max-width: 42rem) {
+    .discord-callout {
+      align-items: stretch;
+      flex-direction: column;
+    }
+  }
+</style>

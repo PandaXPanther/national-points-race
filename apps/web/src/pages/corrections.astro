@@ -1,0 +1,21 @@
+---
+import DiscordCallout from "../components/DiscordCallout.astro";
+import SiteLayout from "../layouts/SiteLayout.astro";
+---
+
+<SiteLayout title="Corrections" description="How to report and audit National Points Race corrections.">
+  <header class="shell hero">
+    <p class="eyebrow">Open correction process</p>
+    <h1>Corrections do not erase history.</h1>
+    <p class="dek">A later official correction creates a new standings version. Prior hashes and source provenance remain available for audit.</p>
+  </header>
+  <section class="section">
+    <div class="shell split-grid">
+      <article class="prose">
+        <h2>What to report</h2>
+        <ul><li>The season and tournament.</li><li>The competitor and result that appears wrong.</li><li>A link to the official public correction or result.</li><li>Why the published calculation appears inconsistent with the methodology.</li></ul>
+      </article>
+      <DiscordCallout />
+    </div>
+  </section>
+</SiteLayout>

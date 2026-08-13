@@ -1,0 +1,99 @@
+---
+interface Tournament {
+  readonly name: string;
+  readonly tier: number;
+  readonly status: string;
+  readonly startAt?: string | null;
+  readonly sourceUrl?: string | null;
+}
+interface Props {
+  tournaments: readonly Tournament[];
+}
+const { tournaments } = Astro.props;
+---
+
+<ol class="tournament-list">
+  {tournaments.map((tournament) => (
+    <li>
+      <div>
+        <span class="tier">Tier {tournament.tier}</span>
+        <h3>{tournament.name}</h3>
+        {tournament.startAt && <p>{tournament.startAt}</p>}
+      </div>
+      <div class="status-stack">
+        <span class:list={["status", tournament.status]}>{tournament.status}</span>
+        {tournament.sourceUrl && <a href={tournament.sourceUrl}>Official source</a>}
+      </div>
+    </li>
+  ))}
+</ol>
+
+<style>
+  .tournament-list {
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.2rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  p,
+  a {
+    color: var(--ink-soft);
+    font-size: 0.8rem;
+  }
+
+  .tier {
+    color: var(--burgundy);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .status-stack {
+    min-width: 9rem;
+    text-align: right;
+  }
+
+  .status {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: capitalize;
+  }
+
+  .final,
+  .corrected {
+    color: var(--green);
+  }
+
+  .source-unavailable,
+  .not-held {
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 35rem) {
+    li {
+      align-items: start;
+      flex-direction: column;
+    }
+
+    .status-stack {
+      text-align: left;
+    }
+  }
+</style>

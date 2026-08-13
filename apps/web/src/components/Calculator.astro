@@ -1,0 +1,152 @@
+---
+import type { PublicPolicyView } from "../lib/policy.js";
+
+interface Props {
+  policy: PublicPolicyView;
+}
+const { policy } = Astro.props;
+---
+
+<section class="calculator paper-card" data-policy={JSON.stringify(policy)}>
+  <div>
+    <p class="eyebrow">Policy calculator</p>
+    <h3>Try a placement</h3>
+    <p class="muted">
+      This explanatory tool reads the same frozen values as the scoring engine. It
+      does not create or change an award.
+    </p>
+  </div>
+  <form>
+    <label>Tier
+      <select name="tier">
+        <option value="2">Tier 2</option>
+        <option value="3">Tier 3</option>
+        <option value="4">Tier 4</option>
+        <option value="5">Tier 5</option>
+        <option value="1">NSDA Nationals</option>
+      </select>
+    </label>
+    <label>Placement
+      <input name="placement" type="number" min="1" max="14" value="1" />
+    </label>
+    <label class="check"><input name="strong" type="checkbox" /> NSDA strong-field division</label>
+    <label class="check"><input name="finalWinner" type="checkbox" /> NSDA final-round winner</label>
+    <output aria-live="polite"><strong>150 points</strong><span>Tier 2, first place</span></output>
+  </form>
+</section>
+
+<script>
+  const calculator = document.querySelector<HTMLElement>(".calculator");
+  const form = calculator?.querySelector("form");
+  const output = calculator?.querySelector("output");
+  if (calculator && form && output) {
+    const policy = JSON.parse(calculator.dataset.policy ?? "{}") as {
+      tiers: Record<string, { placements: number[] }>;
+      nsda: {
+        basePlacements: number[];
+        finalRoundWinnerBonus: number;
+        multiplier: { numerator: number; denominator: number };
+      };
+    };
+    const update = () => {
+      const data = new FormData(form);
+      const tier = String(data.get("tier"));
+      const placement = Number(data.get("placement"));
+      const strong = data.get("strong") === "on";
+      const finalWinner = data.get("finalWinner") === "on";
+      const table = tier === "1" ? policy.nsda.basePlacements : policy.tiers[tier]?.placements;
+      let points = table?.[placement - 1] ?? 0;
+      if (tier === "1" && strong) {
+        const { numerator, denominator } = policy.nsda.multiplier;
+        points = Math.floor((points * numerator + denominator / 2) / denominator);
+      }
+      if (tier === "1" && finalWinner && placement <= 6) {
+        let bonus = policy.nsda.finalRoundWinnerBonus;
+        if (strong) {
+          const { numerator, denominator } = policy.nsda.multiplier;
+          bonus = Math.floor((bonus * numerator + denominator / 2) / denominator);
+        }
+        points += bonus;
+      }
+      output.innerHTML = `<strong>${points} points</strong><span>${tier === "1" ? "NSDA Nationals" : `Tier ${tier}`}, place ${placement}</span>`;
+    };
+    form.addEventListener("input", update);
+  }
+</script>
+
+<style>
+  .calculator {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(20rem, 1.2fr);
+    gap: 2rem;
+  }
+
+  form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  label {
+    display: grid;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+
+  input,
+  select {
+    width: 100%;
+    min-height: 2.75rem;
+    border: 1px solid var(--rule);
+    border-radius: 0;
+    background: white;
+    color: var(--ink);
+    padding: 0.6rem;
+    font: inherit;
+  }
+
+  .check {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+  }
+
+  .check input {
+    width: 1.1rem;
+    min-height: 1.1rem;
+  }
+
+  output {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    border-top: 3px solid var(--burgundy);
+    padding-top: 1rem;
+  }
+
+  output strong {
+    color: var(--burgundy);
+    font-family: var(--serif);
+    font-size: 2rem;
+  }
+
+  output span {
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 48rem) {
+    .calculator,
+    form {
+      grid-template-columns: 1fr;
+    }
+
+    output {
+      grid-column: auto;
+      align-items: start;
+      flex-direction: column;
+    }
+  }
+</style>

@@ -1,0 +1,61 @@
+---
+import SeasonBadge from "../../components/SeasonBadge.astro";
+import StandingsTable from "../../components/StandingsTable.astro";
+import { historicalSeason } from "../../data/history.js";
+import standings2024 from "../../data/history/2024-25.json";
+import SiteLayout from "../../layouts/SiteLayout.astro";
+
+const season = historicalSeason(Astro.params.season ?? "");
+if (!season) {
+  Astro.response.status = 404;
+}
+const standings = season?.seasonId === "2024-25" ? standings2024 : null;
+---
+
+<SiteLayout
+  title={season ? `${season.displaySeason} Archive` : "Season not found"}
+  description="An attributed National Points Race season record."
+>
+  {season ? (
+    <>
+      <header class="shell hero">
+        <SeasonBadge classification={season.classification} />
+        <p class="eyebrow season-line">Season record</p>
+        <h1>{season.displaySeason}</h1>
+        <p class="dek">{season.note}</p>
+      </header>
+      {season.winner && (
+        <section class="section">
+          <div class="shell stats-grid">
+            <div class="stat"><span>Winner</span><strong>{season.winner.name}</strong><p>{season.winner.points} points</p></div>
+            {season.runnerUp && <div class="stat"><span>Runner-up</span><strong>{season.runnerUp.name}</strong><p>{season.runnerUp.points} points</p></div>}
+          </div>
+        </section>
+      )}
+      <section class="section">
+        <div class="shell">
+          <div class="section-heading"><div><p class="eyebrow">Preserved record</p><h2>{standings ? "Published standings" : "Original sources"}</h2></div><p>Historical facts are attributed to Extemp Central and linked to their original source.</p></div>
+          {standings ? <StandingsTable standings={standings} /> : (
+            <div class="card-grid">
+              {season.sources.map((source) => (
+                <article class="paper-card">
+                  <p class="eyebrow">{source.attribution}</p>
+                  <h3>{source.title}</h3>
+                  <p class="muted">Format: {source.format}</p>
+                  <a href={source.url}>Open original published source</a>
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+    </>
+  ) : (
+    <section class="shell hero"><h1>Season not found.</h1><p><a href="/archive/">Return to the archive</a></p></section>
+  )}
+</SiteLayout>
+
+<style>
+  .season-line { margin-top: 2rem; }
+  .stat strong { font-size: clamp(1.5rem, 3vw, 2.4rem); }
+</style>

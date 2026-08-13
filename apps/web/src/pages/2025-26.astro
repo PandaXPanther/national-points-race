@@ -1,0 +1,42 @@
+---
+import SeasonBadge from "../components/SeasonBadge.astro";
+import SiteLayout from "../layouts/SiteLayout.astro";
+---
+
+<SiteLayout title="2025-2026 Reconstruction" description="A retrospective automated reconstruction of the discontinued 2025-2026 National Points Race season.">
+  <header class="shell hero">
+    <SeasonBadge classification="Automated reconstruction" />
+    <p class="eyebrow season-line">2025-2026 proof season</p>
+    <h1>Rebuilding the missing season.</h1>
+    <p class="dek">
+      This retrospective proof runs permitted official public results through the
+      production pipeline. It is not an official contemporaneous NPR.
+    </p>
+  </header>
+  <section class="section">
+    <div class="shell split-grid">
+      <article class="paper-card">
+        <p class="eyebrow">Reconstruction status</p>
+        <h2>Evidence audit in progress</h2>
+        <p>
+          Each of the 20 frozen tournament lineages must have verified official
+          evidence or an explicit unavailable status. Standings will publish only
+          after the resulting report passes deterministic replay and source checks.
+        </p>
+      </article>
+      <article class="prose">
+        <p class="eyebrow">What counts</p>
+        <h2>No spreadsheet shortcut.</h2>
+        <ol>
+          <li>Verify the tournament edition and permitted official result source.</li>
+          <li>Preserve source bytes and their SHA-256 digest.</li>
+          <li>Normalize results and resolve identities conservatively.</li>
+          <li>Apply policy version legacy-2024-25-v1.</li>
+          <li>Publish completeness, withheld evidence, and a standings hash.</li>
+        </ol>
+      </article>
+    </div>
+  </section>
+</SiteLayout>
+
+<style>.season-line { margin-top: 2rem; }</style>

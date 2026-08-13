@@ -1,0 +1,66 @@
+---
+interface Standing {
+  readonly rank: number;
+  readonly name: string;
+  readonly school: string;
+  readonly points: number;
+  readonly wins: number | null;
+  readonly topThrees: number | null;
+  readonly finals: number | null;
+}
+
+interface Props {
+  standings: readonly Standing[];
+  seasonId?: string;
+}
+const { standings, seasonId } = Astro.props;
+---
+
+<div class="table-wrap">
+  <table class="responsive-table">
+    <caption class="sr-only">National Points Race standings</caption>
+    <thead>
+      <tr>
+        <th scope="col">Rank</th>
+        <th scope="col">Competitor</th>
+        <th scope="col">School</th>
+        <th class="numeric" scope="col">Points</th>
+        <th class="numeric" scope="col">Wins</th>
+        <th class="numeric" scope="col">Top 3</th>
+        <th class="numeric" scope="col">Finals</th>
+      </tr>
+    </thead>
+    <tbody>
+      {standings.map((standing) => (
+        <tr>
+          <td class="rank" data-label="Rank">{standing.rank}</td>
+          <td data-label="Competitor">
+            {seasonId ? (
+              <a href={`/${seasonId}/competitors/${standing.rank}/`}>
+                <strong>{standing.name}</strong>
+              </a>
+            ) : (
+              <strong>{standing.name}</strong>
+            )}
+          </td>
+          <td data-label="School">{standing.school}</td>
+          <td class="numeric" data-label="Points"><strong>{standing.points}</strong></td>
+          <td class="numeric" data-label="Wins">{standing.wins ?? "Not published"}</td>
+          <td class="numeric" data-label="Top 3">{standing.topThrees ?? "Not published"}</td>
+          <td class="numeric" data-label="Finals">{standing.finals ?? "Not published"}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+</style>

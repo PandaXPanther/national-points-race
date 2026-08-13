@@ -14,13 +14,13 @@ Every season carries one of three visible labels:
 2. **Automated reconstruction:** 2025–2026, rebuilt retrospectively from permitted official public results to demonstrate the system. It is not described as an official contemporaneous NPR.
 3. **Current live race:** 2026–2027, collected, calculated, versioned, and published by the autonomous successor.
 
-The 2026–2027 live season begins from the frozen `legacy-2024-25-v1` policy and 20-tournament roster. Any future policy change requires a new public policy version and cannot be inferred automatically.
+The 2025–2026 reconstruction remains pinned to the frozen `legacy-2024-25-v1` policy and its 20-tournament roster. The 2026–2027 live season uses a new `npr-2026-27-v1` policy that preserves the legacy point tables and adds the Arizona State HDSHC Invitational as a Tier 4 tournament. Later seasons inherit this 21-tournament roster until another explicit, public policy version replaces it. Policy changes are never inferred automatically.
 
 ## Public information architecture
 
 ### Home and current standings
 
-The landing page leads with the 2026–2027 standings, update time, policy version, tournament completion status, and a visible distinction between provisional, final, corrected, unavailable, and not-held evidence. Each competitor links to an award-level audit trail. Each tournament links to its selected source and status history.
+The landing page leads with the 2026–2027 standings, update time, policy version, tournament completion status, and a visible distinction between provisional, final, corrected, unavailable, and not-held evidence. Each competitor links to an award-level audit trail. Each tournament links to its selected source and status history. Reconstructed and current seasons publish up to 100 ranked competitors. The post-NCFL top-25 snapshot remains an internal scoring input for the NSDA multiplier and is not the public display limit.
 
 ### History
 
@@ -37,7 +37,7 @@ The page credits Extemp Central and Logan Scisco, links to the original NPR and 
 
 The methodology page is generated from the executable policy ledger wherever possible. It shows:
 
-- all 20 tracked tournament lineages and tiers;
+- all tracked tournament lineages and tiers for the selected policy version;
 - Tier 2–5 placement and elimination-round tables;
 - NSDA placement, strong-field multiplier, half-up rounding, and final-round bonus;
 - the post-NCFL top-25 snapshot rule;
@@ -67,6 +67,8 @@ The archive index lists every season exposed by the original Extemp Central page
 - 2026–2027 current live race
 
 For historical official seasons, the archive prioritizes a preserved public standings table when the source is recoverable and otherwise presents a source card linking to the original spreadsheet. Historical gaps are explicit; they are not silently invented. The winners/runner-up summary published by Extemp Central is reproduced as structured attribution-backed facts.
+
+The 2025–2026 archive record names Daphne Kalir-Starr as the reconstructed champion with 619 points and links to the complete reconstructed top 100. This fact is explicitly labeled as an automated reconstruction rather than an Extemp Central result.
 
 ### Corrections and community feedback
 
@@ -108,16 +110,59 @@ The reconstruction is a proof of correct operation, not a claim that an official
 
 On August 1, the system creates the 2026–2027 season without manual configuration. Discovery continues before and around each expected tournament window. New final evidence produces idempotent rebuilds; later official corrections create new public versions while preserving history. The site reports unavailable evidence rather than guessing.
 
+### Arizona State HDSHC Invitational
+
+The 2026–2027 policy adds the Arizona State HDSHC Invitational as a Tier 4 lineage. Discovery uses stable organizer evidence from Arizona State University and the annual Tabroom edition. Its expected window is January. The lineage remains part of every later season under the same policy family. It is not added retroactively to 2025–2026 or any earlier archive.
+
+### MBA results submission
+
+The 2026–2027 MBA tournament page includes a public results-submission form for the six official placements. The form requires:
+
+- the submitter's full name;
+- the submitter's NSDA number;
+- an official results document or organizer-issued HTTPS URL;
+- six distinct competitor names in placement order from first through sixth;
+- an attestation that the evidence is complete and unmodified.
+
+The public form is protected by Cloudflare Turnstile, request-size limits, content-type restrictions, rate limits, and non-echoing error responses. The full NSDA number is never published. Public audit output may display only a masked identifier, the submitter's name, the accepted evidence hash, and the evidence source.
+
+Automatic acceptance is deterministic. It does not use fuzzy matching or an AI judgment. A submission passes only when all of the following are true:
+
+1. The season and MBA edition are open for results.
+2. The evidence is a bounded, readable document or a permitted HTTPS source.
+3. Extracted evidence identifies Montgomery Bell Academy, the Extemp Round Robin, and the correct season.
+4. The six structured names appear in the evidence in the same placement order.
+5. Names are normalized only for Unicode representation and surrounding or repeated whitespace, then matched exactly.
+6. Every name maps to exactly one existing competitor in the current NPR identity graph.
+7. No name is duplicated, ambiguous, missing, or fuzzy matched.
+8. The proposed results satisfy the MBA top-six policy and produce a contradiction-free scoring preview.
+9. The evidence hash and submission key have not previously been accepted.
+
+Automatic validation confirms internal consistency and evidence contents. The site does not claim that NSDA authenticated the submitter or endorsed the submission.
+
+The database permits exactly one accepted MBA result set per season. Failed submissions do not consume the slot. Acceptance occurs in one transaction guarded by a season-level uniqueness constraint, so simultaneous requests cannot both succeed. After the first accepted result, the public form closes for that season. A later official correction must use the correction process and the public Discord instruction to ping `@PandaXPanther`.
+
+Acceptance stores the immutable evidence and its SHA-256 digest, writes the normalized MBA result set, and queues an idempotent season rebuild. A successful rebuild publishes a new top-100 standings version while preserving the prior version and source audit history.
+
 ## Design direction
 
-Use an editorial scorebook aesthetic: warm paper background, deep ink, restrained burgundy accent, serif display headings, and highly legible sans-serif data tables. The home page feels authoritative and alive without mimicking Extemp Central. Responsive tables become labeled result cards on narrow screens. All functionality is keyboard accessible, reduced-motion safe, and WCAG 2.2 AA oriented.
+Use an editorial scorebook aesthetic: warm paper background, deep ink, restrained burgundy accent, serif display headings, and highly legible sans-serif data tables. The home page feels authoritative without mimicking Extemp Central.
+
+The interface avoids common generated-site patterns. It does not use oversized hero slogans, decorative gradients, floating panels, repeated bordered cards, excessive status pills, generic three-column feature blocks, or startup-style marketing copy. Page hierarchy comes from typography, whitespace, alignment, and fine horizontal rules. Copy is specific and factual.
+
+The masthead is compact. Archive pages read like a historical register. Season pages prioritize standings and source status over promotion. Long-form methodology uses a restrained editorial measure. Desktop standings remain tables. Narrow screens preserve table semantics inside an accessible horizontal-scrolling region instead of transforming 100 competitors into repetitive cards.
+
+All functionality is keyboard accessible, reduced-motion safe, responsive from 320 through 1440 pixels, and WCAG 2.2 AA oriented.
 
 Public-facing copy must not use em dashes. Use commas, colons, parentheses, or separate sentences instead.
 
 ## Publication and operations
 
-- Create a new public GitHub repository under `PandaXPanther` with the complete source and history.
-- Deploy the frontend to Cloudflare Pages.
+- Maintain the public GitHub repository under `PandaXPanther` with complete source and history.
+- Keep the existing `national-points-race.pages.dev` Cloudflare Pages project and its deployment history.
+- Add a GitHub Actions workflow for every push and pull request. Pull requests run validation and build without production deployment. A successful push to `main` deploys the exact commit to the existing Pages project with Wrangler.
+- Store the Cloudflare account identifier and Pages-scoped API token as encrypted GitHub Actions secrets. No credential is written to the repository, logs, reports, or generated site.
+- A failed test, typecheck, lint, formatting, reconstruction-integrity, or build step prevents deployment and leaves the current production version active.
 - Deploy the Worker and provision isolated production D1, R2, and Queue resources only after migrations and complete verification pass.
 - Store the HMAC ingest secret and Cloudflare/GitHub credentials only in managed secret stores.
 - Configure scheduled collection, CI, backups, monitoring, and correction history.
@@ -130,12 +175,19 @@ Public-facing copy must not use em dashes. Use commas, colons, parentheses, or s
 3. Historical seasons from the supplied Extemp Central page are present as preserved data or explicit attributed source links.
 4. The methodology exactly matches the executable policy, including all edge cases and rounding.
 5. The Discord correction callout and `@PandaXPanther` instruction are visible throughout the reference and standings experience.
-6. GitHub and Cloudflare publication completes without committed credentials.
-7. Full tests, golden replay, simulated season, accessibility checks, deploy dry runs, production smoke tests, and post-deploy URL checks pass.
+6. The 2025–2026 archive names Daphne Kalir-Starr as reconstructed champion with 619 points and publishes up to 100 standings.
+7. The 2026–2027 and later public standings publish up to 100 competitors without changing the policy's post-NCFL top-25 scoring snapshot.
+8. The Arizona State HDSHC Invitational is Tier 4 in `npr-2026-27-v1` and is discovered for 2026–2027 and later seasons.
+9. Exactly one valid MBA submission can be accepted per season, and acceptance produces an immutable evidence record and idempotent standings rebuild.
+10. Invalid evidence, ambiguous names, duplicate placements, repeat submissions, and concurrent submissions cannot alter standings.
+11. GitHub and Cloudflare publication completes without committed credentials, and every successful push to `main` deploys automatically.
+12. Full tests, golden replay, simulated season, accessibility checks, deploy dry runs, production smoke tests, and post-deploy URL checks pass.
 
 ## Authoritative references
 
 - Original NPR and archive links: <https://extemp.com/natl-points-race/>
 - Final legacy structure and calculations: <https://extemp.com/2024-2025-extemp-central-national-points-race-the-structure-of-this-years-competition/>
 - Final 2024–2025 standings spreadsheet: <https://docs.google.com/spreadsheets/d/1zKg4DMD9OwQaBFVPBPRIkgsTueH86TQV/edit?gid=508191381>
+- Arizona State tournament information: <https://humancommunication.asu.edu/student-life/forensics/team-schedule-and-debate-events>
+- 2026 Arizona State HDSHC Invitational record: <https://www.tabroom.com/index/tourn/index.mhtml?tourn_id=37484>
 - Community corrections: <https://discord.gg/8RFTvCWPPv>

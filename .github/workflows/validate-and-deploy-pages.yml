@@ -1,0 +1,59 @@
+name: Validate and deploy NPR dashboard
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: national-points-race-pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out the requested commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.16.0
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.16.0
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+
+      - name: Verify the reconstructed 2025-26 table is reproducible
+        run: |
+          pnpm --filter @points-race/reconstruction rebuild:2025-26
+          git diff --exit-code -- apps/web/src/data/reconstruction/2025-26.json
+
+      - name: Build the public dashboard
+        run: pnpm --filter @points-race/web build
+        env:
+          PUBLIC_API_BASE_URL: https://points-race-service.pandaxpanther.workers.dev
+          PUBLIC_TURNSTILE_SITE_KEY: 0x4AAAAAAEOquQ-bEHsyoGvY
+
+      - name: Deploy this exact main commit to Cloudflare Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: pnpm --filter @points-race/web exec wrangler pages deploy dist-pages --project-name national-points-race --branch main --commit-hash $GITHUB_SHA
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

@@ -1,0 +1,325 @@
+---
+interface Props {
+  seasonId: string;
+}
+
+const { seasonId } = Astro.props;
+const apiBase =
+  import.meta.env.PUBLIC_API_BASE_URL ??
+  "https://points-race-service.pandaxpanther.workers.dev";
+const endpoint = `${apiBase.replace(/\/$/u, "")}/v1/seasons/${encodeURIComponent(seasonId)}/tournaments/mba-round-robin/submission`;
+const turnstileSiteKey =
+  import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "0x4AAAAAAEOquQ-bEHsyoGvY";
+const placeLabels = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
+---
+
+<section class="mba-submission" aria-labelledby="mba-submission-title">
+  <div class="submission-heading">
+    <div>
+      <p class="eyebrow">Official MBA results</p>
+      <h2 id="mba-submission-title">Submit the six cumulative placements</h2>
+    </div>
+    <p>
+      Only one accepted submission is allowed per season. Rejected evidence does
+      not close the form.
+    </p>
+  </div>
+
+  <div class="submission-status" data-submission-status aria-live="polite">
+    Checking whether this season already has an accepted submission.
+  </div>
+
+  <form
+    action={endpoint}
+    method="post"
+    enctype="multipart/form-data"
+    data-mba-form
+  >
+    <fieldset>
+      <legend>Submitter</legend>
+      <div class="form-pair">
+        <label>
+          Full name
+          <input name="submitterName" autocomplete="name" required />
+        </label>
+        <label>
+          NSDA number
+          <input
+            name="nsdaNumber"
+            inputmode="numeric"
+            autocomplete="off"
+            minlength="5"
+            maxlength="16"
+            required
+          />
+          <small>The full number is validated, keyed, and never published.</small>
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Evidence</legend>
+      <p class="field-note">
+        Supply one official public URL or one readable PDF, text, CSV, or HTML
+        result document. Do not supply both.
+      </p>
+      <div class="form-pair">
+        <label>
+          Official results URL
+          <input name="evidenceUrl" type="url" inputmode="url" />
+        </label>
+        <label>
+          Official results file
+          <input
+            name="evidenceFile"
+            type="file"
+            accept="application/pdf,text/plain,text/csv,text/html,.pdf,.txt,.csv,.html"
+          />
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Official cumulative order</legend>
+      <p class="field-note">
+        Enter each name exactly as it appears in the current NPR. Every name must
+        match exactly once. Similar spellings and fuzzy matches are rejected.
+      </p>
+      <div class="placement-grid">
+        {
+          placeLabels.map((label, index) => (
+            <label>
+              {label} place
+              <input
+                name={`placement${index + 1}`}
+                autocomplete="off"
+                required
+              />
+            </label>
+          ))
+        }
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Verification</legend>
+      <label class="attestation">
+        <input name="attestation" type="checkbox" value="true" required />
+        <span>
+          I attest that this is the official final MBA cumulative order and that
+          the evidence may be preserved for the public audit.
+        </span>
+      </label>
+      <div class="cf-turnstile" data-sitekey={turnstileSiteKey}></div>
+      {
+        turnstileSiteKey === "" && (
+          <p class="source-note">Submission verification is not configured yet.</p>
+        )
+      }
+    </fieldset>
+
+    <p class="form-error" data-form-error aria-live="assertive"></p>
+    <button type="submit">Check evidence and submit</button>
+  </form>
+
+  <p class="source-note correction-note">
+    If an accepted result is wrong, join the <a
+      href="https://discord.gg/8RFTvCWPPv">Discord server</a
+    > and ping <strong>@PandaXPanther</strong>. Accepted records are corrected by a
+    new audited standings version.
+  </p>
+</section>
+
+{
+  turnstileSiteKey !== "" && (
+    <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer>
+    </script>
+  )
+}
+
+<script is:inline define:vars={{ endpoint }}>
+  const form = document.querySelector("[data-mba-form]");
+  const statusNode = document.querySelector("[data-submission-status]");
+  const errorNode = document.querySelector("[data-form-error]");
+
+  const closeForm = (status) => {
+    if (!(form instanceof HTMLFormElement) || !(statusNode instanceof HTMLElement)) return;
+    form.hidden = true;
+    const acceptedAt = new Date(status.acceptedAt).toLocaleString();
+    statusNode.textContent = `Accepted from ${status.submitterName} (${status.submitterNsdaMask}) on ${acceptedAt}. Evidence ${status.evidenceSha256}. Rebuild: ${status.rebuildState}.`;
+  };
+
+  const checkStatus = async () => {
+    if (!(statusNode instanceof HTMLElement)) return;
+    try {
+      const response = await fetch(endpoint, { headers: { accept: "application/json" } });
+      if (!response.ok) throw new Error("status unavailable");
+      const status = await response.json();
+      if (status.accepted === true) closeForm(status);
+      else statusNode.textContent = "No accepted MBA submission is on file for this season.";
+    } catch {
+      statusNode.textContent = "Submission status is temporarily unavailable.";
+    }
+  };
+
+  if (form instanceof HTMLFormElement) {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const nsdaInput = form.elements.namedItem("nsdaNumber");
+      const submitButton = form.querySelector('button[type="submit"]');
+      if (errorNode instanceof HTMLElement) errorNode.textContent = "";
+      if (submitButton instanceof HTMLButtonElement) submitButton.disabled = true;
+      try {
+        const response = await fetch(endpoint, { method: "POST", body: new FormData(form) });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.diagnosticCode ?? "MBA_SUBMISSION_REJECTED");
+        form.reset();
+        if (nsdaInput instanceof HTMLInputElement) nsdaInput.value = "";
+        await checkStatus();
+      } catch (error) {
+        if (nsdaInput instanceof HTMLInputElement) nsdaInput.value = "";
+        if (errorNode instanceof HTMLElement) {
+          errorNode.textContent = error instanceof Error
+            ? `Submission was not accepted (${error.message}). Review every field and the official evidence, then try again.`
+            : "Submission was not accepted. Review every field and try again.";
+        }
+      } finally {
+        if (submitButton instanceof HTMLButtonElement) submitButton.disabled = false;
+      }
+    });
+  }
+
+  void checkStatus();
+</script>
+
+<style>
+  .mba-submission {
+    border-top: 2px solid var(--ink);
+    padding-top: 1rem;
+  }
+
+  .submission-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.8fr);
+    gap: 2rem;
+    align-items: end;
+  }
+
+  .submission-heading > p,
+  .field-note,
+  small {
+    color: var(--ink-soft);
+  }
+
+  .submission-status {
+    margin: 1.5rem 0;
+    padding: 0.65rem 0;
+    border-block: 1px solid var(--rule);
+    font-weight: 650;
+  }
+
+  fieldset {
+    margin: 0;
+    border: 0;
+    border-top: 1px solid var(--rule-dark);
+    padding: 1.35rem 0 1.5rem;
+  }
+
+  legend {
+    padding: 0 1rem 0 0;
+    font-family: var(--serif);
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+
+  .form-pair,
+  .placement-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem 1.5rem;
+  }
+
+  .placement-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  label:not(.attestation) {
+    display: grid;
+    gap: 0.3rem;
+    font-size: 0.78rem;
+    font-weight: 750;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  input:not([type="checkbox"]) {
+    width: 100%;
+    min-height: 2.75rem;
+    border: 1px solid var(--rule-dark);
+    border-width: 0 0 1px;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+
+  input:focus {
+    border-color: var(--burgundy);
+  }
+
+  small {
+    font-size: 0.72rem;
+    font-weight: 400;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+
+  .attestation {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.65rem;
+    align-items: start;
+    max-width: var(--measure);
+  }
+
+  .attestation input {
+    margin-top: 0.3rem;
+  }
+
+  .cf-turnstile {
+    margin-top: 1rem;
+  }
+
+  .form-error {
+    color: var(--burgundy-dark);
+    font-weight: 650;
+  }
+
+  button {
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.7rem 1rem;
+    font: inherit;
+    font-weight: 750;
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: wait;
+    opacity: 0.6;
+  }
+
+  .correction-note {
+    margin-top: 1.5rem;
+  }
+
+  @media (max-width: 44rem) {
+    .submission-heading,
+    .form-pair,
+    .placement-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

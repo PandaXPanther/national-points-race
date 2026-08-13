@@ -6,5 +6,6 @@
   "compatibility_flags": ["nodejs_compat"],
   "vars": {
     "PUBLIC_API_BASE_URL": "https://points-race-service.pandaxpanther.workers.dev",
+    "PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAAEOquQ-bEHsyoGvY",
   },
 }

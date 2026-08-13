@@ -1,5 +1,6 @@
 ---
 import SeasonBadge from "../components/SeasonBadge.astro";
+import MbaSubmissionForm from "../components/MbaSubmissionForm.astro";
 import SiteLayout from "../layouts/SiteLayout.astro";
 ---
 
@@ -52,6 +53,12 @@ import SiteLayout from "../layouts/SiteLayout.astro";
         </p>
         <p><a href="/2026-27/tournaments/">View the tournament audit</a></p>
       </article>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <MbaSubmissionForm seasonId="2026-27" />
     </div>
   </section>
 </SiteLayout>

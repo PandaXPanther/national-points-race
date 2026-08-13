@@ -62,11 +62,14 @@ describe("public copy rules", () => {
     expect(styles).not.toContain("linear-gradient");
     expect(styles).not.toContain("box-shadow");
     expect(styles).not.toContain("border-radius: 999px");
+    expect(styles).not.toMatch(/\.card-grid|\.stats-grid/iu);
     expect(styles).not.toMatch(
       /\.responsive-table\s+tr\s*\{[^}]*display:\s*block/su,
     );
     expect(home).not.toContain("The race is live again");
     expect(home).not.toContain("Every point should have a receipt");
+    expect(home).not.toContain("Audit method");
     expect(reconstruction).not.toContain("The missing season, rebuilt");
+    expect(reconstruction).not.toContain("How the reconstruction was made");
   });
 });

@@ -10,9 +10,9 @@ The site must never imply that Saras acquired Extemp Central or that the success
 
 Every season carries one of three visible labels:
 
-1. **Extemp Central official archive** — seasons published by Extemp Central through 2024–2025. These records retain source attribution and links.
-2. **Automated reconstruction** — 2025–2026, rebuilt retrospectively from permitted official public results to demonstrate the system. It is not described as an official contemporaneous NPR.
-3. **Current live race** — 2026–2027, collected, calculated, versioned, and published by the autonomous successor.
+1. **Extemp Central official archive:** seasons published by Extemp Central through 2024–2025. These records retain source attribution and links.
+2. **Automated reconstruction:** 2025–2026, rebuilt retrospectively from permitted official public results to demonstrate the system. It is not described as an official contemporaneous NPR.
+3. **Current live race:** 2026–2027, collected, calculated, versioned, and published by the autonomous successor.
 
 The 2026–2027 live season begins from the frozen `legacy-2024-25-v1` policy and 20-tournament roster. Any future policy change requires a new public policy version and cannot be inferred automatically.
 
@@ -111,6 +111,8 @@ On August 1, the system creates the 2026–2027 season without manual configurat
 ## Design direction
 
 Use an editorial scorebook aesthetic: warm paper background, deep ink, restrained burgundy accent, serif display headings, and highly legible sans-serif data tables. The home page feels authoritative and alive without mimicking Extemp Central. Responsive tables become labeled result cards on narrow screens. All functionality is keyboard accessible, reduced-motion safe, and WCAG 2.2 AA oriented.
+
+Public-facing copy must not use em dashes. Use commas, colons, parentheses, or separate sentences instead.
 
 ## Publication and operations
 

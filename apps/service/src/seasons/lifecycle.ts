@@ -18,6 +18,7 @@ import {
   type JobType,
 } from "../jobs/enqueue.js";
 import { createEditionRepository } from "../storage/editions.js";
+import { migratePristineCurrentSeasonPolicy } from "./policy-migration.js";
 
 const LEGACY_POLICY_CREATED_AT = "2024-08-01T00:00:00.000Z";
 const CURRENT_POLICY_CREATED_AT = "2026-08-01T00:00:00.000Z";
@@ -127,13 +128,22 @@ async function ensureSeason(
   const policyVersion = policyVersionForSeason(seasonId);
   const policy = policyLedgerForVersion(policyVersion);
   const editions = createEditionRepository(input.env.DB);
+  const ledgerSha256 = await sha256(canonicalJson(policy));
+  if (policyVersion === NPR_2026_27_POLICY_VERSION) {
+    await migratePristineCurrentSeasonPolicy(
+      input.env.DB,
+      seasonId,
+      CURRENT_POLICY_CREATED_AT,
+      ledgerSha256,
+    );
+  }
   await editions.ensurePolicyVersion({
     id: policyVersion,
     createdAt:
       policyVersion === NPR_2026_27_POLICY_VERSION
         ? CURRENT_POLICY_CREATED_AT
         : LEGACY_POLICY_CREATED_AT,
-    ledgerSha256: await sha256(canonicalJson(policy)),
+    ledgerSha256,
   });
   for (const lineage of policy.tournaments) {
     await editions.ensureLineage({

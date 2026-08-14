@@ -1,4 +1,5 @@
 import { env } from "cloudflare:test";
+import { NPR_2026_27_POLICY_VERSION } from "@points-race/policy";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import {
@@ -20,19 +21,23 @@ beforeAll(async () => {
   await env.DB.batch([
     env.DB.prepare(
       "INSERT INTO policy_versions (id, created_at, ledger_sha256) VALUES (?1, ?2, ?3)",
-    ).bind("mba-storage-policy", "2080-08-01T00:00:00.000Z", "8".repeat(64)),
+    ).bind(
+      NPR_2026_27_POLICY_VERSION,
+      "2080-08-01T00:00:00.000Z",
+      "8".repeat(64),
+    ),
     env.DB.prepare(
-      "INSERT INTO tournament_lineages (id, policy_version_id, tier, canonical_name, aliases_json) VALUES ('mba-round-robin', ?1, 5, 'Montgomery Bell Academy Extemp Round Robin', '[]')",
-    ).bind("mba-storage-policy"),
+      "INSERT INTO tournament_lineages (id, policy_version_id, tier, canonical_name, aliases_json) VALUES ('mba-round-robin', ?1, 2, 'Montgomery Bell Academy Extemp Round Robin', '[]')",
+    ).bind(NPR_2026_27_POLICY_VERSION),
     env.DB.prepare(
-      "INSERT INTO tournament_editions (id, lineage_id, season_id, status, policy_version_id) VALUES (?1, 'mba-round-robin', ?2, 'final', ?3)",
-    ).bind(EDITION_ID, SEASON_ID, "mba-storage-policy"),
+      "INSERT INTO tournament_editions (id, lineage_id, season_id, status, policy_version_id, tier) VALUES (?1, 'mba-round-robin', ?2, 'final', ?3, 2)",
+    ).bind(EDITION_ID, SEASON_ID, NPR_2026_27_POLICY_VERSION),
     env.DB.prepare(
-      "INSERT INTO tournament_editions (id, lineage_id, season_id, status, policy_version_id) VALUES (?1, 'mba-round-robin', ?2, 'final', ?3)",
-    ).bind("2082-83:mba-round-robin", "2082-83", "mba-storage-policy"),
+      "INSERT INTO tournament_editions (id, lineage_id, season_id, status, policy_version_id, tier) VALUES (?1, 'mba-round-robin', ?2, 'final', ?3, 2)",
+    ).bind("2082-83:mba-round-robin", "2082-83", NPR_2026_27_POLICY_VERSION),
     env.DB.prepare(
-      "INSERT INTO tournament_editions (id, lineage_id, season_id, status, policy_version_id) VALUES (?1, 'mba-round-robin', ?2, 'final', ?3)",
-    ).bind("2084-85:mba-round-robin", "2084-85", "mba-storage-policy"),
+      "INSERT INTO tournament_editions (id, lineage_id, season_id, status, policy_version_id, tier) VALUES (?1, 'mba-round-robin', ?2, 'final', ?3, 2)",
+    ).bind("2084-85:mba-round-robin", "2084-85", NPR_2026_27_POLICY_VERSION),
     ...COMPETITORS.map(({ id, name }) =>
       env.DB.prepare(
         "INSERT INTO canonical_competitors (id, display_name, created_at) VALUES (?1, ?2, ?3)",

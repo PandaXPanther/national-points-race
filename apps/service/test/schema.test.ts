@@ -110,7 +110,7 @@ async function seedResultParents(prefix: string): Promise<{
       "INSERT INTO tournament_lineages (id, policy_version_id, tier, canonical_name, aliases_json) VALUES (?1, ?2, 1, 'Tournament', '[]')",
     ).bind(lineageId, policyId),
     env.DB.prepare(
-      "INSERT INTO tournament_editions (id, lineage_id, season_id, status, policy_version_id) VALUES (?1, ?2, ?3, 'upcoming', ?4)",
+      "INSERT INTO tournament_editions (id, lineage_id, season_id, status, policy_version_id, tier) VALUES (?1, ?2, ?3, 'upcoming', ?4, 1)",
     ).bind(editionId, lineageId, `${prefix}-season`, policyId),
     env.DB.prepare(
       "INSERT INTO source_descriptors (id, source_class, allowlisted_hostnames_json, allowed_media_types_json, permission, semantic_sha256) VALUES (?1, 'organizer-html-pdf', '[\"example.test\"]', '[\"text/html\"]', 'official-public-document', ?2)",
@@ -248,6 +248,7 @@ it("creates every required operational index", async () => {
 
 it("declares every lossless storage column added for repository round trips", async () => {
   const expectedColumns = {
+    tournament_editions: ["tier"],
     source_descriptors: [
       "id",
       "source_class",
@@ -581,7 +582,17 @@ it("rejects invalid lineage, edition, and standings states", async () => {
   ).run();
   await expect(
     env.DB.prepare(
-      "INSERT INTO tournament_editions (id, lineage_id, season_id, status, policy_version_id) VALUES ('edition-state', 'lineage-state', 'state-season', 'unknown', 'policy-state')",
+      "INSERT INTO tournament_editions (id, lineage_id, season_id, status, policy_version_id, tier) VALUES ('edition-state', 'lineage-state', 'state-season', 'unknown', 'policy-state', 1)",
+    ).run(),
+  ).rejects.toThrow(/CHECK constraint failed/);
+  await expect(
+    env.DB.prepare(
+      "INSERT INTO tournament_editions (id, lineage_id, season_id, status, policy_version_id) VALUES ('edition-tier-missing', 'lineage-state', 'state-season', 'upcoming', 'policy-state')",
+    ).run(),
+  ).rejects.toThrow(/tournament edition tier is required/);
+  await expect(
+    env.DB.prepare(
+      "INSERT INTO tournament_editions (id, lineage_id, season_id, status, policy_version_id, tier) VALUES ('edition-tier-invalid', 'lineage-state', 'state-season', 'upcoming', 'policy-state', 6)",
     ).run(),
   ).rejects.toThrow(/CHECK constraint failed/);
 

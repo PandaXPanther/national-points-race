@@ -1,4 +1,5 @@
 import { env } from "cloudflare:test";
+import { NPR_2026_27_POLICY_VERSION } from "@points-race/policy";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { createApp } from "../src/app";
@@ -22,18 +23,22 @@ beforeAll(async () => {
   await env.DB.batch([
     env.DB.prepare(
       "INSERT INTO policy_versions (id, created_at, ledger_sha256) VALUES (?1, ?2, ?3)",
-    ).bind("npr-2026-27-v1", "2090-08-01T00:00:00.000Z", "9".repeat(64)),
+    ).bind(
+      NPR_2026_27_POLICY_VERSION,
+      "2090-08-01T00:00:00.000Z",
+      "9".repeat(64),
+    ),
     env.DB.prepare(
-      "INSERT INTO tournament_lineages (id, policy_version_id, tier, canonical_name, aliases_json) VALUES ('mba-round-robin', ?1, 5, 'Montgomery Bell Academy Extemp Round Robin', '[]')",
-    ).bind("npr-2026-27-v1"),
+      "INSERT INTO tournament_lineages (id, policy_version_id, tier, canonical_name, aliases_json) VALUES ('mba-round-robin', ?1, 2, 'Montgomery Bell Academy Extemp Round Robin', '[]')",
+    ).bind(NPR_2026_27_POLICY_VERSION),
     env.DB.prepare(
-      "INSERT INTO tournament_editions (id, lineage_id, season_id, start_at, end_at, status, policy_version_id) VALUES (?1, 'mba-round-robin', ?2, ?3, ?4, 'final', ?5)",
+      "INSERT INTO tournament_editions (id, lineage_id, season_id, start_at, end_at, status, policy_version_id, tier) VALUES (?1, 'mba-round-robin', ?2, ?3, ?4, 'final', ?5, 2)",
     ).bind(
       EDITION_ID,
       SEASON_ID,
       "2091-01-08T00:00:00.000Z",
       "2091-01-10T23:59:59.999Z",
-      "npr-2026-27-v1",
+      NPR_2026_27_POLICY_VERSION,
     ),
     env.DB.prepare(
       "INSERT INTO standings_versions (id, season_id, created_at, input_sha256, status, policy_version_id, version_sha256, top25_standings_sha256, cutoff_key, cutoff_tournament_order, cutoff_date) VALUES (?1, ?2, ?3, ?4, 'provisional', ?5, ?6, ?7, ?8, 0, ?9)",
@@ -42,7 +47,7 @@ beforeAll(async () => {
       SEASON_ID,
       "2091-01-10T12:00:00.000Z",
       "1".repeat(64),
-      "npr-2026-27-v1",
+      NPR_2026_27_POLICY_VERSION,
       "2".repeat(64),
       "3".repeat(64),
       `${SEASON_ID}:post-ncfl`,

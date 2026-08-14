@@ -206,7 +206,7 @@ describe("public standings API", () => {
     expect(body).toMatchObject({
       seasonId: SEASON_ID,
       status: "provisional",
-      policyVersion: "npr-2026-27-v1",
+      policyVersion: "npr-2026-27-v2",
       standings: [
         {
           rank: 1,

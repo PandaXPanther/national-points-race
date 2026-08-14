@@ -465,7 +465,7 @@ describe("EditionRepository", () => {
       canonicalName: "Conflict Invitational",
       aliases: [],
     });
-    await expectStorageError(
+    await expect(
       editions.ensureLineage({
         id: "lineage-edition-conflict",
         policyVersionId: policyId,
@@ -473,8 +473,7 @@ describe("EditionRepository", () => {
         canonicalName: "Conflict Invitational",
         aliases: [],
       }),
-      "EDITION_CONFLICT",
-    );
+    ).resolves.toMatchObject({ tier: 2, policyVersionId: policyId });
 
     const editionInput = {
       id: "edition-edition-conflict",

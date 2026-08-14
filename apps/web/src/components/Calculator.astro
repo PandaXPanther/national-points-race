@@ -9,11 +9,10 @@ const { policy } = Astro.props;
 
 <section class="calculator" data-policy={JSON.stringify(policy)}>
   <div>
-    <p class="eyebrow">Policy calculator</p>
+    <p class="label">Policy calculator</p>
     <h3>Try a placement</h3>
     <p class="muted">
-      This explanatory tool reads the same frozen values as the scoring engine. It
-      does not create or change an award.
+      Test one published rule. This tool never changes an award.
     </p>
   </div>
   <form>
@@ -102,7 +101,7 @@ const { policy } = Astro.props;
     min-height: 2.75rem;
     border: 1px solid var(--rule);
     border-radius: 0;
-    background: white;
+    background: var(--paper-raised);
     color: var(--ink);
     padding: 0.6rem;
     font: inherit;
@@ -125,12 +124,12 @@ const { policy } = Astro.props;
     align-items: baseline;
     justify-content: space-between;
     gap: 1rem;
-    border-top: 3px solid var(--burgundy);
+    border-top: 3px solid var(--link);
     padding-top: 1rem;
   }
 
   output strong {
-    color: var(--burgundy);
+    color: var(--link);
     font-family: var(--serif);
     font-size: 2rem;
   }

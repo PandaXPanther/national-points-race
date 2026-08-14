@@ -11,7 +11,29 @@ const tournaments = getPolicyView().tournaments.map((tournament) => ({
 }));
 ---
 
-<SiteLayout title={`${seasonId} Tournament Audit`} description="Tournament evidence and status for a National Points Race season.">
-  <header class="shell hero"><p class="eyebrow">Tournament audit</p><h1>{seasonId} evidence ledger.</h1><p class="dek">Every frozen lineage remains visible, including events that are upcoming, unavailable, corrected, or not held.</p></header>
-  <section class="section"><div class="shell"><TournamentStatusList {tournaments} /></div></section>
+<SiteLayout
+  title={`${seasonId} Tournament Audit`}
+  description={`Evidence status for every tournament tracked in the ${seasonId} National Points Race.`}
+  canonicalPath={`/${seasonId}/tournaments/`}
+>
+  <header class="page-head audit-head">
+    <div class="shell">
+      <p class="label">Tournament audit / {seasonId}</p>
+      <h1>Twenty-one evidence lines.</h1>
+      <p class="dek">Upcoming, unavailable, corrected, and not-held events remain visible.</p>
+    </div>
+  </header>
+  <section class="section audit-register">
+    <div class="shell"><TournamentStatusList {tournaments} /></div>
+  </section>
 </SiteLayout>
+
+<style>
+  .audit-head h1 {
+    max-width: 14ch;
+  }
+
+  .audit-register {
+    border-top: 0;
+  }
+</style>

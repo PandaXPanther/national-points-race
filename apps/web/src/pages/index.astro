@@ -1,196 +1,323 @@
 ---
 import SeasonBadge from "../components/SeasonBadge.astro";
 import SiteLayout from "../layouts/SiteLayout.astro";
+import { absoluteUrl, SITE_NAME } from "../lib/seo.js";
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: SITE_NAME,
+  url: absoluteUrl("/"),
+  description:
+    "The independent season-long National Points Race for high school extemporaneous speaking.",
+};
 ---
 
 <SiteLayout
-  title="2026-2027 Standings"
-  description="The current independently operated National Points Race for high school extemporaneous speaking."
+  title="National Points Race"
+  description="The independent season-long scorebook for high school extemporaneous speaking, with current standings, history, and exact scoring rules."
+  {structuredData}
 >
-  <header class="hero">
-    <div class="shell hero-grid">
-      <div>
+  <header class="cover">
+    <div class="shell cover-grid">
+      <div class="cover-title">
         <SeasonBadge classification="Current live race" />
-        <p class="eyebrow season-line">2026-2027 season</p>
-        <h1>National Points Race</h1>
-        <p class="dek">
-          The current season is independently operated by <a
-            href="https://sarastotey.com">Saras Totey</a
-          >. Standings will begin when a tracked tournament publishes eligible
-          final results.
+        <p class="edition-label">2026-27 / Volume 01</p>
+        <h1><span>N</span><span>P</span><span>R</span></h1>
+        <p class="full-name">National Points Race</p>
+      </div>
+      <div class="cover-story">
+        <p class="label">The current race</p>
+        <h2>A season-long scorebook for national extemp.</h2>
+        <p>
+          Independently operated by <a href="https://sarastotey.com">Saras Totey</a>.
+          Standings begin with verified final results.
         </p>
-        <p class="text-links">
-          <a href="/2026-27/">Current season</a>
-          <a href="/methodology/">Scoring methodology</a>
+        <p class="cover-links">
+          <a href="/2026-27/">Open 2026-27</a>
+          <a href="/methodology/">Read the rules</a>
         </p>
       </div>
-      <aside class="season-summary" aria-labelledby="season-summary-title">
-        <p class="eyebrow" id="season-summary-title">Current record</p>
-        <dl>
-          <div><dt>Status</dt><dd>Initialized</dd></div>
-          <div><dt>Policy</dt><dd>npr-2026-27-v1</dd></div>
-          <div><dt>Tracked tournaments</dt><dd>21</dd></div>
-          <div><dt>Published standings</dt><dd>Awaiting results</dd></div>
-        </dl>
-      </aside>
+      <dl class="cover-status" aria-label="Current season status">
+        <div><dt>Status</dt><dd>Preseason</dd></div>
+        <div><dt>Policy</dt><dd>npr-2026-27-v1</dd></div>
+        <div><dt>Field</dt><dd>21 tournaments</dd></div>
+        <div><dt>Depth</dt><dd>Top 100</dd></div>
+      </dl>
     </div>
   </header>
 
-  <section class="section">
+  <section class="section season-index">
     <div class="shell">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Season register</p>
-          <h2>Official archive, reconstruction, and current race</h2>
-        </div>
-        <p>
-          Each record is labeled by who published it and how its standings were
-          produced.
-        </p>
+      <div class="index-heading">
+        <p class="label">Season register</p>
+        <p>Original archive, reconstructed proof, current race.</p>
       </div>
       <ol class="season-register">
         <li>
+          <span class="issue">01</span>
           <span class="years">2008-09 to 2024-25</span>
           <div>
             <SeasonBadge classification="Extemp Central official archive" />
-            <h3>Ten completed Extemp Central seasons</h3>
-            <p>Preserved with attribution and original source links.</p>
+            <h2>The Extemp Central years</h2>
+            <p>Ten published seasons, preserved with original links.</p>
           </div>
-          <a href="/archive/">Open archive</a>
+          <a href="/archive/">Archive</a>
         </li>
         <li>
+          <span class="issue">02</span>
           <span class="years">2025-26</span>
           <div>
             <SeasonBadge classification="Automated reconstruction" />
-            <h3>Daphne Kalir-Starr, 619 points</h3>
-            <p>Retrospective top 100 built from permitted official evidence.</p>
+            <h2>Daphne Kalir-Starr</h2>
+            <p>Reconstructed champion, 619 points.</p>
           </div>
-          <a href="/2025-26/">Open reconstruction</a>
+          <a href="/2025-26/">Top 100</a>
         </li>
         <li>
+          <span class="issue">03</span>
           <span class="years">2026-27</span>
           <div>
             <SeasonBadge classification="Current live race" />
-            <h3>Current autonomous season</h3>
-            <p>Twenty-one tracked tournaments, including the ASU HDSHC Invitational.</p>
+            <h2>The autonomous race</h2>
+            <p>Now tracking ASU and 20 returning tournaments.</p>
           </div>
-          <a href="/2026-27/">Open current race</a>
+          <a href="/2026-27/">Current</a>
         </li>
       </ol>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="shell editorial-note">
-      <div>
-        <p class="eyebrow">Audit method</p>
-        <h2>Published rules and source evidence</h2>
-      </div>
-      <div class="prose">
-        <p>
-          Official result snapshots are preserved, identities are resolved
-          conservatively, and every standings version is deterministic. Corrections
-          create a new version without replacing the earlier record.
-        </p>
-        <p><a href="/methodology/">Read the exact calculations and edge cases</a></p>
-      </div>
+      <p class="method-line">
+        Every result follows the <a href="/methodology/">published calculation ledger</a>.
+      </p>
     </div>
   </section>
 </SiteLayout>
 
 <style>
-  .season-line {
-    margin-top: 1.4rem;
+  .cover {
+    padding-block: clamp(2.5rem, 6vw, 5rem);
   }
 
-  .text-links {
+  .cover-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.75fr);
+    gap: 0 clamp(2rem, 7vw, 7rem);
+    min-height: min(42rem, calc(100vh - 8rem));
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .cover-title {
+    position: relative;
+    align-self: stretch;
+  }
+
+  .edition-label {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    writing-mode: vertical-rl;
+  }
+
+  .cover h1 {
     display: flex;
-    flex-wrap: wrap;
-    gap: 1.25rem;
+    justify-content: space-between;
+    max-width: none;
+    margin-top: clamp(4rem, 10vw, 8.5rem);
+    font-size: clamp(8rem, 25vw, 20rem);
+    font-weight: 680;
+    letter-spacing: -0.12em;
+    line-height: 0.66;
+  }
+
+  .full-name {
+    margin: 1.5rem 0 0;
+    border-top: 5px solid var(--ink);
+    padding-top: 0.75rem;
+    font-size: clamp(1rem, 2.3vw, 1.7rem);
+    font-weight: 750;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .cover-story {
+    align-self: center;
+    border-top: 2px solid var(--ink);
+    padding-top: 1rem;
+  }
+
+  .cover-story h2 {
+    font-size: clamp(2.3rem, 4.5vw, 4.4rem);
+  }
+
+  .cover-story > p:not(.label, .cover-links) {
+    max-width: 30rem;
+    color: var(--ink-soft);
+  }
+
+  .cover-links {
+    display: flex;
+    gap: 1.3rem;
     margin-top: 1.5rem;
     font-weight: 700;
   }
 
-  .season-summary {
-    border-top: 2px solid var(--ink);
-    padding-top: 0.8rem;
-  }
-
-  .season-summary dl {
-    margin: 0;
-  }
-
-  .season-summary div {
+  .cover-status {
+    grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 1rem;
-    padding: 0.55rem 0;
-    border-bottom: 1px solid var(--rule);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-self: end;
+    margin: 3rem 0 0;
+    border-top: 1px solid var(--rule-dark);
   }
 
-  .season-summary dt {
+  .cover-status div {
+    padding: 0.75rem 1rem 0.75rem 0;
+  }
+
+  .cover-status div + div {
+    border-left: 1px solid var(--rule);
+    padding-left: 1rem;
+  }
+
+  .cover-status dt {
     color: var(--ink-soft);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 
-  .season-summary dd {
-    min-width: 0;
-    margin: 0;
-    font-weight: 700;
-    text-align: right;
-    overflow-wrap: anywhere;
+  .cover-status dd {
+    margin: 0.1rem 0 0;
+    font-family: var(--serif);
+    font-size: 1.2rem;
+  }
+
+  .season-index {
+    border-top: 0;
+  }
+
+  .index-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .index-heading p {
+    margin-top: 0;
   }
 
   .season-register {
     margin: 0;
     padding: 0;
-    border-top: 2px solid var(--ink);
+    border-top: 5px solid var(--ink);
     list-style: none;
   }
 
   .season-register li {
     display: grid;
-    grid-template-columns: 10rem minmax(0, 1fr) auto;
-    gap: 2rem;
-    align-items: start;
-    padding: 1.35rem 0;
-    border-bottom: 1px solid var(--rule);
+    grid-template-columns: 3.5rem 12rem minmax(0, 1fr) auto;
+    gap: 1.5rem;
+    align-items: baseline;
+    padding-block: 1.4rem;
+    border-bottom: 1px solid var(--rule-dark);
   }
 
-  .season-register h3 {
-    margin-top: 0.55rem;
-  }
-
-  .season-register p {
-    margin: 0;
+  .issue {
     color: var(--ink-soft);
+    font-size: 0.65rem;
+    font-variant-numeric: tabular-nums;
   }
 
   .years {
     font-family: var(--serif);
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-size: 1.15rem;
+    font-weight: 620;
   }
 
-  .editorial-note {
-    display: grid;
-    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-    gap: 3rem;
+  .season-register h2,
+  .season-register p {
+    margin: 0.4rem 0 0;
   }
 
-  @media (max-width: 46rem) {
-    .season-register li,
-    .editorial-note {
+  .season-register h2 {
+    font-size: clamp(1.5rem, 2.8vw, 2.35rem);
+  }
+
+  .season-register p,
+  .method-line {
+    color: var(--ink-soft);
+  }
+
+  .method-line {
+    margin: 1.25rem 0 0;
+    font-size: 0.82rem;
+  }
+
+  @media (max-width: 52rem) {
+    .cover-grid {
       grid-template-columns: minmax(0, 1fr);
-      gap: 0.8rem;
+      min-height: 0;
     }
 
-    .season-summary div {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 0.1rem;
+    .cover h1 {
+      margin-top: 5rem;
     }
 
-    .season-summary dd {
-      text-align: left;
+    .cover-story {
+      margin-top: 4rem;
+    }
+
+    .cover-status {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .season-register li {
+      grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+    }
+
+    .season-register .years {
+      grid-column: 2 / 4;
+    }
+
+    .season-register li > div {
+      grid-column: 2;
+    }
+  }
+
+  @media (max-width: 34rem) {
+    .cover h1 {
+      font-size: clamp(7rem, 35vw, 10rem);
+    }
+
+    .cover-status {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cover-status div + div {
+      border-top: 1px solid var(--rule);
+      border-left: 0;
+      padding-left: 0;
+    }
+
+    .index-heading {
+      display: block;
+    }
+
+    .season-register li {
+      grid-template-columns: 2rem minmax(0, 1fr);
+      gap: 0.5rem 0.75rem;
+    }
+
+    .season-register .years,
+    .season-register li > div,
+    .season-register li > a {
+      grid-column: 2;
     }
   }
 </style>

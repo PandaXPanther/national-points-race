@@ -1,55 +1,202 @@
 ---
 import SiteLayout from "../layouts/SiteLayout.astro";
+import { absoluteUrl } from "../lib/seo.js";
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "A short history of the National Points Race",
+  description:
+    "How Extemp Central created the National Points Race and Saras Totey independently automated its continuation.",
+  mainEntityOfPage: absoluteUrl("/history/"),
+  author: { "@type": "Person", name: "Saras Totey" },
+};
 ---
 
 <SiteLayout
-  title="History"
-  description="The history of the National Points Race and its independent automated revival."
+  title="History of the National Points Race"
+  description="How Extemp Central created the National Points Race and Saras Totey independently automated its continuation."
+  canonicalPath="/history/"
+  pageType="article"
+  {structuredData}
 >
-  <article class="shell hero prose">
-    <p class="eyebrow">History and stewardship</p>
-    <h1>A national race, preserved and restarted.</h1>
-    <p class="dek">
-      Extemp Central created a season-long way to recognize sustained excellence in
-      high school extemporaneous speaking. This independent project preserves that
-      record and gives the race a new, autonomous life.
-    </p>
-
-    <h2>The original NPR</h2>
-    <p>
-      Writer and editor Logan Scisco developed the National Points Race at Extemp
-      Central. It grouped selected national-circuit tournaments into five tiers and
-      awarded competitors points based on placement and elimination-round progress.
-      Extemp Central published ten completed seasons. The record begins in 2008-09
-      and ends with Robert Zhang winning the 2024-25 race.
-    </p>
-    <p class="source-note">
-      Source: <a href="https://extemp.com/natl-points-race/">Extemp Central's National Points Race archive</a>
-      and its linked annual standings.
-    </p>
-
-    <h2>The pause</h2>
-    <p>
-      Extemp Central stopped publishing the NPR after the 2024-25 season. No official
-      contemporaneous NPR was published for 2025-26. The archive remains valuable,
-      but the season-long national comparison disappeared.
-    </p>
-
-    <h2><a href="https://sarastotey.com">Saras Totey</a>'s independent revival</h2>
-    <p>
-      Saras Totey independently rebuilt the idea as an autonomous, open, and auditable
-      system. The 2025-26 season is reconstructed after the fact to prove the pipeline.
-      The 2026-27 season is the current live race. The successor keeps the last published
-      scoring policy, preserves source evidence, reports ambiguity instead of guessing,
-      and exposes how every calculation was made.
-    </p>
-    <div class="notice">
-      <h3>Independent, not acquired</h3>
-      <p>
-        Saras did not acquire Extemp Central. This project is not endorsed by Extemp
-        Central or any results provider. It is an independently operated successor
-        that credits the original work and links back to it.
+  <header class="page-head">
+    <div class="shell history-head">
+      <p class="label">History / 2008 to today</p>
+      <h1>A race worth keeping.</h1>
+      <p class="dek">
+        Extemp Central made national consistency visible. This independent project
+        keeps the record and restarts the race.
       </p>
     </div>
+  </header>
+
+  <article class="shell history-body">
+    <ol class="chronology">
+      <li>
+        <p class="year">2008</p>
+        <div>
+          <p class="label">The original NPR</p>
+          <h2>Extemp Central creates a season-long national race.</h2>
+          <p>
+            Logan Scisco developed the National Points Race at Extemp Central,
+            grouping national-circuit tournaments into tiers and scoring finishes
+            across the season.
+          </p>
+          <p>
+            Ten completed editions were published, ending with Robert Zhang's
+            2024-25 championship. <a href="https://extemp.com/natl-points-race/"
+              >Read the original archive</a
+            >.
+          </p>
+        </div>
+      </li>
+      <li>
+        <p class="year">2025</p>
+        <div>
+          <p class="label">The pause</p>
+          <h2>The published race ends after 2024-25.</h2>
+          <p>
+            Extemp Central stopped publishing the NPR. The 2025-26 season had no
+            contemporaneous national points race.
+          </p>
+        </div>
+      </li>
+      <li>
+        <p class="year">2026</p>
+        <div>
+          <p class="label">Independent revival</p>
+          <h2><a href="https://sarastotey.com">Saras Totey</a> automates the race.</h2>
+          <p>
+            The 2025-26 reconstruction proves the system against official evidence.
+            The 2026-27 edition begins the autonomous live race.
+          </p>
+          <p>
+            Rules are versioned, source evidence is preserved, and ambiguous results
+            are withheld instead of guessed.
+          </p>
+        </div>
+      </li>
+    </ol>
+    <aside class="stewardship-note">
+      <span>Stewardship note</span>
+      <p>
+        This is an independent successor, not an acquisition or endorsement by
+        Extemp Central or any results provider.
+      </p>
+    </aside>
   </article>
 </SiteLayout>
+
+<style>
+  .history-head {
+    display: grid;
+    grid-template-columns: 10rem minmax(0, 1fr);
+    gap: 0 clamp(2rem, 5vw, 5rem);
+  }
+
+  .history-head h1,
+  .history-head .dek {
+    grid-column: 2;
+  }
+
+  .history-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 14rem;
+    gap: clamp(2rem, 7vw, 7rem);
+    padding-block: clamp(3rem, 7vw, 7rem);
+  }
+
+  .chronology {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .chronology::before {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 5.6rem;
+    width: 1px;
+    background: var(--rule-dark);
+    content: "";
+  }
+
+  .chronology li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    gap: 2.25rem;
+    padding: 0 0 5rem;
+  }
+
+  .chronology li::before {
+    position: absolute;
+    top: 0.45rem;
+    left: 5.25rem;
+    width: 0.75rem;
+    height: 0.75rem;
+    border: 2px solid var(--ink);
+    background: var(--paper);
+    content: "";
+  }
+
+  .year {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .chronology h2 {
+    max-width: 18ch;
+  }
+
+  .chronology li > div > p:not(.label) {
+    max-width: 38rem;
+  }
+
+  .stewardship-note {
+    align-self: end;
+    border-top: 2px solid var(--ink);
+    padding-top: 0.75rem;
+    color: var(--ink-soft);
+    font-size: 0.78rem;
+  }
+
+  .stewardship-note span {
+    color: var(--ink);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 48rem) {
+    .history-head,
+    .history-body {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .history-head h1,
+    .history-head .dek {
+      grid-column: 1;
+    }
+
+    .chronology::before {
+      left: 0.35rem;
+    }
+
+    .chronology li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.6rem;
+      padding-left: 2rem;
+    }
+
+    .chronology li::before {
+      left: 0;
+    }
+  }
+</style>

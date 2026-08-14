@@ -1,9 +1,10 @@
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
 const sourceRoot = fileURLToPath(new URL("../src/", import.meta.url));
+const appRoot = fileURLToPath(new URL("../", import.meta.url));
 
 describe("editorial frontend", () => {
   it("uses the approved near-monochrome palette", async () => {
@@ -44,12 +45,12 @@ describe("editorial frontend", () => {
       readFile(`${sourceRoot}pages/2026-27.astro`, "utf8"),
     ]);
 
-    expect(home).toContain('class="cover-grid"');
+    expect(home).toMatch(/class="[^"]*\bcover-grid\b[^"]*"/u);
     expect(history).toContain('class="chronology"');
     expect(method).toContain('class="method-index"');
     expect(method).toContain('class="method-ledger"');
     expect(reconstruction).toContain('class="champion-scoreline"');
-    expect(current).toContain('class="preseason-register"');
+    expect(current).toMatch(/class="[^"]*\bpreseason-register\b[^"]*"/u);
   });
 
   it("keeps the shared frame compact and free of generic card grids", async () => {
@@ -62,6 +63,20 @@ describe("editorial frontend", () => {
     expect(globalStyles).not.toMatch(/\.card-grid|\.stats-grid/iu);
     expect(header).toContain("2026-27 edition");
     expect(header).toContain('class="nav-scroll"');
-    expect(layout).toContain('class="footer-lines"');
+    expect(layout).toMatch(/class="[^"]*\bfooter-lines\b[^"]*"/u);
+  });
+
+  it("provides a reproducible route and overflow visual audit", async () => {
+    const scriptPath = `${appRoot}scripts/visual-audit.mjs`;
+    await expect(access(scriptPath)).resolves.toBeUndefined();
+    const script = await readFile(scriptPath, "utf8");
+
+    expect(script).toContain('"/methodology/"');
+    expect(script).toContain('"/archive/2024-25/"');
+    expect(script).toContain('"/2025-26/competitors/1/"');
+    expect(script).toContain("width: 320");
+    expect(script).toContain("scrollWidth");
+    expect(script).toContain("clientWidth");
+    expect(script).toContain("captureBeyondViewport");
   });
 });

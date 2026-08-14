@@ -3,19 +3,73 @@ import DiscordCallout from "../components/DiscordCallout.astro";
 import SiteLayout from "../layouts/SiteLayout.astro";
 ---
 
-<SiteLayout title="Corrections" description="How to report and audit National Points Race corrections.">
-  <header class="shell hero">
-    <p class="eyebrow">Open correction process</p>
-    <h1>Corrections do not erase history.</h1>
-    <p class="dek">A later official correction creates a new standings version. Prior hashes and source provenance remain available for audit.</p>
+<SiteLayout
+  title="NPR Corrections"
+  description="How to report an official National Points Race correction and preserve the version history."
+  canonicalPath="/corrections/"
+>
+  <header class="page-head">
+    <div class="shell correction-head">
+      <p class="label">Correction desk</p>
+      <h1>Report the record, not a rumor.</h1>
+      <p class="dek">Verified corrections create a new version without erasing the old one.</p>
+    </div>
   </header>
   <section class="section">
-    <div class="shell split-grid">
-      <article class="prose">
-        <h2>What to report</h2>
-        <ul><li>The season and tournament.</li><li>The competitor and result that appears wrong.</li><li>A link to the official public correction or result.</li><li>Why the published calculation appears inconsistent with the methodology.</li></ul>
-      </article>
+    <div class="shell correction-layout">
+      <div>
+        <p class="label">Include these four items</p>
+        <ol class="correction-list">
+          <li><span>01</span><p>Season and tournament</p></li>
+          <li><span>02</span><p>Competitor and disputed result</p></li>
+          <li><span>03</span><p>Official public evidence</p></li>
+          <li><span>04</span><p>Expected calculation under the methodology</p></li>
+        </ol>
+      </div>
       <DiscordCallout />
     </div>
   </section>
 </SiteLayout>
+
+<style>
+  .correction-head h1 {
+    max-width: 15ch;
+  }
+
+  .correction-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+    gap: clamp(3rem, 8vw, 8rem);
+    align-items: end;
+  }
+
+  .correction-list {
+    margin: 0;
+    padding: 0;
+    border-top: 5px solid var(--ink);
+    list-style: none;
+  }
+
+  .correction-list li {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    gap: 0.75rem;
+    border-bottom: 1px solid var(--rule-dark);
+    padding-block: 0.65rem;
+  }
+
+  .correction-list span {
+    color: var(--ink-soft);
+    font-size: 0.62rem;
+  }
+
+  .correction-list p {
+    margin: 0;
+  }
+
+  @media (max-width: 52rem) {
+    .correction-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

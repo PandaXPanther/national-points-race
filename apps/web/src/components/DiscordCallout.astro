@@ -1,36 +1,39 @@
 <aside class="discord-callout" aria-labelledby="discord-heading">
-  <div>
-    <p class="eyebrow">Community corrections</p>
-    <h2 id="discord-heading">Think something is wrong with the NPR?</h2>
-    <p>Join the Discord server and ping <strong>@PandaXPanther</strong>.</p>
-  </div>
-  <a href="https://discord.gg/8RFTvCWPPv">Join the Discord</a>
+  <p class="label">Corrections</p>
+  <h2 id="discord-heading">See something wrong?</h2>
+  <p>
+    <a href="https://discord.gg/8RFTvCWPPv">Join the Discord</a> and ping
+    <strong>@PandaXPanther</strong>.
+  </p>
 </aside>
 
 <style>
   .discord-callout {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 2rem;
-    border-top: 2px solid var(--burgundy);
-    border-bottom: 1px solid var(--rule);
-    padding: 1.25rem 0;
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr) minmax(14rem, 0.8fr);
+    gap: 1.5rem;
+    align-items: baseline;
+    border-block: 1px solid var(--rule-dark);
+    padding-block: 1rem;
   }
 
-  h2 {
-    margin-bottom: 0.5rem;
-    font-size: clamp(1.35rem, 2.4vw, 1.9rem);
-  }
-
+  h2,
   p {
     margin: 0;
   }
 
+  h2 {
+    font-size: clamp(1.35rem, 2.4vw, 1.9rem);
+  }
+
+  .label {
+    color: var(--ink-soft);
+  }
+
   @media (max-width: 42rem) {
     .discord-callout {
-      align-items: stretch;
-      flex-direction: column;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.25rem;
     }
   }
 </style>

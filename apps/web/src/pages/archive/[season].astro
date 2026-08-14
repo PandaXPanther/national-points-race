@@ -5,73 +5,67 @@ import { historicalSeason } from "../../data/history.js";
 import standings2024 from "../../data/history/2024-25.json";
 import reconstruction2025 from "../../data/reconstruction/2025-26.json";
 import SiteLayout from "../../layouts/SiteLayout.astro";
+import { absoluteUrl } from "../../lib/seo.js";
 
 const season = historicalSeason(Astro.params.season ?? "");
-if (!season) {
-  Astro.response.status = 404;
-}
+if (!season) Astro.response.status = 404;
 const standings =
   season?.seasonId === "2024-25"
     ? standings2024
     : season?.seasonId === "2025-26"
       ? reconstruction2025.standings
       : null;
+const structuredData =
+  season && standings
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Dataset",
+        name: `${season.displaySeason} National Points Race standings`,
+        description: season.note,
+        url: absoluteUrl(`/archive/${season.seasonId}/`),
+      }
+    : undefined;
 ---
 
 <SiteLayout
-  title={season ? `${season.displaySeason} Archive` : "Season not found"}
-  description="An attributed National Points Race season record."
+  title={season ? `${season.displaySeason} NPR Archive` : "Season not found"}
+  description={season?.note ?? "The requested National Points Race season was not found."}
+  canonicalPath={season ? `/archive/${season.seasonId}/` : Astro.url.pathname}
+  {structuredData}
 >
   {season ? (
     <>
-      <header class="shell hero">
-        <SeasonBadge classification={season.classification} />
-        <p class="eyebrow season-line">Season record</p>
-        <h1>{season.displaySeason}</h1>
-        <p class="dek">{season.note}</p>
+      <header class="page-head season-record-head">
+        <div class="shell">
+          <SeasonBadge classification={season.classification} />
+          <p class="label">Season record</p>
+          <h1>{season.displaySeason}</h1>
+          <p class="dek">{season.note}</p>
+        </div>
       </header>
       {season.winner && (
-        <section class="section result-summary">
-          <div class="shell result-row">
-            <div>
-              <span>Winner</span>
-              <strong>{season.winner.name}</strong>
-              <p>{season.winner.points} points</p>
-            </div>
-            {season.runnerUp && (
-              <div>
-                <span>Runner-up</span>
-                <strong>{season.runnerUp.name}</strong>
-                <p>{season.runnerUp.points} points</p>
-              </div>
-            )}
+        <section class="season-result">
+          <div class="shell result-register">
+            <div><span>Champion</span><strong>{season.winner.name}</strong><p>{season.winner.points} points</p></div>
+            {season.runnerUp && <div><span>Runner-up</span><strong>{season.runnerUp.name}</strong><p>{season.runnerUp.points} points</p></div>}
           </div>
         </section>
       )}
       <section class="section">
         <div class="shell">
           <div class="section-heading">
-            <div>
-              <p class="eyebrow">Preserved record</p>
-              <h2>{standings ? "Published standings" : "Original sources"}</h2>
-            </div>
-            <p>
-              Historical facts are attributed to Extemp Central. The 2025-26 table
-              is labeled as an automated reconstruction.
-            </p>
+            <div><p class="label">Preserved record</p><h2>{standings ? "Published standings" : "Original sources"}</h2></div>
+            <p>{standings ? "The table is preserved as published or reconstructed." : "Open the original Extemp Central record."}</p>
           </div>
           {standings ? (
-            <StandingsTable standings={standings} />
+            <StandingsTable standings={standings} seasonId={season.seasonId} />
           ) : (
             <ul class="source-register">
               {season.sources.map((source) => (
                 <li>
                   <span>{source.attribution}</span>
-                  <div>
-                    <h3>{source.title}</h3>
-                    <p class="muted">Format: {source.format}</p>
-                  </div>
-                  <a href={source.url}>Open original source</a>
+                  <div><h3>{source.title}</h3><p>Format: {source.format}</p></div>
+                  <a href={source.url}>Original source</a>
                 </li>
               ))}
             </ul>
@@ -81,61 +75,71 @@ const standings =
     </>
   ) : (
     <section class="shell hero">
-      <h1>Season not found</h1>
+      <p class="label">Archive</p>
+      <h1>Season not found.</h1>
       <p><a href="/archive/">Return to the archive</a></p>
     </section>
   )}
 </SiteLayout>
 
 <style>
-  .season-line {
-    margin-top: 1.4rem;
+  .season-record-head .label {
+    margin-top: 2rem;
   }
 
-  .result-summary {
-    padding-top: 0;
-    border-top: 0;
+  .season-result {
+    padding-top: 2rem;
   }
 
-  .result-row {
+  .result-register {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 3rem;
-    border-top: 2px solid var(--ink);
-    padding-top: 1rem;
+    border-top: 5px solid var(--ink);
+    border-bottom: 1px solid var(--rule-dark);
   }
 
-  .result-row span {
+  .result-register > div {
+    padding-block: 1rem;
+  }
+
+  .result-register > div + div {
+    border-left: 1px solid var(--rule);
+    padding-left: 2rem;
+  }
+
+  .result-register span {
     color: var(--ink-soft);
-    font-size: 0.68rem;
-    font-weight: 750;
+    font-size: 0.62rem;
+    font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
 
-  .result-row strong {
+  .result-register strong {
     display: block;
     font-family: var(--serif);
-    font-size: 1.75rem;
+    font-size: clamp(1.7rem, 4vw, 3rem);
+    font-weight: 600;
   }
 
-  .result-row p {
+  .result-register p {
     margin: 0;
+    color: var(--link);
   }
 
   .source-register {
     margin: 0;
     padding: 0;
-    border-top: 2px solid var(--ink);
+    border-top: 5px solid var(--ink);
     list-style: none;
   }
 
   .source-register li {
     display: grid;
     grid-template-columns: 9rem minmax(0, 1fr) auto;
-    gap: 2rem;
-    padding: 1rem 0;
-    border-bottom: 1px solid var(--rule);
+    gap: 1.5rem;
+    padding-block: 1rem;
+    border-bottom: 1px solid var(--rule-dark);
   }
 
   .source-register h3,
@@ -143,11 +147,22 @@ const standings =
     margin: 0;
   }
 
+  .source-register span,
+  .source-register p {
+    color: var(--ink-soft);
+    font-size: 0.78rem;
+  }
+
   @media (max-width: 42rem) {
-    .result-row,
+    .result-register,
     .source-register li {
-      grid-template-columns: 1fr;
-      gap: 0.7rem;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .result-register > div + div {
+      border-top: 1px solid var(--rule);
+      border-left: 0;
+      padding-left: 0;
     }
   }
 </style>

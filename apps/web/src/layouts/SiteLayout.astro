@@ -1,13 +1,37 @@
 ---
-import DiscordCallout from "../components/DiscordCallout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
+import {
+  absoluteUrl,
+  DEFAULT_SOCIAL_IMAGE,
+  SITE_NAME,
+} from "../lib/seo.js";
 import "../styles/global.css";
+
+type StructuredData = Readonly<Record<string, unknown>>;
 
 interface Props {
   title: string;
   description: string;
+  canonicalPath?: string;
+  pageType?: "website" | "article";
+  imagePath?: string;
+  structuredData?: StructuredData | readonly StructuredData[];
 }
-const { title, description } = Astro.props;
+
+const {
+  title,
+  description,
+  canonicalPath = Astro.url.pathname,
+  pageType = "website",
+  imagePath = DEFAULT_SOCIAL_IMAGE,
+  structuredData,
+} = Astro.props;
+const fullTitle = title === SITE_NAME ? title : `${title} | ${SITE_NAME}`;
+const canonicalUrl = absoluteUrl(canonicalPath);
+const imageUrl = absoluteUrl(imagePath);
+const jsonLd = structuredData
+  ? JSON.stringify(structuredData).replaceAll("<", "\\u003c")
+  : undefined;
 ---
 
 <!doctype html>
@@ -16,36 +40,48 @@ const { title, description } = Astro.props;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#f4efe4" />
-    <title>{title} | National Points Race</title>
+    <meta name="theme-color" content="#fbfaf7" />
+    <meta name="application-name" content={SITE_NAME} />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:type" content={pageType} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="National Points Race editorial scorebook" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
+    <title>{fullTitle}</title>
+    {jsonLd && <script is:inline type="application/ld+json" set:html={jsonLd} />}
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
     <SiteHeader />
     <main id="main-content"><slot /></main>
     <footer>
-      <div class="shell footer-grid">
-        <DiscordCallout />
-        <div class="legal">
-          <p>
-            An independent project operated by <a href="https://sarastotey.com"
-              >Saras Totey</a
-            >. Not affiliated with Extemp Central, Tabroom, SpeechWire, NSDA,
-            NCFL, or tracked tournaments.
-          </p>
-          <p>
-            Historical NPR records are credited to Extemp Central. Current scoring
-            uses published policy and auditable official sources.
-          </p>
-          <p class="support">
-            Support the NPR: <a
-              href="https://github.com/PandaXPanther/national-points-race"
-              >star the project on GitHub</a
-            > or <a href="https://buymeacoffee.com/sarast1"
-              >buy Saras a coffee</a
-            >.
-          </p>
-        </div>
+      <div class="shell footer-lines">
+        <p>
+          Independent NPR by <a href="https://sarastotey.com">Saras Totey</a>,
+          preserving the Extemp Central record.
+        </p>
+        <p>
+          Corrections: <a href="https://discord.gg/8RFTvCWPPv">join Discord</a>
+          and ping <strong>@PandaXPanther</strong>.
+        </p>
+        <p>
+          Support: <a href="https://github.com/PandaXPanther/national-points-race"
+            >star the project on GitHub</a
+          > or <a href="https://buymeacoffee.com/sarast1">buy Saras a coffee</a>.
+        </p>
       </div>
     </footer>
   </body>
@@ -53,35 +89,43 @@ const { title, description } = Astro.props;
 
 <style>
   footer {
-    padding: 3rem 0 2rem;
-    border-top: 1px solid var(--rule);
-    background: var(--paper-deep);
+    padding-block: 1.6rem 2.2rem;
+    border-top: 5px solid var(--ink);
+    background: var(--paper);
   }
 
-  .footer-grid {
+  .footer-lines {
     display: grid;
-    gap: 2rem;
-  }
-
-  .legal {
-    display: grid;
-    grid-template-columns: 1.1fr 1fr 0.8fr;
-    gap: 1.5rem;
+    grid-template-columns: 1.15fr 1fr 1fr;
+    gap: 0;
     color: var(--ink-soft);
-    font-size: 0.78rem;
+    font-size: 0.72rem;
+    line-height: 1.5;
   }
 
-  .legal p {
+  .footer-lines p {
     margin: 0;
+    padding-right: 1.5rem;
   }
 
-  @media (max-width: 42rem) {
-    .legal {
-      grid-template-columns: 1fr;
+  .footer-lines p + p {
+    border-left: 1px solid var(--rule);
+    padding-left: 1.5rem;
+  }
+
+  @media (max-width: 48rem) {
+    .footer-lines {
+      grid-template-columns: minmax(0, 1fr);
     }
 
-    .legal p + p {
-      margin-top: 1rem;
+    .footer-lines p {
+      padding: 0.65rem 0;
+    }
+
+    .footer-lines p + p {
+      border-top: 1px solid var(--rule);
+      border-left: 0;
+      padding-left: 0;
     }
   }
 </style>

@@ -3,118 +3,447 @@ import Calculator from "../components/Calculator.astro";
 import PointsTables from "../components/PointsTables.astro";
 import SiteLayout from "../layouts/SiteLayout.astro";
 import { getPolicyView } from "../lib/policy.js";
+import { absoluteUrl } from "../lib/seo.js";
 
 const policy = getPolicyView();
 const tierGroups = [1, 2, 3, 4, 5].map((tier) => ({
   tier,
-  tournaments: policy.tournaments.filter((tournament) => tournament.tier === tier),
+  tournaments: policy.tournaments.filter(
+    (tournament) => tournament.tier === tier,
+  ),
 }));
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "National Points Race methodology",
+  description:
+    "The exact scoring tables, finals rules, evidence policy, and ranking calculation used by the National Points Race.",
+  mainEntityOfPage: absoluteUrl("/methodology/"),
+  author: { "@type": "Person", name: "Saras Totey" },
+};
 ---
 
 <SiteLayout
-  title="Methodology"
-  description="The exact National Points Race scoring policy, calculation rules, sources, and correction process."
+  title="Scoring Methodology"
+  description="The exact National Points Race point tables, finals rules, NSDA multiplier, evidence policy, and standings calculation."
+  canonicalPath="/methodology/"
+  pageType="article"
+  {structuredData}
 >
-  <header class="shell hero">
-    <p class="eyebrow">Policy {policy.version}</p>
-    <h1>How the race is calculated</h1>
-    <p class="dek">
-      These tables are rendered from the same versioned policy ledger used by the
-      scoring engine. No separate editorial spreadsheet controls the result.
-    </p>
+  <header class="page-head method-head">
+    <div class="shell">
+      <p class="label">Policy / {policy.version}</p>
+      <h1>The calculation ledger.</h1>
+      <p class="dek">One frozen policy scores every accepted result.</p>
+    </div>
   </header>
 
-  <section class="section">
-    <div class="shell">
-      <div class="section-heading"><div><p class="eyebrow">Tier 2 through Tier 5</p><h2>Placement and elimination points</h2></div></div>
-      <PointsTables {policy} />
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="shell">
-      <div class="section-heading">
-        <div><p class="eyebrow">Tier 1</p><h2>NSDA Nationals</h2></div>
-        <p>International and United States Extemp are scored separately, then one division may receive the strong-field multiplier.</p>
-      </div>
-      <div class="split-grid">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th scope="col">Place</th><th class="numeric" scope="col">Base points</th></tr></thead>
-            <tbody>{policy.nsda.basePlacements.map((points, index) => <tr><td>{index + 1}</td><td class="numeric"><strong>{points}</strong></td></tr>)}</tbody>
-          </table>
-        </div>
-        <div class="paper-card prose">
-          <h3>NSDA adjustments</h3>
-          <ul>
-            <li>The division containing more competitors from the post-NCFL top 25 receives a 1.25 multiplier.</li>
-            <li>Multiplication uses half-up rounding to the nearest whole point.</li>
-            <li>The final-round winner receives a 40-point base bonus. It is also multiplied in the strong-field division.</li>
-            <li>Quarterfinalists receive 30 base points. Octafinalists receive 10.</li>
-            <li>If both divisions contain the same number of top-25 competitors, neither receives the multiplier.</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="shell"><Calculator {policy} /></div>
-  </section>
-
-  <section class="section">
-    <div class="shell">
-      <div class="section-heading"><div><p class="eyebrow">Current roster</p><h2>Twenty-one tracked tournaments</h2></div><p>Names and tiers come directly from the executable 2026-27 policy.</p></div>
-      <p class="asu-note">
-        The <strong>Arizona State HDSHC Invitational</strong> joins the race as a
-        <strong>Tier 4</strong> tournament beginning in 2026-27. It is not applied
-        retroactively to the 2025-26 reconstruction.
+  <div class="shell method-shell">
+    <aside class="method-index">
+      <p class="label">On this page</p>
+      <nav aria-label="Methodology sections">
+        <ol>
+          <li><a href="#sequence">Calculation</a></li>
+          <li><a href="#points">Point tables</a></li>
+          <li><a href="#nsda">NSDA</a></li>
+          <li><a href="#calculator">Calculator</a></li>
+          <li><a href="#tournaments">Tournaments</a></li>
+          <li><a href="#rules">Final rules</a></li>
+        </ol>
+      </nav>
+      <p class="policy-stamp">
+        Executable policy<br />
+        <code>{policy.version}</code>
       </p>
-      <div class="tier-roster">
-        {tierGroups.map(({ tier, tournaments }) => (
-          <section class="tier-section">
-            <p class="eyebrow">Tier {tier}</p>
-            <ul class="clean-list">
-              {tournaments.map((tournament) => <li><strong>{tournament.canonicalName}</strong>{tournament.mbaTopSixOnly && <span>MBA top-six exception</span>}</li>)}
-            </ul>
-          </section>
-        ))}
-      </div>
-    </div>
-  </section>
+    </aside>
 
-  <section class="section">
-    <div class="shell split-grid">
-      <article class="prose">
-        <p class="eyebrow">Finals and divisions</p>
-        <h2>Edge cases are policy, too.</h2>
-        <ul>
-          <li>Places 1 through 6 receive placement points in a standard final.</li>
-          <li>In an oversized final, seventh place or lower falls to the preceding elimination bucket when the tier has one.</li>
-          <li>MBA awards points only to its top six. Its legacy final-credit limit is five for the finals tiebreak.</li>
-          <li>When a competitor enters multiple eligible divisions at one tournament, only the highest single award counts.</li>
-        </ul>
-      </article>
-      <article class="prose">
-        <p class="eyebrow">Standings and evidence</p>
-        <h2>Sorting, corrections, and restraint.</h2>
-        <ul>
-          <li>Standings sort by points, wins, top-three finishes, then finals. Exact competitive ties share a rank.</li>
-          <li>Official corrections produce a new standings version and preserve prior history.</li>
-          <li>Ambiguous identities and contradictory sources are withheld. The system does not guess.</li>
-          <li>Unavailable or not-held tournaments remain visible with that status and award no points.</li>
-        </ul>
-      </article>
-    </div>
-  </section>
+    <article class="method-ledger">
+      <section id="sequence" class="ledger-section calculation-sequence">
+        <p class="label">In three steps</p>
+        <ol>
+          <li><span>01</span><strong>Source</strong><p>Freeze permitted official evidence.</p></li>
+          <li><span>02</span><strong>Score</strong><p>Apply the tournament tier and round rule.</p></li>
+          <li><span>03</span><strong>Rank</strong><p>Sort points, wins, top threes, then finals.</p></li>
+        </ol>
+      </section>
+
+      <section id="points" class="ledger-section">
+        <div class="ledger-heading">
+          <div><p class="label">Tier 2 to Tier 5</p><h2>Placement and elimination</h2></div>
+          <p>Final placement overrides earlier elimination credit.</p>
+        </div>
+        <PointsTables {policy} />
+      </section>
+
+      <section id="nsda" class="ledger-section">
+        <div class="ledger-heading">
+          <div><p class="label">Tier 1</p><h2>NSDA Nationals</h2></div>
+          <p>IX and USX are scored separately.</p>
+        </div>
+        <div class="nsda-layout">
+          <div class="table-wrap" role="region" aria-label="NSDA placement points" tabindex="0">
+            <table>
+              <caption>Base placement points</caption>
+              <thead><tr><th scope="col">Place</th><th class="numeric" scope="col">Points</th></tr></thead>
+              <tbody>
+                {policy.nsda.basePlacements.map((points, index) => (
+                  <tr><th scope="row">{index + 1}</th><td class="numeric"><strong>{points}</strong></td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <ol class="rule-notes">
+            <li><span>1.25</span><p>The division with more post-NCFL top-25 speakers receives the multiplier.</p></li>
+            <li><span>40</span><p>The final-round winner receives a base bonus, multiplied when applicable.</p></li>
+            <li><span>30 / 10</span><p>Quarterfinalists receive 30 base points. Octafinalists receive 10.</p></li>
+            <li><span>Half up</span><p>Multiplied totals round to the nearest whole point. A tied field receives no multiplier.</p></li>
+          </ol>
+        </div>
+      </section>
+
+      <section id="calculator" class="ledger-section">
+        <Calculator {policy} />
+      </section>
+
+      <section id="tournaments" class="ledger-section">
+        <div class="ledger-heading">
+          <div><p class="label">Current roster</p><h2>Twenty-one tournaments</h2></div>
+          <p>Names and tiers come from the 2026-27 executable policy.</p>
+        </div>
+        <p class="asu-note">
+          <strong>Arizona State HDSHC Invitational</strong> joins as <strong>Tier 4</strong>
+          in 2026-27 and future seasons. It is not retroactive.
+        </p>
+        <div class="tier-roster">
+          {tierGroups.map(({ tier, tournaments }) => (
+            <section class="tier-section">
+              <p class="tier-number">Tier {tier}</p>
+              <ul>
+                {tournaments.map((tournament) => (
+                  <li>
+                    <span>{tournament.canonicalName}</span>
+                    {tournament.mbaTopSixOnly && <small>MBA top six</small>}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      </section>
+
+      <section id="rules" class="ledger-section final-rules">
+        <div class="ledger-heading">
+          <div><p class="label">Final policy notes</p><h2>Exceptions stay explicit.</h2></div>
+        </div>
+        <dl>
+          <div><dt>Finals</dt><dd>Places 1 through 6 score. Lower places in oversized finals fall to the preceding eligible round.</dd></div>
+          <div><dt>MBA</dt><dd>Only the top six score. Five competitors receive legacy finals tiebreak credit.</dd></div>
+          <div><dt>Divisions</dt><dd>Only the highest award counts when one competitor enters multiple eligible divisions.</dd></div>
+          <div><dt>Ties</dt><dd>Rank by points, wins, top threes, then finals. Exact competitive ties share a rank.</dd></div>
+          <div><dt>Evidence</dt><dd>Contradictory sources and ambiguous identities are withheld. The system does not guess.</dd></div>
+          <div><dt>Corrections</dt><dd>A verified correction creates a new standings version and preserves the prior record.</dd></div>
+        </dl>
+      </section>
+    </article>
+  </div>
 </SiteLayout>
 
 <style>
-  .asu-note { max-width: var(--measure); margin: 0 0 2rem; color: var(--ink-soft); }
-  .tier-roster { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem; }
-  .tier-roster section:first-child { grid-column: 1 / -1; }
-  .tier-section { border-top: 2px solid var(--rule-dark); padding-top: 1rem; }
-  .tier-roster li { display: flex; justify-content: space-between; gap: 1rem; }
-  .tier-roster li span { color: var(--burgundy); font-size: 0.75rem; }
-  @media (max-width: 44rem) { .tier-roster { grid-template-columns: 1fr; } .tier-roster section:first-child { grid-column: auto; } }
+  .method-head h1 {
+    max-width: 13ch;
+  }
+
+  .method-shell {
+    display: grid;
+    grid-template-columns: 12rem minmax(0, 1fr);
+    gap: clamp(3rem, 7vw, 7rem);
+    align-items: start;
+  }
+
+  .method-index {
+    position: sticky;
+    top: 1rem;
+    padding-block: 2.5rem;
+  }
+
+  .method-index ol {
+    margin: 0;
+    padding: 0;
+    border-top: 2px solid var(--ink);
+    list-style: none;
+    counter-reset: method;
+  }
+
+  .method-index li {
+    counter-increment: method;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .method-index a {
+    display: grid;
+    grid-template-columns: 1.5rem minmax(0, 1fr);
+    padding-block: 0.55rem;
+    color: var(--ink);
+    font-size: 0.73rem;
+    text-decoration: none;
+  }
+
+  .method-index a::before {
+    color: var(--ink-soft);
+    content: counter(method, decimal-leading-zero);
+    font-size: 0.58rem;
+  }
+
+  .policy-stamp {
+    margin-top: 2rem;
+    color: var(--ink-soft);
+    font-size: 0.65rem;
+  }
+
+  .policy-stamp code {
+    overflow-wrap: anywhere;
+  }
+
+  .method-ledger {
+    min-width: 0;
+    border-left: 1px solid var(--rule);
+  }
+
+  .ledger-section {
+    min-width: 0;
+    padding: clamp(3rem, 7vw, 6rem) 0 clamp(3rem, 7vw, 6rem) clamp(1.5rem, 4vw, 4rem);
+    border-bottom: 1px solid var(--rule-dark);
+  }
+
+  .ledger-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    align-items: end;
+    margin-bottom: 2rem;
+  }
+
+  .ledger-heading h2,
+  .ledger-heading p {
+    margin-bottom: 0;
+  }
+
+  .ledger-heading > p {
+    max-width: 25rem;
+    color: var(--ink-soft);
+    font-size: 0.82rem;
+  }
+
+  .calculation-sequence > ol {
+    margin: 0;
+    padding: 0;
+    border-top: 5px solid var(--ink);
+    list-style: none;
+  }
+
+  .calculation-sequence li {
+    display: grid;
+    grid-template-columns: 3rem 8rem minmax(0, 1fr);
+    gap: 1rem;
+    align-items: baseline;
+    padding-block: 1rem;
+    border-bottom: 1px solid var(--rule-dark);
+  }
+
+  .calculation-sequence li span {
+    color: var(--ink-soft);
+    font-size: 0.65rem;
+  }
+
+  .calculation-sequence li strong {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+  }
+
+  .calculation-sequence li p {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  .nsda-layout {
+    display: grid;
+    grid-template-columns: minmax(17rem, 0.75fr) minmax(0, 1.25fr);
+    gap: clamp(2rem, 5vw, 4rem);
+  }
+
+  caption {
+    padding: 0.75rem 0.8rem;
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    text-align: left;
+  }
+
+  .rule-notes {
+    margin: 0;
+    padding: 0;
+    border-top: 2px solid var(--ink);
+    list-style: none;
+  }
+
+  .rule-notes li {
+    display: grid;
+    grid-template-columns: 5rem minmax(0, 1fr);
+    gap: 1rem;
+    padding-block: 0.8rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .rule-notes span {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    font-weight: 650;
+  }
+
+  .rule-notes p,
+  .asu-note {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.82rem;
+  }
+
+  .asu-note {
+    max-width: var(--measure);
+    margin-bottom: 2rem;
+  }
+
+  .tier-roster {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 5px solid var(--ink);
+  }
+
+  .tier-section {
+    padding: 1rem 1.5rem 1.5rem 0;
+    border-bottom: 1px solid var(--rule-dark);
+  }
+
+  .tier-section:nth-child(even) {
+    border-left: 1px solid var(--rule);
+    padding-left: 1.5rem;
+  }
+
+  .tier-number {
+    margin: 0 0 0.7rem;
+    color: var(--link);
+    font-family: var(--serif);
+    font-size: 1.4rem;
+  }
+
+  .tier-section ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tier-section li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.35rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.78rem;
+  }
+
+  .tier-section small {
+    color: var(--link);
+    text-align: right;
+  }
+
+  .final-rules dl {
+    margin: 0;
+    border-top: 5px solid var(--ink);
+  }
+
+  .final-rules dl > div {
+    display: grid;
+    grid-template-columns: 8rem minmax(0, 1fr);
+    gap: 1.5rem;
+    padding-block: 0.9rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .final-rules dt {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    font-weight: 650;
+  }
+
+  .final-rules dd {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 58rem) {
+    .method-shell {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+    }
+
+    .method-index {
+      position: static;
+      padding-bottom: 0;
+    }
+
+    .method-index ol {
+      display: flex;
+      max-width: 100%;
+      overflow-x: auto;
+    }
+
+    .method-index li {
+      min-width: max-content;
+      border-right: 1px solid var(--rule);
+    }
+
+    .method-index a {
+      padding: 0.65rem 1rem;
+    }
+
+    .policy-stamp {
+      display: none;
+    }
+
+    .method-ledger {
+      border-left: 0;
+    }
+
+    .ledger-section {
+      padding-left: 0;
+    }
+  }
+
+  @media (max-width: 44rem) {
+    .ledger-heading,
+    .nsda-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ledger-heading {
+      align-items: start;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .nsda-layout,
+    .tier-roster {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .tier-section:nth-child(even) {
+      border-left: 0;
+      padding-left: 0;
+    }
+
+    .calculation-sequence li,
+    .final-rules dl > div {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.2rem;
+    }
+  }
 </style>

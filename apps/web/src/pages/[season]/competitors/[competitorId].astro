@@ -1,6 +1,8 @@
 ---
+import reconstruction from "../../../data/reconstruction/2025-26.json";
 import SiteLayout from "../../../layouts/SiteLayout.astro";
 import { getCompetitor, type ApiContext } from "../../../lib/api.js";
+import { absoluteUrl } from "../../../lib/seo.js";
 
 const seasonId = Astro.params.season ?? "";
 const competitorId = Astro.params.competitorId ?? "";
@@ -12,77 +14,151 @@ if (apiBase) {
     () => null,
   );
 }
+const reconstructedStanding =
+  seasonId === "2025-26" && /^\d+$/u.test(competitorId)
+    ? reconstruction.standings.find(
+        ({ rank }) => rank === Number.parseInt(competitorId, 10),
+      )
+    : undefined;
+const displayName = competitor?.name ?? reconstructedStanding?.name;
+const structuredData = displayName
+  ? {
+      "@context": "https://schema.org",
+      "@type": "Dataset",
+      name: `${displayName}, ${seasonId} NPR audit`,
+      description: `National Points Race score record for ${displayName}.`,
+      url: absoluteUrl(`/${seasonId}/competitors/${competitorId}/`),
+    }
+  : undefined;
 ---
 
 <SiteLayout
-  title={competitor ? competitor.name : "Competitor audit"}
-  description="Award-level National Points Race competitor audit trail."
+  title={displayName ? `${displayName} NPR Record` : "Competitor audit"}
+  description={displayName ? `Points and audit record for ${displayName} in the ${seasonId} National Points Race.` : "Award-level National Points Race competitor audit trail."}
+  canonicalPath={`/${seasonId}/competitors/${competitorId}/`}
+  {structuredData}
 >
   {competitor ? (
     <>
-      <header class="shell hero">
-        <p class="eyebrow">Competitor audit</p>
-        <h1>{competitor.name}</h1>
-        <p class="dek">{competitor.school}</p>
-      </header>
-      <section class="section">
-        <div class="shell stats-grid">
-          <div class="stat"><span>Rank</span><strong>{competitor.total.rank}</strong></div>
-          <div class="stat"><span>Points</span><strong>{competitor.total.points}</strong></div>
-          <div class="stat"><span>Wins</span><strong>{competitor.total.wins}</strong></div>
-          <div class="stat"><span>Finals</span><strong>{competitor.total.finals}</strong></div>
+      <header class="page-head competitor-head">
+        <div class="shell">
+          <p class="label">Competitor record / {seasonId}</p>
+          <h1>{competitor.name}</h1>
+          <p class="dek">{competitor.school}</p>
         </div>
+      </header>
+      <section class="score-strip-section">
+        <dl class="shell score-strip">
+          <div><dt>Rank</dt><dd>{competitor.total.rank}</dd></div>
+          <div><dt>Points</dt><dd>{competitor.total.points}</dd></div>
+          <div><dt>Wins</dt><dd>{competitor.total.wins}</dd></div>
+          <div><dt>Finals</dt><dd>{competitor.total.finals}</dd></div>
+        </dl>
       </section>
       <section class="section">
         <div class="shell">
-          <div class="section-heading">
-            <div><p class="eyebrow">Award provenance</p><h2>Counted results</h2></div>
-          </div>
+          <div class="section-heading"><div><p class="label">Award provenance</p><h2>Counted results</h2></div></div>
           <ol class="award-register">
-            {competitor.awards.map((award) => (
+            {competitor.awards.map((award, index) => (
               <li>
+                <span class="award-number">{String(index + 1).padStart(2, "0")}</span>
                 <span>{award.division} extemp</span>
-                <div>
-                  <h3>{award.editionId}</h3>
-                  <p><strong>{award.points} points</strong> via {award.ruleId}</p>
-                </div>
-                <p class="source-note">
-                  <a href={award.source.url}>Official source</a><br />
-                  SHA-256 {award.source.sha256.slice(0, 12)}...
-                </p>
+                <div><h3>{award.editionId}</h3><p><strong>{award.points} points</strong> / {award.ruleId}</p></div>
+                <p class="source-note"><a href={award.source.url}>Official source</a><br />SHA-256 {award.source.sha256.slice(0, 12)}...</p>
               </li>
             ))}
           </ol>
         </div>
       </section>
     </>
+  ) : reconstructedStanding ? (
+    <>
+      <header class="page-head competitor-head">
+        <div class="shell">
+          <p class="label">Reconstructed record / {seasonId}</p>
+          <h1>{reconstructedStanding.name}</h1>
+          <p class="dek">{reconstructedStanding.school}</p>
+        </div>
+      </header>
+      <section class="score-strip-section">
+        <dl class="shell score-strip">
+          <div><dt>Rank</dt><dd>{reconstructedStanding.rank}</dd></div>
+          <div><dt>Points</dt><dd>{reconstructedStanding.points}</dd></div>
+          <div><dt>Wins</dt><dd>{reconstructedStanding.wins}</dd></div>
+          <div><dt>Finals</dt><dd>{reconstructedStanding.finals}</dd></div>
+        </dl>
+      </section>
+      <section class="section">
+        <div class="shell fallback-note">
+          <p class="label">Published record</p>
+          <h2>Reconstructed total</h2>
+          <p>This archive publishes the final total. Award-level evidence remains in the season source ledger.</p>
+          <a href="/2025-26/">Return to the Top 100</a>
+        </div>
+      </section>
+    </>
   ) : (
     <section class="shell hero">
-      <p class="eyebrow">Competitor audit</p>
-      <h1>Audit record unavailable</h1>
-      <p class="dek">
-        The public API has no verified competitor record at this route. No result
-        is inferred.
-      </p>
+      <p class="label">Competitor audit</p>
+      <h1>Audit record unavailable.</h1>
       <p><a href={`/${seasonId}/`}>Return to the season</a></p>
     </section>
   )}
 </SiteLayout>
 
 <style>
+  .competitor-head h1 {
+    max-width: 14ch;
+  }
+
+  .score-strip-section {
+    padding-top: 2rem;
+  }
+
+  .score-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-top: 5px solid var(--ink);
+    border-bottom: 1px solid var(--rule-dark);
+  }
+
+  .score-strip div {
+    padding-block: 0.8rem;
+  }
+
+  .score-strip div + div {
+    border-left: 1px solid var(--rule);
+    padding-left: 1rem;
+  }
+
+  .score-strip dt {
+    color: var(--ink-soft);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .score-strip dd {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: clamp(1.8rem, 4vw, 3.5rem);
+    line-height: 1;
+  }
+
   .award-register {
     margin: 0;
     padding: 0;
-    border-top: 2px solid var(--ink);
+    border-top: 5px solid var(--ink);
     list-style: none;
   }
 
   .award-register li {
     display: grid;
-    grid-template-columns: 8rem minmax(0, 1fr) 13rem;
-    gap: 2rem;
-    padding: 1rem 0;
-    border-bottom: 1px solid var(--rule);
+    grid-template-columns: 2.5rem 8rem minmax(0, 1fr) 13rem;
+    gap: 1.25rem;
+    padding-block: 1rem;
+    border-bottom: 1px solid var(--rule-dark);
   }
 
   .award-register h3,
@@ -90,10 +166,41 @@ if (apiBase) {
     margin: 0;
   }
 
-  @media (max-width: 42rem) {
+  .award-number,
+  .award-register li > span:nth-child(2) {
+    color: var(--ink-soft);
+    font-size: 0.7rem;
+    text-transform: capitalize;
+  }
+
+  .fallback-note {
+    max-width: 42rem;
+  }
+
+  @media (max-width: 48rem) {
+    .score-strip {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .award-register li {
-      grid-template-columns: 1fr;
-      gap: 0.6rem;
+      grid-template-columns: 2rem minmax(0, 1fr);
+    }
+
+    .award-register li > div,
+    .award-register .source-note {
+      grid-column: 2;
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .score-strip {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .score-strip div + div {
+      border-top: 1px solid var(--rule);
+      border-left: 0;
+      padding-left: 0;
     }
   }
 </style>

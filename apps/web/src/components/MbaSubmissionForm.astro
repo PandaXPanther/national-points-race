@@ -16,12 +16,12 @@ const placeLabels = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
 <section class="mba-submission" aria-labelledby="mba-submission-title">
   <div class="submission-heading">
     <div>
-      <p class="eyebrow">Official MBA results</p>
-      <h2 id="mba-submission-title">Submit the six cumulative placements</h2>
+      <p class="label">Official MBA results / one accepted filing</p>
+      <h2 id="mba-submission-title">File the six cumulative placements.</h2>
     </div>
     <p>
-      Only one accepted submission is allowed per season. Rejected evidence does
-      not close the form.
+      Only one accepted submission is allowed per season. Rejected evidence leaves
+      the form open.
     </p>
   </div>
 
@@ -30,6 +30,7 @@ const placeLabels = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
   </div>
 
   <form
+    class="official-form"
     action={endpoint}
     method="post"
     enctype="multipart/form-data"
@@ -60,8 +61,7 @@ const placeLabels = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
     <fieldset>
       <legend>Evidence</legend>
       <p class="field-note">
-        Supply one official public URL or one readable PDF, text, CSV, or HTML
-        result document. Do not supply both.
+        Supply one official public URL or one readable result file, not both.
       </p>
       <div class="form-pair">
         <label>
@@ -82,8 +82,7 @@ const placeLabels = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
     <fieldset>
       <legend>Official cumulative order</legend>
       <p class="field-note">
-        Enter each name exactly as it appears in the current NPR. Every name must
-        match exactly once. Similar spellings and fuzzy matches are rejected.
+        Use the exact NPR name. Every name must match exactly once.
       </p>
       <div class="placement-grid">
         {
@@ -123,10 +122,9 @@ const placeLabels = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
   </form>
 
   <p class="source-note correction-note">
-    If an accepted result is wrong, join the <a
+    Accepted result wrong? Join the <a
       href="https://discord.gg/8RFTvCWPPv">Discord server</a
-    > and ping <strong>@PandaXPanther</strong>. Accepted records are corrected by a
-    new audited standings version.
+    > and ping <strong>@PandaXPanther</strong>.
   </p>
 </section>
 
@@ -194,70 +192,110 @@ const placeLabels = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
 
 <style>
   .mba-submission {
-    border-top: 2px solid var(--ink);
-    padding-top: 1rem;
+    counter-reset: form-step;
   }
 
   .submission-heading {
     display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.8fr);
-    gap: 2rem;
+    grid-template-columns: minmax(0, 1.35fr) minmax(16rem, 0.65fr);
+    gap: clamp(2rem, 7vw, 7rem);
     align-items: end;
+    border-bottom: 5px solid var(--ink);
+    padding-bottom: 1.2rem;
   }
 
-  .submission-heading > p,
-  .field-note,
-  small {
+  .submission-heading > p {
+    margin: 0;
     color: var(--ink-soft);
+    font-size: 0.82rem;
   }
 
   .submission-status {
-    margin: 1.5rem 0;
-    padding: 0.65rem 0;
-    border-block: 1px solid var(--rule);
-    font-weight: 650;
+    margin: 0;
+    border-bottom: 1px solid var(--rule-dark);
+    padding-block: 0.75rem;
+    color: var(--ink-soft);
+    font-size: 0.72rem;
+  }
+
+  .official-form {
+    margin: 0;
   }
 
   fieldset {
+    position: relative;
+    display: grid;
+    grid-template-columns: 13rem minmax(0, 1fr);
+    gap: 0 2rem;
     margin: 0;
     border: 0;
-    border-top: 1px solid var(--rule-dark);
-    padding: 1.35rem 0 1.5rem;
+    border-bottom: 1px solid var(--rule-dark);
+    padding: 1.5rem 0 1.8rem;
+    counter-increment: form-step;
   }
 
   legend {
+    position: absolute;
+    top: 1.5rem;
+    left: 0;
+    width: 13rem;
     padding: 0 1rem 0 0;
     font-family: var(--serif);
     font-size: 1.2rem;
+    font-weight: 620;
+  }
+
+  legend::before {
+    display: block;
+    margin-bottom: 0.2rem;
+    color: var(--ink-soft);
+    font-family: var(--sans);
+    font-size: 0.58rem;
     font-weight: 700;
+    letter-spacing: 0.1em;
+    content: "0" counter(form-step);
   }
 
   .form-pair,
   .placement-grid {
+    grid-column: 2;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem 1.5rem;
+    gap: 1.1rem 1.5rem;
   }
 
   .placement-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .field-note,
+  fieldset > .attestation,
+  fieldset > .cf-turnstile,
+  fieldset > .source-note {
+    grid-column: 2;
+  }
+
+  .field-note {
+    margin: 0 0 1rem;
+    color: var(--ink-soft);
+    font-size: 0.76rem;
+  }
+
   label:not(.attestation) {
     display: grid;
     gap: 0.3rem;
     font-size: 0.78rem;
-    font-weight: 750;
-    letter-spacing: 0.04em;
+    font-weight: 700;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
   }
 
   input:not([type="checkbox"]) {
     width: 100%;
     min-height: 2.75rem;
-    border: 1px solid var(--rule-dark);
-    border-width: 0 0 1px;
-    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--rule-dark);
+    background: var(--paper-raised);
     color: var(--ink);
     font: inherit;
     letter-spacing: normal;
@@ -265,10 +303,11 @@ const placeLabels = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
   }
 
   input:focus {
-    border-color: var(--burgundy);
+    border-color: var(--link);
   }
 
   small {
+    color: var(--ink-soft);
     font-size: 0.72rem;
     font-weight: 400;
     letter-spacing: normal;
@@ -280,7 +319,8 @@ const placeLabels = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
     grid-template-columns: auto minmax(0, 1fr);
     gap: 0.65rem;
     align-items: start;
-    max-width: var(--measure);
+    max-width: 40rem;
+    font-size: 0.82rem;
   }
 
   .attestation input {
@@ -292,15 +332,17 @@ const placeLabels = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
   }
 
   .form-error {
-    color: var(--burgundy-dark);
+    color: var(--error);
     font-weight: 650;
   }
 
   button {
-    border: 1px solid var(--ink);
+    margin-top: 1.5rem;
+    border: 0;
+    border-bottom: 3px solid var(--link);
     background: var(--ink);
     color: var(--paper);
-    padding: 0.7rem 1rem;
+    padding: 0.75rem 1.1rem;
     font: inherit;
     font-weight: 750;
     cursor: pointer;
@@ -312,11 +354,25 @@ const placeLabels = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
   }
 
   .correction-note {
-    margin-top: 1.5rem;
+    max-width: var(--measure);
+    margin-top: 1rem;
   }
 
-  @media (max-width: 44rem) {
-    .submission-heading,
+  @media (max-width: 50rem) {
+    .submission-heading {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    fieldset {
+      display: block;
+    }
+
+    legend {
+      position: static;
+      width: auto;
+      margin-bottom: 1rem;
+    }
+
     .form-pair,
     .placement-grid {
       grid-template-columns: minmax(0, 1fr);

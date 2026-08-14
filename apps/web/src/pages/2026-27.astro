@@ -1,62 +1,64 @@
 ---
-import SeasonBadge from "../components/SeasonBadge.astro";
 import MbaSubmissionForm from "../components/MbaSubmissionForm.astro";
+import SeasonBadge from "../components/SeasonBadge.astro";
 import SiteLayout from "../layouts/SiteLayout.astro";
+import { absoluteUrl } from "../lib/seo.js";
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  name: "2026-27 National Points Race",
+  description:
+    "The current live National Points Race, tracking 21 national extemp tournaments and publishing the Top 100.",
+  url: absoluteUrl("/2026-27/"),
+  creator: { "@type": "Person", name: "Saras Totey" },
+  temporalCoverage: "2026/2027",
+};
 ---
 
 <SiteLayout
-  title="2026-2027 Current Race"
-  description="The current live National Points Race for the 2026-2027 season."
+  title="2026-27 Current Race"
+  description="The current National Points Race for 2026-27, tracking 21 tournaments and publishing an audited Top 100."
+  canonicalPath="/2026-27/"
+  {structuredData}
 >
-  <header class="shell hero">
-    <SeasonBadge classification="Current live race" />
-    <p class="eyebrow season-line">2026-2027 season</p>
-    <h1>Current standings</h1>
-    <p class="dek">
-      The season is initialized under policy <code>npr-2026-27-v1</code>.
-      Standings remain empty until eligible final evidence is published and
-      verified.
-    </p>
+  <header class="current-head">
+    <div class="shell current-title">
+      <div>
+        <SeasonBadge classification="Current live race" />
+        <p class="label">2026-27 / Current edition</p>
+        <h1>The scorebook is open.</h1>
+      </div>
+      <p class="edition-number">27</p>
+    </div>
+    <dl class="shell preseason-register" aria-label="Current season summary">
+      <div><dt>Status</dt><dd>Preseason</dd></div>
+      <div><dt>Tournaments</dt><dd>21</dd></div>
+      <div><dt>Scored</dt><dd>0</dd></div>
+      <div><dt>Published</dt><dd>Top 100</dd></div>
+      <div><dt>Policy</dt><dd>npr-2026-27-v1</dd></div>
+    </dl>
   </header>
 
-  <section class="section">
-    <div class="shell stats-grid" aria-label="Current season summary">
-      <div class="stat"><span>Status</span><strong>Initialized</strong></div>
-      <div class="stat"><span>Tracked tournaments</span><strong>21</strong></div>
-      <div class="stat"><span>Scored events</span><strong>0</strong></div>
-      <div class="stat"><span>Public limit</span><strong>Top 100</strong></div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="shell current-notes">
+  <section class="section preseason-note">
+    <div class="shell season-notes">
       <article>
-        <p class="eyebrow">Current policy addition</p>
+        <p class="label">Added for 2026-27</p>
         <h2>Arizona State HDSHC Invitational</h2>
         <p>
-          The ASU tournament is tracked as a Tier 4 event beginning this season.
-          January discovery uses verified Arizona State University organizer
-          evidence and the annual Tabroom lineage. It remains in later seasons until
-          a published policy replaces it.
+          ASU enters as Tier 4 this season and remains in future policy ledgers.
         </p>
-        <p>
-          <a href="/methodology/">Review the 21-tournament policy</a>
-        </p>
+        <a href="/methodology/#tournaments">See all 21 tournaments</a>
       </article>
-      <article>
-        <p class="eyebrow">Publication rule</p>
-        <h2>No preseason points</h2>
-        <p>
-          The race does not infer results from registrations, invitations, or prior
-          seasons. The first standings version will follow eligible final evidence
-          from a tracked tournament.
-        </p>
-        <p><a href="/2026-27/tournaments/">View the tournament audit</a></p>
-      </article>
+      <aside>
+        <span>Publication rule</span>
+        <p>No points appear before a tracked tournament publishes verified finals.</p>
+        <a href="/2026-27/tournaments/">Tournament audit</a>
+      </aside>
     </div>
   </section>
 
-  <section class="section">
+  <section class="section mba-section">
     <div class="shell">
       <MbaSubmissionForm seasonId="2026-27" />
     </div>
@@ -64,24 +66,137 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 </SiteLayout>
 
 <style>
-  .season-line {
-    margin-top: 1.4rem;
+  .current-head {
+    padding-top: clamp(3rem, 8vw, 7rem);
   }
 
-  .current-notes {
+  .current-title {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 3rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2rem;
+    align-items: end;
   }
 
-  .current-notes article {
-    border-top: 2px solid var(--rule-dark);
-    padding-top: 1rem;
+  .current-title .label {
+    margin-top: 2.8rem;
   }
 
-  @media (max-width: 44rem) {
-    .current-notes {
-      grid-template-columns: 1fr;
+  .current-title h1 {
+    max-width: 11ch;
+  }
+
+  .edition-number {
+    margin: 0;
+    color: var(--link);
+    font-family: var(--serif);
+    font-size: clamp(9rem, 25vw, 21rem);
+    font-weight: 650;
+    letter-spacing: -0.1em;
+    line-height: 0.62;
+  }
+
+  .preseason-register {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1.5fr;
+    margin-top: clamp(3rem, 7vw, 7rem);
+    border-top: 5px solid var(--ink);
+    border-bottom: 1px solid var(--rule-dark);
+  }
+
+  .preseason-register div {
+    padding: 0.75rem 1rem 0.8rem 0;
+  }
+
+  .preseason-register div + div {
+    border-left: 1px solid var(--rule);
+    padding-left: 1rem;
+  }
+
+  .preseason-register dt {
+    color: var(--ink-soft);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .preseason-register dd {
+    margin: 0.15rem 0 0;
+    font-family: var(--serif);
+    font-size: 1.25rem;
+    overflow-wrap: anywhere;
+  }
+
+  .preseason-note {
+    border-top: 0;
+  }
+
+  .season-notes {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(16rem, 0.65fr);
+    gap: clamp(3rem, 8vw, 8rem);
+  }
+
+  .season-notes article {
+    max-width: 43rem;
+  }
+
+  .season-notes article h2 {
+    font-size: clamp(2.4rem, 5vw, 4.7rem);
+  }
+
+  .season-notes aside {
+    align-self: end;
+    border-top: 2px solid var(--ink);
+    padding-top: 0.75rem;
+    color: var(--ink-soft);
+    font-size: 0.8rem;
+  }
+
+  .season-notes aside span {
+    color: var(--ink);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .mba-section {
+    padding-bottom: 7rem;
+    background: var(--paper-raised);
+  }
+
+  @media (max-width: 52rem) {
+    .current-title {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .edition-number {
+      justify-self: end;
+    }
+
+    .preseason-register {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .season-notes {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 34rem) {
+    .edition-number {
+      font-size: 11rem;
+    }
+
+    .preseason-register {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .preseason-register div + div {
+      border-top: 1px solid var(--rule);
+      border-left: 0;
+      padding-left: 0;
     }
   }
 </style>

@@ -3,6 +3,39 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 Astro.response.status = 404;
 ---
 
-<SiteLayout title="Not found" description="The requested National Points Race page was not found.">
-  <section class="shell hero"><p class="eyebrow">404</p><h1>That result is not on the ballot.</h1><p class="dek">The page may have moved, or the season record may not exist.</p><div class="button-row"><a class="button" href="/">Return home</a><a class="button secondary" href="/archive/">Open the archive</a></div></section>
+<SiteLayout
+  title="Page not found"
+  description="The requested National Points Race page was not found."
+>
+  <section class="shell error-page">
+    <p class="error-code">404</p>
+    <div><p class="label">Off the ballot</p><h1>That record is not here.</h1><a href="/">Return to the scorebook</a></div>
+  </section>
 </SiteLayout>
+
+<style>
+  .error-page {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: clamp(2rem, 8vw, 8rem);
+    align-items: end;
+    min-height: 65vh;
+    padding-block: 4rem;
+  }
+
+  .error-code {
+    margin: 0;
+    color: var(--link);
+    font-family: var(--serif);
+    font-size: clamp(8rem, 30vw, 25rem);
+    font-weight: 650;
+    letter-spacing: -0.1em;
+    line-height: 0.65;
+  }
+
+  @media (max-width: 42rem) {
+    .error-page {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

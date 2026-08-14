@@ -3,27 +3,35 @@ const { pathname } = Astro.url;
 const links = [
   ["Standings", "/"],
   ["History", "/history/"],
-  ["Methodology", "/methodology/"],
+  ["Method", "/methodology/"],
   ["Archive", "/archive/"],
   ["Corrections", "/corrections/"],
 ] as const;
+
+function isCurrent(href: string): boolean {
+  return href === "/" ? pathname === href : pathname.startsWith(href);
+}
 ---
 
 <header class="site-header">
   <div class="header-inner shell">
     <a class="wordmark" href="/" aria-label="National Points Race home">
-      <span>NPR</span>
-      <small>National Points Race</small>
+      <span class="npr-mark" aria-hidden="true">NPR</span>
+      <span class="publication-name">National Points Race</span>
+      <span class="edition">2026-27 edition</span>
     </a>
-    <nav aria-label="Primary navigation">
+    <nav class="nav-scroll" aria-label="Primary navigation">
       <ul>
-        {links.map(([label, href]) => (
-          <li>
-            <a href={href} aria-current={pathname === href ? "page" : undefined}>
-              {label}
-            </a>
-          </li>
-        ))}
+        {
+          links.map(([label, href], index) => (
+            <li>
+              <a href={href} aria-current={isCurrent(href) ? "page" : undefined}>
+                <span aria-hidden="true">0{index + 1}</span>
+                {label}
+              </a>
+            </li>
+          ))
+        }
       </ul>
     </nav>
   </div>
@@ -31,80 +39,115 @@ const links = [
 
 <style>
   .site-header {
-    border-bottom: 1px solid var(--rule);
+    border-top: 5px solid var(--ink);
+    border-bottom: 1px solid var(--rule-dark);
     background: var(--paper);
   }
 
   .header-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 4.25rem;
-    gap: 2rem;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: clamp(2rem, 5vw, 6rem);
+    align-items: stretch;
   }
 
   .wordmark {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 0 0.75rem;
+    align-content: center;
+    min-height: 5.3rem;
     color: var(--ink);
     text-decoration: none;
   }
 
-  .wordmark span {
-    color: var(--burgundy);
+  .npr-mark {
+    grid-row: 1 / 3;
+    align-self: center;
+    border-bottom: 3px solid var(--link);
     font-family: var(--serif);
-    font-size: 1.5rem;
-    font-weight: 700;
-    letter-spacing: -0.04em;
+    font-size: 1.8rem;
+    font-weight: 680;
+    letter-spacing: -0.07em;
+    line-height: 0.95;
   }
 
-  .wordmark small {
-    max-width: 9rem;
+  .publication-name,
+  .edition {
     font-size: 0.62rem;
-    font-weight: 750;
-    letter-spacing: 0.1em;
-    line-height: 1.1;
+    font-weight: 720;
+    letter-spacing: 0.09em;
+    line-height: 1.25;
     text-transform: uppercase;
+  }
+
+  .edition {
+    color: var(--ink-soft);
+    font-weight: 550;
+  }
+
+  .nav-scroll {
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: thin;
   }
 
   nav ul {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.9rem;
+    justify-content: flex-end;
+    width: max-content;
+    min-width: 100%;
+    height: 100%;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
   nav a {
-    display: block;
-    border-bottom: 1px solid transparent;
+    display: grid;
+    align-content: center;
+    min-height: 5.3rem;
+    border-left: 1px solid var(--rule);
     color: var(--ink);
-    padding: 0.45rem 0;
-    font-size: 0.78rem;
+    padding: 0.7rem clamp(0.7rem, 1.8vw, 1.25rem);
+    font-size: 0.72rem;
     font-weight: 650;
+    line-height: 1.2;
     text-decoration: none;
   }
 
-  nav a[aria-current="page"] {
-    border-color: var(--burgundy);
-    color: var(--burgundy);
+  nav a span {
+    color: var(--ink-soft);
+    font-size: 0.56rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.08em;
   }
 
-  @media (max-width: 46rem) {
+  nav a[aria-current="page"] {
+    border-bottom: 3px solid var(--link);
+    color: var(--link);
+  }
+
+  @media (max-width: 48rem) {
     .header-inner {
       display: block;
-      padding-block: 1rem;
     }
 
-    nav {
-      margin-top: 0.6rem;
-      overflow-x: auto;
+    .wordmark {
+      width: fit-content;
+      min-height: 4.5rem;
     }
 
     nav ul {
-      width: max-content;
+      justify-content: flex-start;
+      min-width: max-content;
+      border-top: 1px solid var(--rule);
+    }
+
+    nav a {
+      min-height: 3.2rem;
+      border-left: 0;
+      border-right: 1px solid var(--rule);
     }
   }
 </style>

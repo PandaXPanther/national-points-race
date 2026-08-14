@@ -17,25 +17,30 @@ const kind = classification.startsWith("Extemp")
 
 <style>
   .season-badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
     width: fit-content;
-    border-left: 2px solid currentColor;
-    padding-left: 0.55rem;
-    font-size: 0.68rem;
-    font-weight: 750;
+    color: var(--ink-soft);
+    font-size: 0.65rem;
+    font-weight: 700;
     letter-spacing: 0.08em;
+    line-height: 1.25;
     text-transform: uppercase;
   }
 
-  .archive {
-    color: var(--blue);
+  .season-badge::before {
+    width: 1.15rem;
+    height: 2px;
+    background: currentColor;
+    content: "";
   }
 
   .reconstruction {
-    color: var(--burgundy);
+    color: var(--link);
   }
 
   .live {
-    color: var(--green);
+    color: var(--success);
   }
 </style>

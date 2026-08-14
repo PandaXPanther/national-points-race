@@ -13,8 +13,9 @@ const { tournaments } = Astro.props;
 ---
 
 <ol class="tournament-list">
-  {tournaments.map((tournament) => (
+  {tournaments.map((tournament, index) => (
     <li>
+      <span class="tournament-number">{String(index + 1).padStart(2, "0")}</span>
       <div>
         <span class="tier">Tier {tournament.tier}</span>
         <h3>{tournament.name}</h3>
@@ -37,12 +38,12 @@ const { tournaments } = Astro.props;
   }
 
   li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.5rem;
-    padding: 1.2rem 0;
-    border-bottom: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr) 10rem;
+    gap: 1.25rem;
+    align-items: baseline;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--rule-dark);
   }
 
   h3,
@@ -57,7 +58,7 @@ const { tournaments } = Astro.props;
   }
 
   .tier {
-    color: var(--burgundy);
+    color: var(--link);
     font-size: 0.68rem;
     font-weight: 800;
     letter-spacing: 0.08em;
@@ -78,7 +79,7 @@ const { tournaments } = Astro.props;
 
   .final,
   .corrected {
-    color: var(--green);
+    color: var(--success);
   }
 
   .source-unavailable,
@@ -86,13 +87,19 @@ const { tournaments } = Astro.props;
     color: var(--ink-soft);
   }
 
+  .tournament-number {
+    color: var(--ink-soft);
+    font-size: 0.62rem;
+    font-variant-numeric: tabular-nums;
+  }
+
   @media (max-width: 35rem) {
     li {
-      align-items: start;
-      flex-direction: column;
+      grid-template-columns: 2rem minmax(0, 1fr);
     }
 
     .status-stack {
+      grid-column: 2;
       text-align: left;
     }
   }

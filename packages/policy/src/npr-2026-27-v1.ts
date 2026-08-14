@@ -1,7 +1,7 @@
 import { LEGACY_POLICY } from "./legacy-2024-25-v1.js";
 import type { PolicyLedger, TournamentLineage } from "./types.js";
 
-export const NPR_2026_27_POLICY_VERSION = "npr-2026-27-v1" as const;
+export const NPR_2026_27_V1_POLICY_VERSION = "npr-2026-27-v1" as const;
 
 const asu = {
   id: "asu-hdshc-invitational",
@@ -12,7 +12,7 @@ const asu = {
   finalCreditPlacementLimit: 6,
 } as const satisfies TournamentLineage;
 
-export const CURRENT_POLICY = {
+export const NPR_2026_27_V1_POLICY = {
   tournaments: [...LEGACY_POLICY.tournaments, asu],
   tiers: LEGACY_POLICY.tiers,
   nsda: LEGACY_POLICY.nsda,

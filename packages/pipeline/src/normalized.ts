@@ -2,6 +2,7 @@ import {
   CURRENT_POLICY,
   DivisionSchema,
   NPR_2026_27_POLICY_VERSION,
+  NPR_2026_27_V1_POLICY_VERSION,
   POLICY_VERSION,
   RoundStageSchema,
   type TournamentLineageId,
@@ -16,6 +17,7 @@ const lineageIds = new Set<string>(
 
 export const PolicyVersionIdSchema = z.enum([
   POLICY_VERSION,
+  NPR_2026_27_V1_POLICY_VERSION,
   NPR_2026_27_POLICY_VERSION,
 ]);
 

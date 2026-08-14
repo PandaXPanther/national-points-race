@@ -1,8 +1,12 @@
 export { LEGACY_POLICY } from "./legacy-2024-25-v1.js";
 export {
+  NPR_2026_27_V1_POLICY,
+  NPR_2026_27_V1_POLICY_VERSION,
+} from "./npr-2026-27-v1.js";
+export {
   CURRENT_POLICY,
   NPR_2026_27_POLICY_VERSION,
-} from "./npr-2026-27-v1.js";
+} from "./npr-2026-27-v2.js";
 export {
   getTournamentPolicy,
   POLICY_VERSION,

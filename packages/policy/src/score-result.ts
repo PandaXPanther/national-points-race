@@ -1,6 +1,11 @@
-import { LEGACY_POLICY } from "./legacy-2024-25-v1.js";
-import { getTournamentPolicy } from "./policy-selector.js";
+import {
+  getTournamentPolicy,
+  POLICY_VERSION,
+  policyLedgerForVersion,
+  type PolicyVersionId,
+} from "./policy-selector.js";
 import type {
+  PolicyLedger,
   PolicyInputErrorCode,
   RoundStage,
   ScoreResultInput,
@@ -18,23 +23,29 @@ export class PolicyInputError extends Error {
   }
 }
 
-function pointsForPlacement(tier: Tier, placement: number): number {
+function pointsForPlacement(
+  policy: PolicyLedger,
+  tier: Tier,
+  placement: number,
+): number {
   if (tier === 1) {
-    return LEGACY_POLICY.nsda.basePlacements[placement - 1] ?? 0;
+    return policy.nsda.basePlacements[placement - 1] ?? 0;
   }
 
-  return LEGACY_POLICY.tiers[tier].placements[placement - 1] ?? 0;
+  return policy.tiers[tier].placements[placement - 1] ?? 0;
 }
 
-function pointsForElimination(tier: Tier, stage: RoundStage): number {
+function pointsForElimination(
+  policy: PolicyLedger,
+  tier: Tier,
+  stage: RoundStage,
+): number {
   if (stage === "final") {
     return 0;
   }
 
   const eliminations =
-    tier === 1
-      ? LEGACY_POLICY.nsda.eliminations
-      : LEGACY_POLICY.tiers[tier].eliminations;
+    tier === 1 ? policy.nsda.eliminations : policy.tiers[tier].eliminations;
 
   return (
     (eliminations as Partial<Record<Exclude<RoundStage, "final">, number>>)[
@@ -54,10 +65,14 @@ function scored(
   return { ...input, points, ruleId, win, topThree, final };
 }
 
-export function scoreResult(input: ScoreResultInput): ScoredResult {
+export function scoreResult(
+  input: ScoreResultInput,
+  version: PolicyVersionId = POLICY_VERSION,
+): ScoredResult {
+  const policy = policyLedgerForVersion(version);
   const tournament = (() => {
     try {
-      return getTournamentPolicy(input.lineageId);
+      return getTournamentPolicy(input.lineageId, version);
     } catch {
       throw new PolicyInputError(
         "UNKNOWN_TOURNAMENT",
@@ -95,7 +110,7 @@ export function scoreResult(input: ScoreResultInput): ScoredResult {
   }
 
   if (input.placement !== null && input.placement <= 6) {
-    const points = pointsForPlacement(tournament.tier, input.placement);
+    const points = pointsForPlacement(policy, tournament.tier, input.placement);
     return scored(
       input,
       points,
@@ -108,7 +123,7 @@ export function scoreResult(input: ScoreResultInput): ScoredResult {
 
   const stage =
     input.furthestStage === "final" ? "semifinal" : input.furthestStage;
-  const points = pointsForElimination(tournament.tier, stage);
+  const points = pointsForElimination(policy, tournament.tier, stage);
   return scored(
     input,
     points,

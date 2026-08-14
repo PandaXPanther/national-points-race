@@ -7,6 +7,7 @@ import {
   scoreResult,
   selectTournamentAwards,
   type Award,
+  type PolicyVersionId,
   type ScoredResult,
   type Standing,
   type TournamentLineageId,
@@ -357,7 +358,7 @@ export function rebuildSeason(rawInput: AwardRebuildInput): AwardRebuildOutput {
       nsdaMapped.push(...mapped);
       continue;
     }
-    const scored = scoreEvent(mapped, null);
+    const scored = scoreEvent(mapped, null, input.policyVersion);
     diagnostics.push(...scored.diagnostics);
     nonNsdaScored.push(...scored.awards);
   }
@@ -408,6 +409,7 @@ export function rebuildSeason(rawInput: AwardRebuildInput): AwardRebuildOutput {
         ({ resultSet }) => stableEventKey(resultSet) === eventKey,
       ),
       bonusDivision,
+      input.policyVersion,
     );
     diagnostics.push(...scored.diagnostics);
     nsdaScored.push(...scored.awards);
@@ -437,6 +439,7 @@ export function rebuildSeason(rawInput: AwardRebuildInput): AwardRebuildOutput {
 function scoreEvent(
   mapped: readonly MappedResult[],
   bonusDivision: "ix" | "usx" | null,
+  policyVersion: PolicyVersionId,
 ): ScoredEvent {
   const scored: AwardProvenance[] = [];
   for (const item of mapped) {
@@ -450,7 +453,7 @@ function scoreEvent(
           bonusDivision,
         });
       } else {
-        core = scoreResult(scoreInput(item));
+        core = scoreResult(scoreInput(item), policyVersion);
       }
       if (core.points > 0) scored.push(withProvenance(item, core));
     } catch (error) {

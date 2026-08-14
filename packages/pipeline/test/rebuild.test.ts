@@ -77,6 +77,37 @@ describe("rebuildSeason", () => {
     });
   });
 
+  it("scores reviewed tournament tiers from the selected 2026-27 policy", () => {
+    const nietoc = set(
+      "2026-27:nietoc",
+      "nietoc",
+      "nietoc-extemp",
+      [person("alice", 1)],
+      { publishedAt: "2027-05-12T00:00:00.000Z" },
+    );
+    const input = inputFromSets(
+      [nietoc],
+      [
+        {
+          seasonId: "2026-27",
+          editionId: "2026-27:nietoc",
+          tournamentOrder: 10,
+          date: "2027-05-12T00:00:00.000Z",
+        },
+      ],
+    );
+    input.seasonId = "2026-27";
+    input.policyVersion = NPR_2026_27_POLICY_VERSION;
+
+    const output = rebuildSeason(input);
+
+    expect(output.awards[0]).toMatchObject({
+      lineageId: "nietoc",
+      points: 100,
+      ruleId: "placement",
+    });
+  });
+
   it("returns the literal deterministic empty-season contract", () => {
     const output = rebuildSeason(emptyInput());
 

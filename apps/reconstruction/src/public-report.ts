@@ -174,7 +174,7 @@ export function buildPublicReconstructionReport(
     })),
     tournaments,
     caveat:
-      "The official MBA export did not contain cumulative result evidence, so MBA points are withheld. All other tracked lineages are resolved, including Apple Valley, whose official page listed no eligible extemp event.",
+      "All tracked lineages are resolved. Apple Valley's official page listed no eligible extemp event.",
   };
 }
 
@@ -221,7 +221,9 @@ function noteFor(
     return "The official 2025 tournament page lists debate and congress but no eligible extemp event.";
   }
   if (lineageId === "mba-round-robin") {
-    return "The official export identifies the event but contains no cumulative result set or ballot ranks. Points are withheld rather than inferred.";
+    return status === "final"
+      ? "The organizer's official cumulative results packet was reviewed and the published top six were scored."
+      : "No verified cumulative results packet was supplied to this reconstruction run.";
   }
   if (status === "source-unavailable") {
     return "No verified result snapshot was supplied to this reconstruction run.";

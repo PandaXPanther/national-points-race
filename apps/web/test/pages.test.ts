@@ -55,17 +55,19 @@ describe("public information architecture", () => {
 
     expect(reconstruction).toContain("StandingsTable");
     expect(reconstruction).toContain("report.standings");
+    expect(reconstruction).toContain("champion.points");
+    expect(reconstruction).not.toContain("<strong>619</strong>");
     expect(reconstruction).not.toContain("Evidence audit in progress");
     expect(report.standings).toHaveLength(100);
     expect(report.standings[0]?.name).toBe("Daphne Kalir-Starr");
-    expect(report.standings[0]?.points).toBe(619);
+    expect(report.standings[0]?.points).toBe(769);
     expect(report.completeness).toEqual({
       trackedLineages: 20,
-      verifiedResultSources: 18,
+      verifiedResultSources: 19,
       notHeld: 1,
-      withheld: 1,
-      normalizedResults: 656,
-      scoredAwards: 456,
+      withheld: 0,
+      normalizedResults: 662,
+      scoredAwards: 462,
     });
   });
 
@@ -84,7 +86,7 @@ describe("public information architecture", () => {
     );
 
     expect(reconstruction?.winner).toEqual(
-      expect.objectContaining({ name: "Daphne Kalir-Starr", points: 619 }),
+      expect.objectContaining({ name: "Daphne Kalir-Starr", points: 769 }),
     );
   });
 

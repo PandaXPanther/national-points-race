@@ -16,6 +16,10 @@ const publishedAt = new Intl.DateTimeFormat("en-US", {
   dateStyle: "long",
   timeZone: "UTC",
 }).format(new Date(report.publishedAt));
+const champion = report.standings[0];
+if (champion === undefined) {
+  throw new Error("The reconstructed standings do not contain a champion.");
+}
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "Dataset",
@@ -31,7 +35,7 @@ const structuredData = {
 
 <SiteLayout
   title="2025-26 Reconstructed Standings"
-  description="The audited Top 100 reconstruction of the 2025-26 National Points Race, led by Daphne Kalir-Starr with 619 points."
+  description={`The audited Top 100 reconstruction of the 2025-26 National Points Race, led by ${champion.name} with ${champion.points} points.`}
   canonicalPath="/2025-26/"
   {structuredData}
 >
@@ -44,10 +48,10 @@ const structuredData = {
       <div class="champion-scoreline">
         <div>
           <p class="label">Reconstructed champion</p>
-          <h1>Daphne<br />Kalir-Starr</h1>
+          <h1>{champion.name}</h1>
         </div>
         <div class="score">
-          <strong>619</strong>
+          <strong>{champion.points}</strong>
           <span>points</span>
         </div>
       </div>

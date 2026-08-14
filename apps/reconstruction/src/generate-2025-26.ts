@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { rebuildSeason } from "@points-race/pipeline";
 
 import { buildPublicReconstructionReport } from "./public-report.js";
+import { REVIEWED_MBA_2025_26 } from "./mba-reviewed.js";
 import { REVIEWED_SPEECHWIRE_2025_26 } from "./speechwire-reviewed.js";
 import {
   build2025_26RebuildInput,
@@ -27,7 +28,9 @@ for (const name of names) {
     ) as CompactTabroomArtifact,
   );
 }
-const input = build2025_26RebuildInput(artifacts, REVIEWED_SPEECHWIRE_2025_26);
+const input = build2025_26RebuildInput(artifacts, REVIEWED_SPEECHWIRE_2025_26, [
+  REVIEWED_MBA_2025_26,
+]);
 const output = rebuildSeason(input);
 const report = buildPublicReconstructionReport(input, output);
 
@@ -35,9 +38,9 @@ if (report.diagnostics.identity !== 0 || report.diagnostics.rebuild !== 0) {
   throw new Error("The public reconstruction report contained diagnostics.");
 }
 if (
-  report.completeness.verifiedResultSources !== 18 ||
+  report.completeness.verifiedResultSources !== 19 ||
   report.completeness.notHeld !== 1 ||
-  report.completeness.withheld !== 1
+  report.completeness.withheld !== 0
 ) {
   throw new Error("The public reconstruction source audit was incomplete.");
 }

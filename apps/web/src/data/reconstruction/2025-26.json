@@ -3,15 +3,15 @@
   "classification": "Automated reconstruction",
   "status": "provisional",
   "policyVersion": "legacy-2024-25-v1",
-  "standingsVersion": "8cd7adc1cf2954235cf65632c62bad2d861ba135f1b7adfd4b6c4989aa19ffb2",
-  "publishedAt": "2026-08-13T03:51:38.000Z",
+  "standingsVersion": "3b40bb26147e1c131e31a3ecd09398a13c2dd046477aac349a9e1b75634f3850",
+  "publishedAt": "2026-08-13T23:49:02.000Z",
   "completeness": {
     "trackedLineages": 20,
-    "verifiedResultSources": 18,
+    "verifiedResultSources": 19,
     "notHeld": 1,
-    "withheld": 1,
-    "normalizedResults": 656,
-    "scoredAwards": 456
+    "withheld": 0,
+    "normalizedResults": 662,
+    "scoredAwards": 462
   },
   "diagnostics": {
     "identity": 0,
@@ -23,30 +23,30 @@
       "competitorId": "competitor:6d28d1de87e18df058e1e58df40ef13f8b8bc49231c9de9bb80a182c22dd14dd",
       "name": "Daphne Kalir-Starr",
       "school": "College Prep",
-      "points": 619,
-      "wins": 3,
-      "topThrees": 6,
-      "finals": 8
+      "points": 769,
+      "wins": 4,
+      "topThrees": 7,
+      "finals": 9
     },
     {
       "rank": 2,
       "competitorId": "competitor:cca4ad7a1fed42dd579cdc11cb3cb95e9c546e22ecd432bdb2a5f6f4fdc7da2e",
       "name": "Zoe Becker",
       "school": "School Without Walls High School",
-      "points": 526,
+      "points": 601,
       "wins": 2,
       "topThrees": 2,
-      "finals": 3
+      "finals": 4
     },
     {
       "rank": 3,
       "competitorId": "competitor:fa90f299f182541cb4486575f307cda67efb91e686a5e3e17cc1885f643fcf30",
       "name": "Rehan Buvvaji",
       "school": "Plano West Sr High School",
-      "points": 453,
+      "points": 513,
       "wins": 1,
       "topThrees": 4,
-      "finals": 6
+      "finals": 7
     },
     {
       "rank": 4,
@@ -60,6 +60,16 @@
     },
     {
       "rank": 5,
+      "competitorId": "competitor:a7a49e6a25e5ff7a56d291612e9392737014d0da7e4f9d1553e0e2808b6d1e5a",
+      "name": "Ryan Xu",
+      "school": "Plano West Sr High School",
+      "points": 421,
+      "wins": 0,
+      "topThrees": 3,
+      "finals": 3
+    },
+    {
+      "rank": 6,
       "competitorId": "competitor:60e48de42758ec23188f9b46db299bfee3917778ac151b6d40efe1f2132f4131",
       "name": "Eric Qian",
       "school": "Plano West Sr High School",
@@ -69,7 +79,7 @@
       "finals": 5
     },
     {
-      "rank": 6,
+      "rank": 7,
       "competitorId": "competitor:c6a42f9f19b8670d2a09e72099d57bf7e7a4f95623992f16221b3de1f48d8ef4",
       "name": "Al Zaidi",
       "school": "Holy Trinity Episcopal Academy",
@@ -79,17 +89,17 @@
       "finals": 4
     },
     {
-      "rank": 7,
-      "competitorId": "competitor:a7a49e6a25e5ff7a56d291612e9392737014d0da7e4f9d1553e0e2808b6d1e5a",
-      "name": "Ryan Xu",
-      "school": "Plano West Sr High School",
-      "points": 316,
+      "rank": 8,
+      "competitorId": "competitor:ee003da06676bc36c5e23a15118b7dfea386ffca40e9b1416f560bb9f69af9f3",
+      "name": "Rowan Seipp",
+      "school": "A and M Consolidated High School",
+      "points": 293,
       "wins": 0,
       "topThrees": 2,
       "finals": 2
     },
     {
-      "rank": 8,
+      "rank": 9,
       "competitorId": "competitor:77224f171dccaccea8f1f6d2792e96ce6d4fdffffb2a4b3f69d16b088381e203",
       "name": "Anushka Gupta",
       "school": "Westwood",
@@ -99,7 +109,7 @@
       "finals": 4
     },
     {
-      "rank": 9,
+      "rank": 10,
       "competitorId": "competitor:0d8c259d3daa333a65560aee5a503c4379c6dd5d24ac96e36b4be142c25fc415",
       "name": "Natalia San Lucas",
       "school": "Gabrielino High School",
@@ -109,7 +119,7 @@
       "finals": 3
     },
     {
-      "rank": 10,
+      "rank": 11,
       "competitorId": "competitor:be919fdcd5633bc887487cd033520e16e23947796961def0cc50e9d2eb1b0b40",
       "name": "Adyant Bhavsar",
       "school": "Bellarmine College Preparatory",
@@ -119,7 +129,7 @@
       "finals": 3
     },
     {
-      "rank": 11,
+      "rank": 12,
       "competitorId": "competitor:3f3ea41f7f695b2bc2dae502add2bc834ac3f003a6d9659b821d45dea028a094",
       "name": "Connor Doherty",
       "school": "Granite Bay High School",
@@ -129,7 +139,7 @@
       "finals": 3
     },
     {
-      "rank": 12,
+      "rank": 13,
       "competitorId": "competitor:96f5ff56af0bd5e6b5f6d6bcb0d42c2a8911e920d6c76e94a50f74195e323591",
       "name": "Sylvia Oglesbay",
       "school": "Edina",
@@ -139,7 +149,7 @@
       "finals": 2
     },
     {
-      "rank": 13,
+      "rank": 14,
       "competitorId": "competitor:8dcdfb7746def6fa31e6d38d917437c0a0fd943a9f5e523361ebef8dfd33a84b",
       "name": "Grace Klausner",
       "school": "Convent of the Sacred Heart, NYC",
@@ -149,7 +159,7 @@
       "finals": 2
     },
     {
-      "rank": 14,
+      "rank": 15,
       "competitorId": "competitor:ba5b052a5c02300bf3013b616fcb126fc1793031777602dcf6d296f42be24dff",
       "name": "Anthony Babu",
       "school": "Concord Carlisle High School",
@@ -159,7 +169,17 @@
       "finals": 1
     },
     {
-      "rank": 15,
+      "rank": 16,
+      "competitorId": "competitor:a3bf000ad07c4e81b376ddadbc3dccfb04639e229f9e66921048a626719353a7",
+      "name": "Aparna Iyer",
+      "school": "Ridge High School",
+      "points": 208,
+      "wins": 1,
+      "topThrees": 1,
+      "finals": 3
+    },
+    {
+      "rank": 17,
       "competitorId": "competitor:61ba2175232a88ee84de4fdfd8ffd37b17600fa013ffff034769088893397433",
       "name": "Sophia Amundgaard",
       "school": "Stillwater Area High School",
@@ -169,7 +189,7 @@
       "finals": 1
     },
     {
-      "rank": 16,
+      "rank": 18,
       "competitorId": "competitor:3c898b50b0007318311b187c72d32e137d6b463fe3c52dcdcdcec3d1fa3e7898",
       "name": "Joy Hu",
       "school": "The Harker School",
@@ -179,7 +199,7 @@
       "finals": 2
     },
     {
-      "rank": 17,
+      "rank": 19,
       "competitorId": "competitor:4f45c2f720324751bc14e58531a09e78a3830a6e3184fe26ca03b6e9bc291418",
       "name": "Robert Zhang",
       "school": "Elkins Independent",
@@ -189,7 +209,7 @@
       "finals": 1
     },
     {
-      "rank": 18,
+      "rank": 20,
       "competitorId": "competitor:e31b4bb2aa7697997ea743fc08f52e7943467ce25dd07b182faa944620cd2ab0",
       "name": "Kajal Parmar",
       "school": "Cary Academy",
@@ -199,17 +219,7 @@
       "finals": 4
     },
     {
-      "rank": 19,
-      "competitorId": "competitor:ee003da06676bc36c5e23a15118b7dfea386ffca40e9b1416f560bb9f69af9f3",
-      "name": "Rowan Seipp",
-      "school": "A and M Consolidated High School",
-      "points": 173,
-      "wins": 0,
-      "topThrees": 1,
-      "finals": 1
-    },
-    {
-      "rank": 20,
+      "rank": 21,
       "competitorId": "competitor:c35aa170f2600acec3895947a1dc414612320690822300f4ce11e11976088051",
       "name": "Neil Alappatt",
       "school": "Bellarmine College Preparatory",
@@ -219,22 +229,12 @@
       "finals": 2
     },
     {
-      "rank": 21,
+      "rank": 22,
       "competitorId": "competitor:f0bec63da8adf2cbf5cb3fd2024a1f594260281538f91b53dd426166e2e0dc63",
       "name": "Manuela Mejia-Fanjul",
       "school": "Convent of the Sacred Heart, NYC",
       "points": 161,
       "wins": 0,
-      "topThrees": 1,
-      "finals": 3
-    },
-    {
-      "rank": 22,
-      "competitorId": "competitor:a3bf000ad07c4e81b376ddadbc3dccfb04639e229f9e66921048a626719353a7",
-      "name": "Aparna Iyer",
-      "school": "Ridge High School",
-      "points": 158,
-      "wins": 1,
       "topThrees": 1,
       "finals": 3
     },
@@ -1172,11 +1172,17 @@
       "lineageId": "mba-round-robin",
       "name": "Montgomery Bell Academy Extemp Round Robin",
       "tier": 2,
-      "status": "source-unavailable",
-      "resultCount": 0,
-      "awardCount": 0,
-      "source": null,
-      "note": "The official export identifies the event but contains no cumulative result set or ballot ranks. Points are withheld rather than inferred."
+      "status": "final",
+      "resultCount": 6,
+      "awardCount": 6,
+      "source": {
+        "url": "https://www.tabroom.com/index/tourn/events.mhtml?tourn_id=38655",
+        "sha256": "b293c39e868455d2ea75214575e15e0df1e1d573161422ff0f30fd403da54cc3",
+        "retrievedAt": "2026-08-13T23:49:02.000Z",
+        "parserVersion": "mba-cumulative-pdf-reviewed-v1",
+        "permission": "official-public-document"
+      },
+      "note": "The organizer's official cumulative results packet was reviewed and the published top six were scored."
     },
     {
       "order": 11,
@@ -1349,5 +1355,5 @@
       "note": "Official public result evidence was normalized and scored."
     }
   ],
-  "caveat": "The official MBA export did not contain cumulative result evidence, so MBA points are withheld. All other tracked lineages are resolved, including Apple Valley, whose official page listed no eligible extemp event."
+  "caveat": "All tracked lineages are resolved. Apple Valley's official page listed no eligible extemp event."
 }

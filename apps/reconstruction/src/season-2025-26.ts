@@ -16,6 +16,10 @@ import {
   buildReviewedSpeechWireEvidence,
   type ReviewedSpeechWireArtifact,
 } from "./speechwire-reviewed.js";
+import {
+  buildReviewedMbaEvidence,
+  type ReviewedMbaArtifact,
+} from "./mba-reviewed.js";
 
 export type TrackedSource =
   | { readonly kind: "tabroom"; readonly tournamentId: number }
@@ -111,6 +115,7 @@ const IDENTITY_PROVIDER = "reconstruction-identity-v1";
 export function build2025_26RebuildInput(
   rawArtifacts: readonly CompactTabroomArtifact[],
   speechWireArtifacts: readonly ReviewedSpeechWireArtifact[] = [],
+  mbaArtifacts: readonly ReviewedMbaArtifact[] = [],
 ): AwardRebuildInput {
   const artifacts = [...rawArtifacts].map(validateArtifact);
   assertUniqueTournamentIds(artifacts);
@@ -178,17 +183,27 @@ export function build2025_26RebuildInput(
 
   const speechWireEvidence =
     buildReviewedSpeechWireEvidence(speechWireArtifacts);
+  const mbaEvidence = buildReviewedMbaEvidence(mbaArtifacts);
   const resultSets = assignIdentityKeys([
     ...prepared.map(({ resultSet }) => resultSet),
     ...speechWireEvidence.resultSets,
+    ...mbaEvidence.resultSets,
   ]);
   const sourcePeople = resultSets.flatMap(toSourcePeople);
   return AwardRebuildInputSchema.parse({
     policyVersion: POLICY_VERSION,
     seasonId: "2025-26",
-    editions: [...editions, ...speechWireEvidence.editions],
+    editions: [
+      ...editions,
+      ...speechWireEvidence.editions,
+      ...mbaEvidence.editions,
+    ],
     resultSets,
-    snapshots: [...snapshots, ...speechWireEvidence.snapshots],
+    snapshots: [
+      ...snapshots,
+      ...speechWireEvidence.snapshots,
+      ...mbaEvidence.snapshots,
+    ],
     descriptors: [
       {
         id: DESCRIPTOR_ID,
@@ -198,6 +213,7 @@ export function build2025_26RebuildInput(
         permission: "official-public-export",
       },
       ...speechWireEvidence.descriptors,
+      ...mbaEvidence.descriptors,
     ],
     sourcePeople,
     schoolRegistry: {

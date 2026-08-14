@@ -125,7 +125,7 @@ describe("public methodology policy", () => {
   it("serializes the frozen scoring policy without changing its values", () => {
     const policy = getPolicyView();
 
-    expect(policy.version).toBe("npr-2026-27-v1");
+    expect(policy.version).toBe("npr-2026-27-v2");
     expect(policy.tiers[2].placements).toEqual([150, 120, 105, 75, 60, 50]);
     expect(policy.tiers[5].placements).toEqual([40, 34, 28, 20, 16, 13]);
     expect(policy.nsda.multiplier).toEqual({
@@ -137,7 +137,12 @@ describe("public methodology policy", () => {
       policy.tournaments.find(({ id }) => id === "mba-round-robin"),
     ).toMatchObject({ mbaTopSixOnly: true, finalCreditPlacementLimit: 5 });
     expect(
-      policy.tournaments.find(({ id }) => id === "asu-hdshc-invitational"),
-    ).toMatchObject({ tier: 4 });
+      Object.fromEntries(policy.tournaments.map(({ id, tier }) => [id, tier])),
+    ).toMatchObject({
+      nietoc: 3,
+      stanford: 5,
+      "james-logan-mlk": 4,
+      "asu-hdshc-invitational": 4,
+    });
   });
 });

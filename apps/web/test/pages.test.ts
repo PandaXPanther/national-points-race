@@ -90,6 +90,15 @@ describe("public information architecture", () => {
     );
   });
 
+  it("derives the homepage reconstruction record from canonical history", async () => {
+    const home = await readFile(`${sourceRoot}pages/index.astro`, "utf8");
+
+    expect(home).toContain('historicalSeason("2025-26")');
+    expect(home).toContain("reconstruction.winner.name");
+    expect(home).toContain("reconstruction.winner.points");
+    expect(home).not.toContain("619");
+  });
+
   it("credits the original race and describes independent stewardship", async () => {
     const history = await readFile(`${sourceRoot}pages/history.astro`, "utf8");
     expect(history).toContain("Extemp Central");
@@ -100,14 +109,24 @@ describe("public information architecture", () => {
     expect(history).toContain("independent");
   });
 
-  it("publishes the current 21-tournament policy and ASU addition", async () => {
+  it("publishes the reviewed current policy consistently", async () => {
     const [current, methodology] = await Promise.all([
       readFile(`${sourceRoot}pages/2026-27.astro`, "utf8"),
       readFile(`${sourceRoot}pages/methodology.astro`, "utf8"),
     ]);
-    expect(current).toContain("npr-2026-27-v1");
+    expect(current).toContain("getPolicyView");
+    expect(current).toContain("policy.version");
     expect(current).toContain("21");
-    expect(methodology).toContain("Arizona State HDSHC Invitational");
-    expect(methodology).toContain("Tier 4");
+    for (const lineageId of [
+      "nietoc",
+      "stanford",
+      "james-logan-mlk",
+      "asu-hdshc-invitational",
+    ]) {
+      expect(current).toContain(lineageId);
+      expect(methodology).toContain(lineageId);
+    }
+    expect(current).not.toContain("npr-2026-27-v1");
+    expect(methodology).not.toContain("npr-2026-27-v1");
   });
 });

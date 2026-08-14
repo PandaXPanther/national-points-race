@@ -2,8 +2,23 @@
 import MbaSubmissionForm from "../components/MbaSubmissionForm.astro";
 import SeasonBadge from "../components/SeasonBadge.astro";
 import SiteLayout from "../layouts/SiteLayout.astro";
+import { getPolicyView } from "../lib/policy.js";
 import { absoluteUrl } from "../lib/seo.js";
 
+const policy = getPolicyView();
+const reviewedLineages = [
+  { id: "nietoc", name: "NIETOC" },
+  { id: "stanford", name: "Stanford" },
+  { id: "james-logan-mlk", name: "James Logan" },
+  { id: "asu-hdshc-invitational", name: "ASU" },
+] as const;
+const reviewedTiers = reviewedLineages.map((reviewed) => {
+  const tournament = policy.tournaments.find(({ id }) => id === reviewed.id);
+  if (tournament === undefined) {
+    throw new Error(`Missing current policy lineage: ${reviewed.id}`);
+  }
+  return { ...reviewed, tier: tournament.tier };
+});
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "Dataset",
@@ -36,18 +51,20 @@ const structuredData = {
       <div><dt>Tournaments</dt><dd>21</dd></div>
       <div><dt>Scored</dt><dd>0</dd></div>
       <div><dt>Published</dt><dd>Top 100</dd></div>
-      <div><dt>Policy</dt><dd>npr-2026-27-v1</dd></div>
+      <div><dt>Policy</dt><dd>{policy.version}</dd></div>
     </dl>
   </header>
 
   <section class="section preseason-note">
     <div class="shell season-notes">
       <article>
-        <p class="label">Added for 2026-27</p>
-        <h2>Arizona State HDSHC Invitational</h2>
-        <p>
-          ASU enters as Tier 4 this season and remains in future policy ledgers.
-        </p>
+        <p class="label">Reviewed for 2026-27</p>
+        <h2>Four placements, one ledger.</h2>
+        <ul class="reviewed-tiers">
+          {reviewedTiers.map(({ name, tier }) => (
+            <li><span>{name}</span><strong>Tier {tier}</strong></li>
+          ))}
+        </ul>
         <a href="/methodology/#tournaments">See all 21 tournaments</a>
       </article>
       <aside>
@@ -145,6 +162,30 @@ const structuredData = {
     font-size: clamp(2.4rem, 5vw, 4.7rem);
   }
 
+  .reviewed-tiers {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 36rem;
+    margin: 1.5rem 0;
+    padding: 0;
+    border-top: 1px solid var(--rule-dark);
+    list-style: none;
+  }
+
+  .reviewed-tiers li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.6rem 1rem 0.6rem 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 0.8rem;
+  }
+
+  .reviewed-tiers li:nth-child(even) {
+    border-left: 1px solid var(--rule);
+    padding-left: 1rem;
+  }
+
   .season-notes aside {
     align-self: end;
     border-top: 2px solid var(--ink);
@@ -195,6 +236,15 @@ const structuredData = {
 
     .preseason-register div + div {
       border-top: 1px solid var(--rule);
+      border-left: 0;
+      padding-left: 0;
+    }
+
+    .reviewed-tiers {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .reviewed-tiers li:nth-child(even) {
       border-left: 0;
       padding-left: 0;
     }

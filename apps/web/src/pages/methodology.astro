@@ -6,6 +6,19 @@ import { getPolicyView } from "../lib/policy.js";
 import { absoluteUrl } from "../lib/seo.js";
 
 const policy = getPolicyView();
+const reviewedLineageIds = [
+  "nietoc",
+  "stanford",
+  "james-logan-mlk",
+  "asu-hdshc-invitational",
+] as const;
+const reviewedTiers = reviewedLineageIds.map((lineageId) => {
+  const tournament = policy.tournaments.find(({ id }) => id === lineageId);
+  if (tournament === undefined) {
+    throw new Error(`Missing current policy lineage: ${lineageId}`);
+  }
+  return tournament;
+});
 const tierGroups = [1, 2, 3, 4, 5].map((tier) => ({
   tier,
   tournaments: policy.tournaments.filter(
@@ -111,8 +124,13 @@ const structuredData = {
           <p>Names and tiers come from the 2026-27 executable policy.</p>
         </div>
         <p class="asu-note">
-          <strong>Arizona State HDSHC Invitational</strong> joins as <strong>Tier 4</strong>
-          in 2026-27 and future seasons. It is not retroactive.
+          Reviewed for 2026-27:{" "}
+          {reviewedTiers.map((tournament, index) => (
+            <>
+              {index > 0 && ", "}
+              <strong>{tournament.canonicalName}</strong>{" "}Tier {tournament.tier}
+            </>
+          ))}. Legacy seasons are unchanged.
         </p>
         <div class="tier-roster">
           {tierGroups.map(({ tier, tournaments }) => (

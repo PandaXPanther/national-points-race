@@ -125,6 +125,23 @@ async function pageMetrics(client) {
     expression: `(() => {
       const root = document.documentElement;
       const heading = document.querySelector("h1");
+      const heroTitle = document.querySelector(".cover h1");
+      const editionLabel = document.querySelector(".edition-label");
+      const rect = (element) => {
+        if (!element) return null;
+        const { top, right, bottom, left } = element.getBoundingClientRect();
+        return { top, right, bottom, left };
+      };
+      const heroTitleRect = rect(heroTitle);
+      const editionLabelRect = rect(editionLabel);
+      const heroOverlap = Boolean(
+        heroTitleRect &&
+        editionLabelRect &&
+        heroTitleRect.left < editionLabelRect.right &&
+        heroTitleRect.right > editionLabelRect.left &&
+        heroTitleRect.top < editionLabelRect.bottom &&
+        heroTitleRect.bottom > editionLabelRect.top
+      );
       return {
         title: document.title,
         pathname: location.pathname,
@@ -134,6 +151,9 @@ async function pageMetrics(client) {
         fontsStatus: document.fonts.status,
         bodyFont: getComputedStyle(document.body).fontFamily,
         headingFont: heading ? getComputedStyle(heading).fontFamily : null,
+        heroTitleRect,
+        editionLabelRect,
+        heroOverlap,
       };
     })()`,
     returnByValue: true,
@@ -252,11 +272,19 @@ try {
 }
 
 const failures = report.filter(
-  ({ clientWidth, scrollWidth, fontsStatus, bodyFont, headingFont }) =>
+  ({
+    clientWidth,
+    scrollWidth,
+    fontsStatus,
+    bodyFont,
+    headingFont,
+    heroOverlap,
+  }) =>
     scrollWidth > clientWidth ||
     fontsStatus !== "loaded" ||
     !bodyFont.includes("Inter Variable") ||
-    !headingFont?.includes("Source Serif 4 Variable"),
+    !headingFont?.includes("Source Serif 4 Variable") ||
+    heroOverlap,
 );
 const finalReport = {
   baseUrl,

@@ -53,6 +53,18 @@ describe("public copy rules", () => {
     expect(layout).toContain('href="https://buymeacoffee.com/sarast1"');
   });
 
+  it("preserves natural spaces at inline Astro markup boundaries", async () => {
+    const [layout, methodology] = await Promise.all([
+      readFile(`${sourceRoot}layouts/SiteLayout.astro`, "utf8"),
+      readFile(`${sourceRoot}pages/methodology.astro`, "utf8"),
+    ]);
+
+    expect(layout).toContain('</a>{" "}and ping');
+    expect(layout).toContain('</a>{" "}or <a');
+    expect(methodology).toContain('</strong>{" "}');
+    expect(`${layout}\n${methodology}`).not.toMatch(/Discordand|Tier 4in/u);
+  });
+
   it("uses an editorial register instead of generated landing-page patterns", async () => {
     const [styles, home, reconstruction] = await Promise.all([
       readFile(`${sourceRoot}styles/global.css`, "utf8"),

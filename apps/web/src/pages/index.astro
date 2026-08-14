@@ -1,8 +1,15 @@
 ---
 import SeasonBadge from "../components/SeasonBadge.astro";
+import { historicalSeason } from "../data/history.js";
 import SiteLayout from "../layouts/SiteLayout.astro";
+import { getPolicyView } from "../lib/policy.js";
 import { absoluteUrl, SITE_NAME } from "../lib/seo.js";
 
+const reconstruction = historicalSeason("2025-26");
+if (reconstruction?.winner === null || reconstruction?.winner === undefined) {
+  throw new Error("The 2025-26 reconstruction champion is unavailable.");
+}
+const policy = getPolicyView();
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "WebSite",
@@ -40,7 +47,7 @@ const structuredData = {
       </div>
       <dl class="cover-status" aria-label="Current season status">
         <div><dt>Status</dt><dd>Preseason</dd></div>
-        <div><dt>Policy</dt><dd>npr-2026-27-v1</dd></div>
+        <div><dt>Policy</dt><dd>{policy.version}</dd></div>
         <div><dt>Field</dt><dd>21 tournaments</dd></div>
         <div><dt>Depth</dt><dd>Top 100</dd></div>
       </dl>
@@ -69,8 +76,8 @@ const structuredData = {
           <span class="years">2025-26</span>
           <div>
             <SeasonBadge classification="Automated reconstruction" />
-            <h2>Daphne Kalir-Starr</h2>
-            <p>Reconstructed champion, 619 points.</p>
+            <h2>{reconstruction.winner.name}</h2>
+            <p>Reconstructed champion, {reconstruction.winner.points} points.</p>
           </div>
           <a href="/2025-26/">Top 100</a>
         </li>
@@ -291,8 +298,27 @@ const structuredData = {
   }
 
   @media (max-width: 34rem) {
+    .cover-title {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.75rem 1rem;
+      align-items: start;
+    }
+
+    .edition-label {
+      position: static;
+      justify-self: end;
+      writing-mode: horizontal-tb;
+    }
+
     .cover h1 {
+      grid-column: 1 / -1;
+      margin-top: 2.75rem;
       font-size: clamp(7rem, 35vw, 10rem);
+    }
+
+    .full-name {
+      grid-column: 1 / -1;
     }
 
     .cover-status {

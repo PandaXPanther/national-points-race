@@ -1,4 +1,4 @@
-# National Points Race
+# [National Points Race](https://national-points-race.pages.dev/)
 
 An independent, open-source continuation of the National Points Race for high school extemporaneous speaking.
 

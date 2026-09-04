@@ -85,6 +85,125 @@ function validSignature(request: Request, body: Uint8Array): boolean {
 }
 
 describe("scheduled official document collector", () => {
+  it.each([
+    { serviceUrl: "", secret: SECRET, key: "POINTS_RACE_SERVICE_URL" },
+    { serviceUrl: " \t ", secret: SECRET, key: "POINTS_RACE_SERVICE_URL" },
+    { serviceUrl: SERVICE_URL, secret: "", key: "DOCUMENT_INGEST_SECRET" },
+    { serviceUrl: SERVICE_URL, secret: " \t ", key: "DOCUMENT_INGEST_SECRET" },
+  ])("rejects missing $key before network access", async (configuration) => {
+    const fetchImpl = vi.fn<typeof fetch>(async () =>
+      responseJson(tournamentIndex()),
+    );
+
+    await expect(
+      runCollector({ ...configuration, manifests: [], fetchImpl }),
+    ).rejects.toThrow(configuration.key);
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    "private-invalid-url",
+    "http://service.example.test",
+    "https://user:private-password@service.example.test",
+    "https://service.example.test:8443",
+    "https://service.example.test?token=private-query",
+    "https://service.example.test#private-fragment",
+    "https://service.example.test/private-path",
+  ])(
+    "rejects invalid service URLs before network access",
+    async (serviceUrl) => {
+      const fetchImpl = vi.fn<typeof fetch>(async () =>
+        responseJson(tournamentIndex()),
+      );
+
+      const operation = runCollector({
+        serviceUrl,
+        secret: SECRET,
+        manifests: [],
+        fetchImpl,
+      });
+      await expect(operation).rejects.toThrow(
+        /DOCUMENT_COLLECTOR_CONFIG_INVALID.*POINTS_RACE_SERVICE_URL/,
+      );
+      await expect(operation).rejects.not.toThrow(/private-|example\.test/);
+      expect(fetchImpl).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([401, 503])(
+    "fails when the ingest service returns %i without exposing its body",
+    async (status) => {
+      const fetchImpl = vi.fn<typeof fetch>(async (input, init) => {
+        const request = new Request(input, init);
+        if (
+          request.url === `${SERVICE_URL}/v1/seasons/${SEASON_ID}/tournaments`
+        )
+          return responseJson(tournamentIndex());
+        if (request.url === DOCUMENT_URL)
+          return new Response(CSV, { headers: { "content-type": "text/csv" } });
+        if (
+          request.url === `${SERVICE_URL}/internal/document-ingest` &&
+          request.method === "POST"
+        )
+          return new Response("private-service-response", { status });
+        throw new Error("Unexpected network request.");
+      });
+
+      const operation = runCollector({
+        serviceUrl: SERVICE_URL,
+        secret: SECRET,
+        manifests: [MANIFEST],
+        fetchImpl,
+        now: () => new Date("2027-02-17T09:47:00.000Z"),
+      });
+      await expect(operation).rejects.toThrow(
+        "Points Race service rejected a signed document packet.",
+      );
+      await expect(operation).rejects.not.toThrow(
+        /private-service-response|test-only-collector-secret/,
+      );
+    },
+  );
+
+  it("preserves whitespace in a nonempty signing key", async () => {
+    const secret = ` ${SECRET} `;
+    let suppliedSignature: string | null = null;
+    let expectedSignature = "";
+    const fetchImpl = vi.fn<typeof fetch>(async (input, init) => {
+      const request = new Request(input, init);
+      if (request.url === `${SERVICE_URL}/v1/seasons/${SEASON_ID}/tournaments`)
+        return responseJson(tournamentIndex());
+      if (request.url === DOCUMENT_URL)
+        return new Response(CSV, { headers: { "content-type": "text/csv" } });
+      if (
+        request.url === `${SERVICE_URL}/internal/document-ingest` &&
+        request.method === "POST"
+      ) {
+        const body = new Uint8Array(await request.arrayBuffer());
+        const hash = createHash("sha256").update(body).digest("hex");
+        expectedSignature = createHmac("sha256", secret)
+          .update(
+            `${request.headers.get("x-points-race-timestamp")}\n${hash}\n${body.byteLength}`,
+            "utf8",
+          )
+          .digest("hex");
+        suppliedSignature = request.headers.get("x-points-race-signature");
+        return new Response(null, { status: 202 });
+      }
+      throw new Error("Unexpected network request.");
+    });
+
+    const output = await runCollector({
+      serviceUrl: SERVICE_URL,
+      secret,
+      manifests: [MANIFEST],
+      fetchImpl,
+      now: () => new Date("2027-02-17T09:47:00.000Z"),
+    });
+    expect(output.submitted).toBe(1);
+    expect(suppliedSignature).toBe(expectedSignature);
+  });
+
   it("discovers, parses, signs, and submits an official packet", async () => {
     const submissions: { request: Request; body: Uint8Array }[] = [];
     const now = vi

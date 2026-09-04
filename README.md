@@ -43,6 +43,19 @@ pnpm --filter @points-race/reconstruction rebuild:2025-26
 
 The web build writes a Cloudflare Pages advanced-mode bundle to `apps/web/dist-pages`.
 
+## Scheduled official document collector
+
+The `Official document collector` workflow runs daily at 09:47 UTC (GitHub may delay scheduled jobs) and supports manual dispatch. It uses the GitHub `production` environment. Configure:
+
+- **Actions variable `POINTS_RACE_SERVICE_URL`**: the deployed service HTTPS origin, currently `https://points-race-service.pandaxpanther.workers.dev`. The same-named Actions secret remains supported as a fallback for older setups; the variable takes precedence.
+- **Actions secret `DOCUMENT_INGEST_SECRET`**: the exact same signing key as the deployed Worker's `DOCUMENT_INGEST_SECRET` secret. Store it in the `production` environment or at repository scope. Never put the key in a variable, source file, or log.
+
+The Worker is named `points-race-service` in `apps/service/wrangler.jsonc`. Its top-level configuration is production; there is no Wrangler `production` environment. Configure its secret with `pnpm --filter @points-race/service exec wrangler secret put DOCUMENT_INGEST_SECRET` using secure input, and configure the same value in GitHub. Updating only one side breaks signed submissions. See [GitHub's secret setup](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets) and [Cloudflare's secret setup](https://developers.cloudflare.com/workers/configuration/secrets/).
+
+After building the collector, `node apps/document-collector/dist/run.js --check-config` validates the environment without loading manifests or making network requests. It prints `DOCUMENT_COLLECTOR_CONFIG_OK`; this checks configuration syntax, not service reachability or authentication. Missing, empty, or whitespace-only settings fail with the relevant configuration names, without printing their values. Other runtime failures remain redacted.
+
+Dispatch the workflow on the intended branch to verify the complete run. `DOCUMENT_COLLECTOR_OK` includes considered, submitted, and duplicate counts. The collector processes only checked-in templates in `apps/document-collector/manifests`; this directory currently has no approved JSON templates, so a healthy run submits zero documents. Zero submissions do not verify that the signing key matches the Worker. Missing configuration remains an error even when there are no templates.
+
 ## Corrections
 
 If anything in the National Points Race looks wrong, join the [Discord server](https://discord.gg/8RFTvCWPPv) and ping `@PandaXPanther`. Include the season, tournament, competitor, and official source if possible.

@@ -19,6 +19,21 @@ import { signDocumentPacket } from "./sign.js";
 
 const DOCUMENT_MAX_BYTES = 25 * 1_024 * 1_024;
 const DOCUMENT_TIMEOUT_MS = 45_000;
+const CONFIGURATION_DIAGNOSTICS = {
+  missingServiceUrl:
+    "DOCUMENT_COLLECTOR_CONFIG_MISSING: POINTS_RACE_SERVICE_URL",
+  missingSecret: "DOCUMENT_COLLECTOR_CONFIG_MISSING: DOCUMENT_INGEST_SECRET",
+  missingBoth:
+    "DOCUMENT_COLLECTOR_CONFIG_MISSING: POINTS_RACE_SERVICE_URL, DOCUMENT_INGEST_SECRET",
+  invalidServiceUrl:
+    "DOCUMENT_COLLECTOR_CONFIG_INVALID: POINTS_RACE_SERVICE_URL must be an HTTPS origin without credentials, a non-default port, a path, a query, or a fragment.",
+} as const;
+
+class CollectorConfigurationError extends Error {
+  constructor(readonly code: keyof typeof CONFIGURATION_DIAGNOSTICS) {
+    super(CONFIGURATION_DIAGNOSTICS[code]);
+  }
+}
 
 export interface RunCollectorInput {
   readonly serviceUrl: string;
@@ -70,25 +85,47 @@ function withStableDocumentPeople(
 }
 
 function serviceIngestUrl(rawServiceUrl: string): URL {
-  const origin = new URL(rawServiceUrl);
+  let origin: URL;
+  try {
+    origin = new URL(rawServiceUrl);
+  } catch {
+    throw new CollectorConfigurationError("invalidServiceUrl");
+  }
   if (
     origin.protocol !== "https:" ||
     origin.username !== "" ||
     origin.password !== "" ||
-    origin.port !== ""
+    origin.port !== "" ||
+    origin.pathname !== "/" ||
+    origin.search !== "" ||
+    origin.hash !== ""
   ) {
-    throw new TypeError(
-      "Points Race service URL must be a public HTTPS origin.",
-    );
+    throw new CollectorConfigurationError("invalidServiceUrl");
   }
   return new URL("/internal/document-ingest", origin.origin);
+}
+
+function collectorConfiguration(
+  serviceUrl: string | undefined,
+  secret: string | undefined,
+) {
+  if (serviceUrl === undefined || serviceUrl.trim().length === 0) {
+    throw new CollectorConfigurationError(
+      secret === undefined || secret.trim().length === 0
+        ? "missingBoth"
+        : "missingServiceUrl",
+    );
+  }
+  if (secret === undefined || secret.trim().length === 0) {
+    throw new CollectorConfigurationError("missingSecret");
+  }
+  return { serviceUrl, secret, ingestUrl: serviceIngestUrl(serviceUrl) };
 }
 
 export async function runCollector(
   input: RunCollectorInput,
 ): Promise<RunCollectorOutput> {
-  if (input.secret.length === 0)
-    throw new TypeError("Ingest secret is required.");
+  const { ingestUrl } = collectorConfiguration(input.serviceUrl, input.secret);
   const now = input.now ?? (() => new Date());
   const observedNow = now();
   const seasonId = seasonIdFor(observedNow);
@@ -142,7 +179,7 @@ export async function runCollector(
       input.secret,
       now().toISOString(),
     );
-    const response = await fetchImpl(serviceIngestUrl(input.serviceUrl), {
+    const response = await fetchImpl(ingestUrl, {
       method: "POST",
       headers: signed.headers,
       body: new TextDecoder().decode(signed.body),
@@ -160,10 +197,13 @@ export async function runCollector(
 }
 
 async function main(): Promise<void> {
-  const serviceUrl = process.env.POINTS_RACE_SERVICE_URL;
-  const secret = process.env.DOCUMENT_INGEST_SECRET;
-  if (serviceUrl === undefined || secret === undefined) {
-    throw new Error("Collector environment is incomplete.");
+  const { serviceUrl, secret } = collectorConfiguration(
+    process.env.POINTS_RACE_SERVICE_URL,
+    process.env.DOCUMENT_INGEST_SECRET,
+  );
+  if (process.argv[2] === "--check-config") {
+    process.stdout.write("DOCUMENT_COLLECTOR_CONFIG_OK\n");
+    return;
   }
   const defaultManifestDirectory = resolve(
     dirname(fileURLToPath(import.meta.url)),
@@ -183,8 +223,12 @@ if (
   invokedPath !== undefined &&
   resolve(invokedPath) === fileURLToPath(import.meta.url)
 ) {
-  main().catch(() => {
-    process.stderr.write("DOCUMENT_COLLECTOR_FAILED\n");
+  main().catch((error: unknown) => {
+    const diagnostic =
+      error instanceof CollectorConfigurationError
+        ? CONFIGURATION_DIAGNOSTICS[error.code]
+        : "DOCUMENT_COLLECTOR_FAILED";
+    process.stderr.write(`${diagnostic}\n`);
     process.exitCode = 1;
   });
 }

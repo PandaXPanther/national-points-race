@@ -144,7 +144,16 @@ export function versionedResponse(
     "Content-Type": contentType,
     ETag: etag,
   };
-  if (request.headers.get("if-none-match") === etag) {
+  // GET revalidation uses weak comparison, including when Cloudflare weakens an
+  // ETag while compressing the response. A client may also send multiple tags.
+  const matches = request.headers
+    .get("if-none-match")
+    ?.split(",")
+    .some((value) => {
+      const tag = value.trim();
+      return tag === "*" || tag.replace(/^W\//u, "") === etag;
+    });
+  if (matches) {
     return new Response(null, { status: 304, headers });
   }
   return new Response(body, { status: 200, headers });

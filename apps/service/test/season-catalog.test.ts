@@ -292,6 +292,24 @@ describe("public season catalog", () => {
     );
   });
 
+  it.each(["weak", "list", "wildcard"])(
+    "revalidates the catalog with a %s If-None-Match header",
+    async (kind) => {
+      const response = await catalog();
+      const etag = response.headers.get("etag")!;
+      await response.text();
+      const validator =
+        kind === "weak"
+          ? `W/${etag}`
+          : kind === "list"
+            ? `"stale", W/${etag}`
+            : "*";
+      const cached = await catalog(validator);
+      expect(cached.status).toBe(304);
+      expect(await cached.text()).toBe("");
+    },
+  );
+
   it("counts only scored editions and withholds a provisional leader from champions", async () => {
     const published = await publishSeason("2029-30", "provisional", [
       ALPHA,

@@ -60,11 +60,13 @@ Deploy the database migration and service before publishing the updated dashboar
 ```bash
 pnpm --filter @points-race/service exec wrangler d1 migrations apply points-race --remote
 pnpm --filter @points-race/service exec wrangler deploy
-PUBLIC_API_BASE_URL=https://points-race-service.pandaxpanther.workers.dev pnpm --filter @points-race/web build
+pnpm --filter @points-race/web build
 pnpm --filter @points-race/web exec wrangler pages deploy dist-pages --project-name national-points-race --branch main
 ```
 
 Migrations `0005_document_receipts.sql` and `0006_source_observations.sql` are additive. They record completed document ingests and actual source changes so a daily retrieval timestamp does not masquerade as changed evidence, while a reverted official export can correctly replace an intervening correction. They do not rewrite source snapshots, standings, or historical champions. Rollback can restore the previous Worker and Pages versions while leaving these unused tables in place. Service and Pages deployment use authenticated Wrangler access; never commit deployment credentials. The existing GitHub Pages upload step also requires a repository `CLOUDFLARE_API_TOKEN` secret. Runtime season updates do not depend on a daily Pages deployment.
+
+The dashboard's `apps/web/wrangler.jsonc` supplies its public API URL and Turnstile site key during the Astro build. For a preview that uses another service, change these public build settings for that build; shell environment values do not override Wrangler's configured values. Keep `global_fetch_strictly_public` enabled so server-rendered Pages requests can reach the same-account service on `workers.dev`.
 
 ## Scheduled official document collector
 

@@ -22,6 +22,38 @@ export const StandingSchema = z
   .strict()
   .readonly();
 
+export const SeasonSummarySchema = z
+  .strictObject({
+    seasonId: seasonIdSchema,
+    status: z.enum(["unpublished", "provisional", "final", "corrected"]),
+    policyVersion: z.string().min(1),
+    tournamentCount: nonnegativeIntegerSchema,
+    scoredTournamentCount: nonnegativeIntegerSchema,
+    competitorCount: nonnegativeIntegerSchema,
+    standingsVersion: sha256Schema.nullable(),
+    publishedAt: utcTimestampSchema.nullable(),
+    champions: z.array(StandingSchema).readonly(),
+  })
+  .refine(
+    (season) =>
+      season.champions.every((standing) => standing.rank === 1) &&
+      (season.status === "final" ||
+        season.status === "corrected" ||
+        season.champions.length === 0),
+    "Champions must be rank one in a finalized publication.",
+  )
+  .readonly();
+
+export const SeasonCatalogResponseSchema = z
+  .strictObject({
+    currentSeasonId: seasonIdSchema,
+    seasons: z.array(SeasonSummarySchema).readonly(),
+  })
+  .readonly();
+
+export type SeasonSummary = z.infer<typeof SeasonSummarySchema>;
+export type SeasonCatalogResponse = z.infer<typeof SeasonCatalogResponseSchema>;
+
 export const StandingsResponseSchema = z
   .object({
     seasonId: seasonIdSchema,

@@ -3,7 +3,7 @@
   "name": "national-points-race",
   "pages_build_output_dir": "./dist-pages",
   "compatibility_date": "2026-08-11",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "vars": {
     "PUBLIC_API_BASE_URL": "https://points-race-service.pandaxpanther.workers.dev",
     "PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAAEOquQ-bEHsyoGvY",

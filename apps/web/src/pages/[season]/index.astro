@@ -1,0 +1,18 @@
+---
+import LiveSeason from "../../components/LiveSeason.astro";
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import { loadSeasonCatalog, loadLivePublication, resolveSeason } from "../../lib/seasons.js";
+const catalog = await loadSeasonCatalog();
+const record = resolveSeason(Astro.params.season ?? "", catalog);
+if (record?.kind === "historical") return Astro.redirect(`/archive/${record.seasonId}/`, 302);
+const publication = record ? await loadLivePublication(record) : null;
+if (!record) Astro.response.status = 404;
+else if (publication?.state === "unavailable") Astro.response.status = 503;
+Astro.response.headers.set("Cache-Control", "no-cache");
+---
+
+{record && publication ? <LiveSeason {record} {publication} currentId={catalog.currentSeasonId} /> : (
+  <SiteLayout title="Season not found" description="The requested National Points Race season was not found." currentId={catalog.currentSeasonId}>
+    <section class="shell hero"><p class="label">Season record</p><h1>Season not found.</h1><p><a href="/current/">Open the current race</a> or <a href="/archive/">browse the archive</a>.</p></section>
+  </SiteLayout>
+)}

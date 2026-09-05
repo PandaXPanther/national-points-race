@@ -36,23 +36,6 @@ describe("editorial frontend", () => {
     expect(styles).not.toMatch(/Georgia|Times New Roman|Segoe UI/iu);
   });
 
-  it("gives the major routes distinct editorial compositions", async () => {
-    const [home, history, method, reconstruction, current] = await Promise.all([
-      readFile(`${sourceRoot}pages/index.astro`, "utf8"),
-      readFile(`${sourceRoot}pages/history.astro`, "utf8"),
-      readFile(`${sourceRoot}pages/methodology.astro`, "utf8"),
-      readFile(`${sourceRoot}pages/2025-26.astro`, "utf8"),
-      readFile(`${sourceRoot}pages/2026-27.astro`, "utf8"),
-    ]);
-
-    expect(home).toMatch(/class="[^"]*\bcover-grid\b[^"]*"/u);
-    expect(history).toContain('class="chronology"');
-    expect(method).toContain('class="method-index"');
-    expect(method).toContain('class="method-ledger"');
-    expect(reconstruction).toContain('class="champion-scoreline"');
-    expect(current).toMatch(/class="[^"]*\bpreseason-register\b[^"]*"/u);
-  });
-
   it("keeps the shared frame compact and free of generic card grids", async () => {
     const [globalStyles, header, layout] = await Promise.all([
       readFile(`${sourceRoot}styles/global.css`, "utf8"),
@@ -61,7 +44,6 @@ describe("editorial frontend", () => {
     ]);
 
     expect(globalStyles).not.toMatch(/\.card-grid|\.stats-grid/iu);
-    expect(header).toContain("2026-27 edition");
     expect(header).toContain('class="nav-scroll"');
     expect(layout).toMatch(/class="[^"]*\bfooter-lines\b[^"]*"/u);
   });

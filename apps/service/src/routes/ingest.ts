@@ -14,6 +14,7 @@ import { enqueueJob } from "../jobs/enqueue.js";
 import { createEditionRepository } from "../storage/editions.js";
 import { createResultRepository } from "../storage/results.js";
 import { createSnapshotRepository } from "../storage/snapshots.js";
+import { documentContentHash } from "../storage/document-receipts.js";
 import { Sha256Schema, UtcIsoStringSchema } from "../storage/types.js";
 
 const MAX_PACKET_BYTES = 25 * 1_024 * 1_024;
@@ -224,6 +225,23 @@ export function registerIngestRoute(
     }
 
     const descriptorId = `signed-packet:${packet.source.descriptor.id}`;
+    const contentHash = await documentContentHash(packet);
+    const receipt = await context.env.DB.prepare(
+      "SELECT r.content_sha256, s.sha256 FROM document_ingest_receipts r JOIN source_snapshots s ON s.id = r.snapshot_id WHERE r.edition_id = ?1 AND r.descriptor_id = ?2 AND r.source_url = ?3",
+    )
+      .bind(packet.editionId, descriptorId, packet.source.url)
+      .first<{ content_sha256: string; sha256: string }>();
+    if (receipt?.content_sha256 === contentHash) {
+      return json(
+        {
+          accepted: true,
+          duplicate: true,
+          editionId: packet.editionId,
+          snapshotSha256: receipt.sha256,
+        },
+        200,
+      );
+    }
     const existing = await context.env.DB.prepare(
       "SELECT id FROM source_snapshots WHERE edition_id = ?1 AND descriptor_id = ?2 AND sha256 = ?3 LIMIT 1",
     )
@@ -285,6 +303,20 @@ export function registerIngestRoute(
         dispatchedAt: snapshot.retrievedAt,
       },
     );
+    // Record completion only after evidence and its durable rebuild job exist.
+    // A failed/partial ingest can therefore be retried normally.
+    await context.env.DB.prepare(
+      "INSERT INTO document_ingest_receipts (edition_id, descriptor_id, source_url, content_sha256, snapshot_id, observed_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6) ON CONFLICT (edition_id, descriptor_id, source_url) DO UPDATE SET content_sha256 = excluded.content_sha256, snapshot_id = excluded.snapshot_id, observed_at = excluded.observed_at WHERE julianday(excluded.observed_at) >= julianday(document_ingest_receipts.observed_at)",
+    )
+      .bind(
+        packet.editionId,
+        descriptorId,
+        packet.source.url,
+        contentHash,
+        snapshot.id,
+        snapshot.retrievedAt,
+      )
+      .run();
     return json(
       {
         accepted: true,

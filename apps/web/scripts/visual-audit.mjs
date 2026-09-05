@@ -18,6 +18,12 @@ const browserPort = Number.parseInt(
   process.env.NPR_AUDIT_BROWSER_PORT ?? "9333",
   10,
 );
+const auditDate = new Date();
+const seasonStart =
+  auditDate.getUTCFullYear() - (auditDate.getUTCMonth() < 7 ? 1 : 0);
+const auditSeason =
+  process.env.NPR_AUDIT_SEASON ??
+  `${seasonStart}-${String((seasonStart + 1) % 100).padStart(2, "0")}`;
 const routes = [
   ["home", "/"],
   ["history", "/history/"],
@@ -25,8 +31,8 @@ const routes = [
   ["archive", "/archive/"],
   ["corrections", "/corrections/"],
   ["reconstruction", "/2025-26/"],
-  ["current", "/2026-27/"],
-  ["tournaments", "/2026-27/tournaments/"],
+  ["current", `/${auditSeason}/`],
+  ["tournaments", `/${auditSeason}/tournaments/`],
   ["archive-season", "/archive/2024-25/"],
   ["competitor", "/2025-26/competitors/1/"],
   ["not-found", "/missing-page-for-visual-audit/"],

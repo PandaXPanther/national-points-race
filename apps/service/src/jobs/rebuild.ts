@@ -82,6 +82,22 @@ export async function runRebuild(
   if (evidenceRows.results.length === 0)
     return { kind: "permanent", code: "NO_SEASON_EVIDENCE" };
 
+  const observedRows = await env.DB.prepare(
+    "SELECT s.id, s.retrieved_at, (SELECT observed_at FROM source_observations o WHERE o.snapshot_id = s.id ORDER BY julianday(observed_at) DESC, id DESC LIMIT 1) AS observed_at FROM source_snapshots s JOIN tournament_editions e ON e.id = s.edition_id WHERE e.season_id = ?1 AND EXISTS (SELECT 1 FROM source_observations o WHERE o.snapshot_id = s.id)",
+  )
+    .bind(message.seasonId)
+    .all<{ id: string; retrieved_at: string; observed_at: string }>();
+  const observedAtBySnapshot = new Map(
+    observedRows.results.map(
+      (row) =>
+        [
+          row.id,
+          Date.parse(row.observed_at) > Date.parse(row.retrieved_at)
+            ? row.observed_at
+            : row.retrieved_at,
+        ] as const,
+    ),
+  );
   const resultRepository = createResultRepository(env.DB);
   const resultSets: NormalizedResultSet[] = [];
   const sourcePeople: SourcePerson[] = [];
@@ -91,7 +107,14 @@ export async function runRebuild(
     const evidence = await resultRepository.load(row.id);
     if (evidence === null)
       return { kind: "transient", code: "EVIDENCE_LOAD_FAILED" };
-    resultSets.push(...evidence.resultSets);
+    const observedAt = observedAtBySnapshot.get(evidence.sourceSnapshotId);
+    resultSets.push(
+      ...evidence.resultSets.map((resultSet) =>
+        observedAt === undefined
+          ? resultSet
+          : { ...resultSet, publishedAt: observedAt },
+      ),
+    );
     sourcePeople.push(...evidence.sourcePeople);
     identityEdges.push(...evidence.explicitIdentityEdges);
     snapshotIds.add(evidence.sourceSnapshotId);
@@ -183,6 +206,43 @@ export async function runRebuild(
   }
   const standings = createStandingsRepository(env.DB);
   const current = await standings.current(message.seasonId);
+  if (message.reason === "NSDA_STABLE_FINALIZATION") {
+    const finalized = await env.DB.prepare(
+      "SELECT 1 AS present FROM standings_versions WHERE season_id = ?1 AND status = 'final' LIMIT 1",
+    )
+      .bind(message.seasonId)
+      .first<{ present: number }>();
+    if (finalized !== null || current?.status === "corrected")
+      return { kind: "succeeded", code: "FINALIZATION_ALREADY_PUBLISHED" };
+
+    const nsda = editions.find(
+      ({ lineageId }) => lineageId === "nsda-nationals",
+    );
+    const latest =
+      nsda === undefined
+        ? null
+        : await env.DB.prepare(
+            "SELECT observed_at AS retrieved_at FROM (SELECT retrieved_at AS observed_at FROM source_snapshots WHERE edition_id = ?1 UNION ALL SELECT observed_at FROM source_observations WHERE edition_id = ?1) ORDER BY julianday(observed_at) DESC LIMIT 1",
+          )
+            .bind(nsda.id)
+            .first<{ retrieved_at: string | null }>();
+    const stableAt =
+      nsda?.endAt === null || nsda?.endAt === undefined
+        ? Number.POSITIVE_INFINITY
+        : Math.max(
+            Date.parse(nsda.endAt),
+            latest?.retrieved_at == null ? 0 : Date.parse(latest.retrieved_at),
+          ) +
+          7 * 86_400_000;
+    if (
+      (nsda?.status !== "final" && nsda?.status !== "corrected") ||
+      Date.parse(message.scheduledFor) < stableAt
+    ) {
+      // Evidence can change after cron enqueues this job. A later tick will
+      // enqueue a distinct finalization at the new seven-day stability anchor.
+      return { kind: "succeeded", code: "FINALIZATION_SUPERSEDED" };
+    }
+  }
   const status =
     message.reason === "NSDA_STABLE_FINALIZATION"
       ? "final"
@@ -194,10 +254,29 @@ export async function runRebuild(
     rebuildVersionHash: output.versionHash,
     status,
   });
+  const versionId = `standings:${versionHash}`;
+  const existingVersion = await env.DB.prepare(
+    "SELECT created_at FROM standings_versions WHERE id = ?1",
+  )
+    .bind(versionId)
+    .first<{ created_at: string }>();
+  // A delayed job's evidence/stability bucket can precede the currently
+  // published version. New publications must advance that order, while a
+  // retry must retain its original immutable publication timestamp.
+  const createdAt =
+    existingVersion?.created_at ??
+    new Date(
+      Math.max(
+        Date.parse(message.scheduledFor),
+        current === null
+          ? Date.parse(message.scheduledFor)
+          : Date.parse(current.createdAt) + 1,
+      ),
+    ).toISOString();
   const published = await standings.publish({
-    id: `standings:${versionHash}`,
+    id: versionId,
     seasonId: message.seasonId,
-    createdAt: message.scheduledFor,
+    createdAt,
     inputSha256,
     status,
     policyVersion: output.policyVersion,

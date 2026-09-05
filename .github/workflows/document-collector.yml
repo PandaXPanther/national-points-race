@@ -30,8 +30,13 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @points-race/document-collector test
       - run: pnpm --filter @points-race/document-collector build
+      - name: Validate collector configuration
+        run: node apps/document-collector/dist/run.js --check-config
+        env:
+          POINTS_RACE_SERVICE_URL: ${{ vars.POINTS_RACE_SERVICE_URL || secrets.POINTS_RACE_SERVICE_URL }}
+          DOCUMENT_INGEST_SECRET: ${{ secrets.DOCUMENT_INGEST_SECRET }}
       - name: Collect and submit approved official documents
         run: node apps/document-collector/dist/run.js
         env:
-          POINTS_RACE_SERVICE_URL: ${{ secrets.POINTS_RACE_SERVICE_URL }}
+          POINTS_RACE_SERVICE_URL: ${{ vars.POINTS_RACE_SERVICE_URL || secrets.POINTS_RACE_SERVICE_URL }}
           DOCUMENT_INGEST_SECRET: ${{ secrets.DOCUMENT_INGEST_SECRET }}

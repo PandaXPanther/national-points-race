@@ -6,6 +6,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { JobMessageSchema } from "../src/jobs/message";
 import { runRebuild } from "../src/jobs/rebuild";
 import { runScheduledTick } from "../src/seasons/lifecycle";
+import { createSnapshotRepository } from "../src/storage/snapshots";
 
 const SECRET = "test-only-document-ingest-secret";
 const SEASON_ID = "2070-71";
@@ -129,6 +130,72 @@ beforeAll(async () => {
 });
 
 describe("signed document ingestion", () => {
+  it("accepts changed and reverted source content while deduplicating each unchanged daily fetch", async () => {
+    const editionId = "2072-73:harvard";
+    await runScheduledTick({ scheduledAt: "2072-08-01T08:17:00.000Z", env });
+    function packet(hash: string, day: number, placement: number) {
+      const observedAt = `2073-02-${day}T08:17:00.000Z`;
+      return new TextEncoder().encode(
+        JSON.stringify({
+          ...INGEST_PAYLOAD,
+          editionId,
+          source: {
+            ...INGEST_PAYLOAD.source,
+            sha256: hash,
+            retrievedAt: observedAt,
+          },
+          resultSets: INGEST_PAYLOAD.resultSets.map((resultSet) => ({
+            ...resultSet,
+            editionId,
+            sourceSnapshotId: `sha256:${hash}`,
+            publishedAt: observedAt,
+            results: resultSet.results.map((result) => ({
+              ...result,
+              placement,
+              wonFinalRound: placement === 1,
+            })),
+          })),
+        }),
+      );
+    }
+    expect((await postPacket(packet("c".repeat(64), 17, 1))).status).toBe(202);
+    expect((await postPacket(packet("d".repeat(64), 18, 2))).status).toBe(202);
+    expect((await postPacket(packet("d".repeat(64), 19, 2))).status).toBe(200);
+    expect((await postPacket(packet("c".repeat(64), 20, 1))).status).toBe(202);
+    expect((await postPacket(packet("c".repeat(64), 21, 1))).status).toBe(200);
+    const evidence = await env.DB.prepare(
+      "SELECT COUNT(*) AS count, MAX(retrieved_at) AS latest FROM source_snapshots WHERE edition_id = ?1",
+    )
+      .bind(editionId)
+      .first<{ count: number; latest: string }>();
+    expect(evidence).toEqual({ count: 3, latest: "2073-02-20T08:17:00.000Z" });
+  });
+
+  it("keeps unchanged documents stable when a daily fetch changes only observation timestamps", async () => {
+    const refreshed = {
+      ...INGEST_PAYLOAD,
+      source: {
+        ...INGEST_PAYLOAD.source,
+        retrievedAt: "2071-02-24T08:17:00.000Z",
+      },
+      resultSets: INGEST_PAYLOAD.resultSets.map((resultSet) => ({
+        ...resultSet,
+        publishedAt: "2071-02-24T08:17:00.000Z",
+      })),
+    };
+    const response = await postPacket(
+      new TextEncoder().encode(JSON.stringify(refreshed)),
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ duplicate: true });
+    const evidence = await env.DB.prepare(
+      "SELECT COUNT(*) AS count, MAX(s.retrieved_at) AS latest FROM source_snapshots s WHERE s.edition_id = ?1",
+    )
+      .bind(EDITION_ID)
+      .first<{ count: number; latest: string }>();
+    expect(evidence).toEqual({ count: 1, latest: "2071-02-17T08:17:00.000Z" });
+  });
+
   it("rejects unsigned, stale, bad-hash, and bad-signature requests", async () => {
     const unsigned = await postPacket(seededBody, {
       "content-type": "application/json",
@@ -184,6 +251,68 @@ describe("signed document ingestion", () => {
 });
 
 describe("public standings API", () => {
+  it("reports the latest changed observation when a source returns to earlier bytes", async () => {
+    await runScheduledTick({ scheduledAt: "2074-08-01T08:17:00.000Z", env });
+    const snapshots = createSnapshotRepository(env.DB, env.RAW_SNAPSHOTS);
+    const input = {
+      editionId: "2074-75:harvard",
+      descriptor: {
+        id: "observation-api-export",
+        sourceClass: "organizer-json-csv" as const,
+        allowlistedHostnames: ["results.example.test"],
+        allowedMediaTypes: ["application/json"],
+        permission: "official-public-export" as const,
+      },
+      url: "https://results.example.test/2074-75/harvard.json",
+      mediaType: "application/json",
+      parserVersion: "test-v1",
+      permission: "official-public-export" as const,
+    };
+    const originalBytes = new Uint8Array(
+      new TextEncoder().encode('{"revision":"A"}'),
+    );
+    const changedBytes = new Uint8Array(
+      new TextEncoder().encode('{"revision":"B"}'),
+    );
+    const first = await snapshots.persist({
+      ...input,
+      bytes: originalBytes,
+      sha256: sha256(originalBytes),
+      retrievedAt: "2075-02-17T08:17:00.000Z",
+    });
+    await snapshots.persist({
+      ...input,
+      bytes: changedBytes,
+      sha256: sha256(changedBytes),
+      retrievedAt: "2075-02-18T08:17:00.000Z",
+    });
+    await env.DB.prepare(
+      "INSERT INTO source_observations (id, edition_id, snapshot_id, observed_at) VALUES (?1, ?2, ?3, ?4)",
+    )
+      .bind(
+        "observation-api-reversion",
+        input.editionId,
+        first.id,
+        "2075-02-20T08:17:00.000Z",
+      )
+      .run();
+    const response = await SELF.fetch(
+      "https://service.test/v1/seasons/2074-75/tournaments",
+    );
+    const body = await response.json<{
+      tournaments: { editionId: string; source: unknown }[];
+    }>();
+    expect(
+      body.tournaments.find((t) => t.editionId === input.editionId)?.source,
+    ).toMatchObject({
+      sha256: first.sha256,
+      retrievedAt: "2075-02-20T08:17:00.000Z",
+    });
+    expect((await snapshots.get(first.id))?.retrievedAt).toBe(
+      "2075-02-17T08:17:00.000Z",
+    );
+  });
+
   it("returns audited standings with strong ETag and supports 304", async () => {
     const response = await SELF.fetch(
       `https://service.test/v1/seasons/${SEASON_ID}/standings`,

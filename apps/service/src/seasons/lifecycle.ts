@@ -25,6 +25,7 @@ const CURRENT_POLICY_CREATED_AT = "2026-08-01T00:00:00.000Z";
 const DAY_MS = 86_400_000;
 const STABILITY_DAYS = 7;
 const NOT_HELD_DAYS = 30;
+const FIRST_AUTONOMOUS_SEASON_ID = "2026-27";
 
 const ScheduledAtSchema = z
   .string()
@@ -47,6 +48,7 @@ export interface ScheduledTickOutput {
   readonly seasonId: string;
   readonly editionCount: 20 | 21;
   readonly dispatchedJobs: number;
+  readonly processedSeasonIds: readonly string[];
 }
 
 interface EditionStateRow {
@@ -173,11 +175,49 @@ async function editionStates(
 ): Promise<readonly EditionStateRow[]> {
   const response = await db
     .prepare(
-      "SELECT e.id, e.lineage_id, e.status, e.start_at, e.end_at, MAX(s.retrieved_at) AS latest_retrieved_at FROM tournament_editions e LEFT JOIN source_snapshots s ON s.edition_id = e.id WHERE e.season_id = ?1 GROUP BY e.id, e.lineage_id, e.status, e.start_at, e.end_at ORDER BY e.lineage_id, e.id",
+      "SELECT e.id, e.lineage_id, e.status, e.start_at, e.end_at, (SELECT evidence_at FROM (SELECT retrieved_at AS evidence_at FROM source_snapshots WHERE edition_id = e.id UNION ALL SELECT observed_at AS evidence_at FROM source_observations WHERE edition_id = e.id) ORDER BY julianday(evidence_at) DESC LIMIT 1) AS latest_retrieved_at FROM tournament_editions e WHERE e.season_id = ?1 ORDER BY e.lineage_id, e.id",
     )
     .bind(seasonId)
     .all<EditionStateRow>();
   return response.results;
+}
+
+async function historicalSeasonsForTick(
+  db: D1Database,
+  now: Date,
+  currentSeasonId: string,
+): Promise<readonly string[]> {
+  if (currentSeasonId <= FIRST_AUTONOMOUS_SEASON_ID) return [];
+  const startYear = Number(currentSeasonId.slice(0, 4));
+  const previousSeasonId = `${startYear - 1}-${String(startYear % 100).padStart(2, "0")}`;
+  const previous = await db
+    .prepare(
+      "SELECT season_id FROM tournament_editions WHERE season_id = ?1 LIMIT 1",
+    )
+    .bind(previousSeasonId)
+    .first<{ season_id: string }>();
+  const olderCount = await db
+    .prepare(
+      "SELECT COUNT(DISTINCT season_id) AS count FROM tournament_editions WHERE season_id >= ?1 AND season_id < ?2",
+    )
+    .bind(FIRST_AUTONOMOUS_SEASON_ID, previousSeasonId)
+    .first<{ count: number }>();
+  const seasonIds = previous === null ? [] : [previous.season_id];
+  if (olderCount === null || olderCount.count === 0) return seasonIds;
+
+  // Keep each tick to at most three seasons, with the just-ended season
+  // checked daily. Older persisted seasons rotate once per UTC day: a fixed
+  // archive of N older seasons receives a full sweep every N daily ticks.
+  // Weekly job buckets still deduplicate checks when that sweep is faster.
+  const offset = Math.floor(now.getTime() / DAY_MS) % olderCount.count;
+  const older = await db
+    .prepare(
+      "SELECT DISTINCT season_id FROM tournament_editions WHERE season_id >= ?1 AND season_id < ?2 ORDER BY season_id LIMIT 1 OFFSET ?3",
+    )
+    .bind(FIRST_AUTONOMOUS_SEASON_ID, previousSeasonId, offset)
+    .first<{ season_id: string }>();
+  if (older !== null) seasonIds.push(older.season_id);
+  return seasonIds;
 }
 
 async function isFinalSeason(
@@ -362,21 +402,12 @@ async function scheduleFinalization(
   );
 }
 
-export async function runScheduledTick(
-  rawInput: ScheduledTickInput,
-): Promise<ScheduledTickOutput> {
-  const scheduledAt = ScheduledAtSchema.parse(rawInput.scheduledAt);
-  const now = new Date(scheduledAt);
-  assertValidDate(now);
-  const input: ScheduledTickInput = { scheduledAt, env: rawInput.env };
-  const seasonId = seasonIdFor(now);
-  const policy = policyLedgerForVersion(policyVersionForSeason(seasonId));
-  await ensureSeason(input, seasonId);
-  const editions = await editionStates(input.env.DB, seasonId);
-  if (editions.length !== policy.tournaments.length)
-    throw new Error(
-      "Current season edition count must match the selected policy.",
-    );
+async function scheduleSeason(
+  input: ScheduledTickInput,
+  now: Date,
+  seasonId: string,
+  editions: readonly EditionStateRow[],
+): Promise<number> {
   const finalSeason = await isFinalSeason(input.env.DB, seasonId);
   let dispatchedJobs = 0;
   for (const edition of editions) {
@@ -406,10 +437,43 @@ export async function runScheduledTick(
     editions,
     finalSeason,
   );
+  return dispatchedJobs;
+}
+
+export async function runScheduledTick(
+  rawInput: ScheduledTickInput,
+): Promise<ScheduledTickOutput> {
+  const scheduledAt = ScheduledAtSchema.parse(rawInput.scheduledAt);
+  const now = new Date(scheduledAt);
+  assertValidDate(now);
+  const input: ScheduledTickInput = { scheduledAt, env: rawInput.env };
+  const seasonId = seasonIdFor(now);
+  const policy = policyLedgerForVersion(policyVersionForSeason(seasonId));
+  await ensureSeason(input, seasonId);
+  const editions = await editionStates(input.env.DB, seasonId);
+  if (editions.length !== policy.tournaments.length)
+    throw new Error(
+      "Current season edition count must match the selected policy.",
+    );
+  const historicalSeasonIds = await historicalSeasonsForTick(
+    input.env.DB,
+    now,
+    seasonId,
+  );
+  let dispatchedJobs = await scheduleSeason(input, now, seasonId, editions);
+  for (const historicalSeasonId of historicalSeasonIds) {
+    dispatchedJobs += await scheduleSeason(
+      input,
+      now,
+      historicalSeasonId,
+      await editionStates(input.env.DB, historicalSeasonId),
+    );
+  }
   return Object.freeze({
     diagnosticCode: "SCHEDULED_JOBS_ENQUEUED",
     seasonId,
     editionCount: editions.length as 20 | 21,
     dispatchedJobs,
+    processedSeasonIds: Object.freeze([seasonId, ...historicalSeasonIds]),
   });
 }

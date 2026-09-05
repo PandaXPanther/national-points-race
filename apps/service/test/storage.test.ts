@@ -502,6 +502,26 @@ describe("EditionRepository", () => {
 });
 
 describe("SnapshotRepository", () => {
+  it("preserves the first observation when unchanged bytes are fetched on a later day", async () => {
+    const edition = await seedEdition("snapshot-reobserved");
+    const input = await snapshotInput("snapshot-reobserved", edition.id);
+    const first = await snapshots.persist(input);
+    const second = await snapshots.persist({
+      ...input,
+      retrievedAt: "2027-07-30T08:17:00Z",
+    });
+    expect(second).toEqual(first);
+    expect((await snapshots.get(first.id))?.retrievedAt).toBe(
+      input.retrievedAt,
+    );
+    const records = await env.DB.prepare(
+      "SELECT COUNT(*) AS count FROM source_snapshots WHERE edition_id = ?1",
+    )
+      .bind(edition.id)
+      .first<{ count: number }>();
+    expect(records?.count).toBe(1);
+  });
+
   it("stores identical source bytes once", async () => {
     const edition = await seedEdition("snapshot-idempotent");
     const input = await snapshotInput("snapshot-idempotent", edition.id);

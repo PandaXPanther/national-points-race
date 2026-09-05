@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import type { StandingsVersionRecord } from "../storage/types.js";
 import type { Hono } from "hono";
 import { z } from "zod";
@@ -5,6 +7,7 @@ import { z } from "zod";
 import type { ServiceBindings } from "../auth/hmac.js";
 import { createSnapshotRepository } from "../storage/snapshots.js";
 import { createStandingsRepository } from "../storage/standings.js";
+import { loadSeasonCatalog } from "./season-catalog.js";
 
 export const PUBLIC_CACHE_CONTROL =
   "public, max-age=60, s-maxage=300, stale-while-revalidate=86400";
@@ -70,6 +73,39 @@ export const PublicStandingsSchema = z
   .strict()
   .readonly();
 
+export const PublicSeasonCatalogSchema = z
+  .object({
+    currentSeasonId: z.string().min(1),
+    seasons: z
+      .array(
+        z
+          .object({
+            seasonId: z.string().min(1),
+            status: z.enum([
+              "unpublished",
+              "provisional",
+              "final",
+              "corrected",
+            ]),
+            policyVersion: z.string().min(1),
+            tournamentCount: z.number().int().nonnegative(),
+            scoredTournamentCount: z.number().int().nonnegative(),
+            competitorCount: z.number().int().nonnegative(),
+            standingsVersion: z
+              .string()
+              .regex(/^[0-9a-f]{64}$/u)
+              .nullable(),
+            publishedAt: z.string().datetime().nullable(),
+            champions: z.array(PublicStandingSchema).readonly(),
+          })
+          .strict()
+          .readonly(),
+      )
+      .readonly(),
+  })
+  .strict()
+  .readonly();
+
 export type PublicAward = z.infer<typeof PublicAwardSchema>;
 export type PublicStanding = z.infer<typeof PublicStandingSchema>;
 
@@ -108,7 +144,16 @@ export function versionedResponse(
     "Content-Type": contentType,
     ETag: etag,
   };
-  if (request.headers.get("if-none-match") === etag) {
+  // GET revalidation uses weak comparison, including when Cloudflare weakens an
+  // ETag while compressing the response. A client may also send multiple tags.
+  const matches = request.headers
+    .get("if-none-match")
+    ?.split(",")
+    .some((value) => {
+      const tag = value.trim();
+      return tag === "*" || tag.replace(/^W\//u, "") === etag;
+    });
+  if (matches) {
     return new Response(null, { status: 304, headers });
   }
   return new Response(body, { status: 200, headers });
@@ -205,6 +250,17 @@ export async function loadPublicSeason(
 export function registerSeasonRoutes(
   app: Hono<{ Bindings: ServiceBindings }>,
 ): void {
+  app.get("/v1/seasons", async (context) => {
+    const body = JSON.stringify(
+      PublicSeasonCatalogSchema.parse(await loadSeasonCatalog(context.env.DB)),
+    );
+    return versionedResponse(
+      context.req.raw,
+      body,
+      createHash("sha256").update(body).digest("hex"),
+    );
+  });
+
   app.get("/v1/seasons/:seasonId/standings", async (context) => {
     const loaded = await loadPublicSeason(
       context.env,

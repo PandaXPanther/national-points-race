@@ -16,9 +16,25 @@ import {
 } from "./discover.js";
 import { parseOfficialDocument } from "./index.js";
 import { signDocumentPacket } from "./sign.js";
+import { CollectionSeasonIdSchema, collectionSeasons } from "./seasons.js";
 
 const DOCUMENT_MAX_BYTES = 25 * 1_024 * 1_024;
 const DOCUMENT_TIMEOUT_MS = 45_000;
+const CONFIGURATION_DIAGNOSTICS = {
+  missingServiceUrl:
+    "DOCUMENT_COLLECTOR_CONFIG_MISSING: POINTS_RACE_SERVICE_URL",
+  missingSecret: "DOCUMENT_COLLECTOR_CONFIG_MISSING: DOCUMENT_INGEST_SECRET",
+  missingBoth:
+    "DOCUMENT_COLLECTOR_CONFIG_MISSING: POINTS_RACE_SERVICE_URL, DOCUMENT_INGEST_SECRET",
+  invalidServiceUrl:
+    "DOCUMENT_COLLECTOR_CONFIG_INVALID: POINTS_RACE_SERVICE_URL must be an HTTPS origin without credentials, a non-default port, a path, a query, or a fragment.",
+} as const;
+
+class CollectorConfigurationError extends Error {
+  constructor(readonly code: keyof typeof CONFIGURATION_DIAGNOSTICS) {
+    super(CONFIGURATION_DIAGNOSTICS[code]);
+  }
+}
 
 export interface RunCollectorInput {
   readonly serviceUrl: string;
@@ -26,6 +42,7 @@ export interface RunCollectorInput {
   readonly manifests: readonly unknown[];
   readonly fetchImpl?: typeof fetch;
   readonly now?: () => Date;
+  readonly seasonId?: string;
 }
 
 export interface RunCollectorOutput {
@@ -70,28 +87,52 @@ function withStableDocumentPeople(
 }
 
 function serviceIngestUrl(rawServiceUrl: string): URL {
-  const origin = new URL(rawServiceUrl);
+  let origin: URL;
+  try {
+    origin = new URL(rawServiceUrl);
+  } catch {
+    throw new CollectorConfigurationError("invalidServiceUrl");
+  }
   if (
     origin.protocol !== "https:" ||
     origin.username !== "" ||
     origin.password !== "" ||
-    origin.port !== ""
+    origin.port !== "" ||
+    origin.pathname !== "/" ||
+    origin.search !== "" ||
+    origin.hash !== ""
   ) {
-    throw new TypeError(
-      "Points Race service URL must be a public HTTPS origin.",
-    );
+    throw new CollectorConfigurationError("invalidServiceUrl");
   }
   return new URL("/internal/document-ingest", origin.origin);
+}
+
+function collectorConfiguration(
+  serviceUrl: string | undefined,
+  secret: string | undefined,
+) {
+  if (serviceUrl === undefined || serviceUrl.trim().length === 0) {
+    throw new CollectorConfigurationError(
+      secret === undefined || secret.trim().length === 0
+        ? "missingBoth"
+        : "missingServiceUrl",
+    );
+  }
+  if (secret === undefined || secret.trim().length === 0) {
+    throw new CollectorConfigurationError("missingSecret");
+  }
+  return { serviceUrl, secret, ingestUrl: serviceIngestUrl(serviceUrl) };
 }
 
 export async function runCollector(
   input: RunCollectorInput,
 ): Promise<RunCollectorOutput> {
-  if (input.secret.length === 0)
-    throw new TypeError("Ingest secret is required.");
+  const { ingestUrl } = collectorConfiguration(input.serviceUrl, input.secret);
   const now = input.now ?? (() => new Date());
   const observedNow = now();
-  const seasonId = seasonIdFor(observedNow);
+  const seasonId = CollectionSeasonIdSchema.parse(
+    input.seasonId ?? seasonIdFor(observedNow),
+  );
   const index = await fetchTournamentIndex({
     serviceUrl: input.serviceUrl,
     seasonId,
@@ -102,68 +143,116 @@ export async function runCollector(
   const fetchImpl = input.fetchImpl ?? fetch;
   let submitted = 0;
   let duplicates = 0;
+  let failed = false;
+  let firstFailure: unknown;
 
   for (const document of documents) {
-    const source = await fetchBounded({
-      url: document.sourceUrl,
-      descriptor: document.descriptor,
-      maxBytes: DOCUMENT_MAX_BYTES,
-      timeoutMs: DOCUMENT_TIMEOUT_MS,
-      acceptedTypes: [document.mediaType],
-      fetchImpl,
-      now,
-    });
-    const manifest = {
-      ...document.manifest,
-      publishedAt: source.retrievedAt,
-    };
-    const resultSets = withStableDocumentPeople(
-      await parseOfficialDocument({
-        manifest,
-        mediaType: document.mediaType,
-        bytes: source.body,
-      }),
-    );
-    const packet = {
-      schemaVersion: 1,
-      editionId: document.tournament.editionId,
-      source: {
+    try {
+      const source = await fetchBounded({
+        url: document.sourceUrl,
         descriptor: document.descriptor,
-        url: source.finalUrl,
-        sha256: source.sha256,
-        mediaType: source.mediaType,
-        retrievedAt: source.retrievedAt,
-        parserVersion: manifest.parserVersion,
-      },
-      resultSets,
-    };
-    const signed = signDocumentPacket(
-      packet,
-      input.secret,
-      now().toISOString(),
-    );
-    const response = await fetchImpl(serviceIngestUrl(input.serviceUrl), {
-      method: "POST",
-      headers: signed.headers,
-      body: new TextDecoder().decode(signed.body),
-      redirect: "error",
-    });
-    if (response.status !== 200 && response.status !== 202) {
+        maxBytes: DOCUMENT_MAX_BYTES,
+        timeoutMs: DOCUMENT_TIMEOUT_MS,
+        acceptedTypes: [document.mediaType],
+        fetchImpl,
+        now,
+      });
+      const manifest = {
+        ...document.manifest,
+        publishedAt: source.retrievedAt,
+      };
+      const resultSets = withStableDocumentPeople(
+        await parseOfficialDocument({
+          manifest,
+          mediaType: document.mediaType,
+          bytes: source.body,
+        }),
+      );
+      const packet = {
+        schemaVersion: 1,
+        editionId: document.tournament.editionId,
+        source: {
+          descriptor: document.descriptor,
+          url: source.finalUrl,
+          sha256: source.sha256,
+          mediaType: source.mediaType,
+          retrievedAt: source.retrievedAt,
+          parserVersion: manifest.parserVersion,
+        },
+        resultSets,
+      };
+      const signed = signDocumentPacket(
+        packet,
+        input.secret,
+        now().toISOString(),
+      );
+      const response = await fetchImpl(ingestUrl, {
+        method: "POST",
+        headers: signed.headers,
+        body: new TextDecoder().decode(signed.body),
+        redirect: "error",
+      });
+      if (response.status !== 200 && response.status !== 202) {
+        await response.body?.cancel();
+        throw new Error(
+          "Points Race service rejected a signed document packet.",
+        );
+      }
+      duplicates += response.status === 200 ? 1 : 0;
+      submitted += 1;
       await response.body?.cancel();
-      throw new Error("Points Race service rejected a signed document packet.");
+    } catch (error) {
+      if (!failed) firstFailure = error;
+      failed = true;
     }
-    duplicates += response.status === 200 ? 1 : 0;
-    submitted += 1;
-    await response.body?.cancel();
   }
+  if (failed) throw firstFailure;
   return { seasonId, considered: documents.length, submitted, duplicates };
 }
 
+export async function runScheduledCollector(
+  input: Omit<RunCollectorInput, "seasonId">,
+): Promise<RunCollectorOutput & { readonly seasonIds: readonly string[] }> {
+  collectorConfiguration(input.serviceUrl, input.secret);
+  const now = input.now ?? (() => new Date());
+  const observedNow = now();
+  const seasonId = seasonIdFor(observedNow);
+  const seasonIds = await collectionSeasons({
+    serviceUrl: input.serviceUrl,
+    currentSeasonId: seasonId,
+    date: observedNow,
+    ...(input.fetchImpl === undefined ? {} : { fetchImpl: input.fetchImpl }),
+  });
+  let considered = 0;
+  let submitted = 0;
+  let duplicates = 0;
+  let failed = false;
+  for (const selectedSeason of seasonIds) {
+    try {
+      const output = await runCollector({
+        ...input,
+        now,
+        seasonId: selectedSeason,
+      });
+      considered += output.considered;
+      submitted += output.submitted;
+      duplicates += output.duplicates;
+    } catch {
+      failed = true;
+    }
+  }
+  if (failed) throw new Error("Scheduled season collection failed.");
+  return { seasonId, seasonIds, considered, submitted, duplicates };
+}
+
 async function main(): Promise<void> {
-  const serviceUrl = process.env.POINTS_RACE_SERVICE_URL;
-  const secret = process.env.DOCUMENT_INGEST_SECRET;
-  if (serviceUrl === undefined || secret === undefined) {
-    throw new Error("Collector environment is incomplete.");
+  const { serviceUrl, secret } = collectorConfiguration(
+    process.env.POINTS_RACE_SERVICE_URL,
+    process.env.DOCUMENT_INGEST_SECRET,
+  );
+  if (process.argv[2] === "--check-config") {
+    process.stdout.write("DOCUMENT_COLLECTOR_CONFIG_OK\n");
+    return;
   }
   const defaultManifestDirectory = resolve(
     dirname(fileURLToPath(import.meta.url)),
@@ -172,9 +261,9 @@ async function main(): Promise<void> {
   const manifests = await loadCollectorManifests(
     process.env.POINTS_RACE_MANIFEST_DIR ?? defaultManifestDirectory,
   );
-  const output = await runCollector({ serviceUrl, secret, manifests });
+  const output = await runScheduledCollector({ serviceUrl, secret, manifests });
   process.stdout.write(
-    `DOCUMENT_COLLECTOR_OK season=${output.seasonId} considered=${String(output.considered)} submitted=${String(output.submitted)} duplicates=${String(output.duplicates)}\n`,
+    `DOCUMENT_COLLECTOR_OK season=${output.seasonId} considered=${String(output.considered)} submitted=${String(output.submitted)} duplicates=${String(output.duplicates)} seasons=${output.seasonIds.join(",")}\n`,
   );
 }
 
@@ -183,8 +272,12 @@ if (
   invokedPath !== undefined &&
   resolve(invokedPath) === fileURLToPath(import.meta.url)
 ) {
-  main().catch(() => {
-    process.stderr.write("DOCUMENT_COLLECTOR_FAILED\n");
+  main().catch((error: unknown) => {
+    const diagnostic =
+      error instanceof CollectorConfigurationError
+        ? CONFIGURATION_DIAGNOSTICS[error.code]
+        : "DOCUMENT_COLLECTOR_FAILED";
+    process.stderr.write(`${diagnostic}\n`);
     process.exitCode = 1;
   });
 }

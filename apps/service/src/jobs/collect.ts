@@ -21,6 +21,7 @@ import {
 import { createEditionRepository } from "../storage/editions.js";
 import { createResultRepository } from "../storage/results.js";
 import { createSnapshotRepository } from "../storage/snapshots.js";
+import { recordSourceObservation } from "../storage/source-observations.js";
 import { enqueueJob } from "./enqueue.js";
 import type { JobMessage } from "./message.js";
 import type { JobRunResult } from "./consumer.js";
@@ -292,8 +293,21 @@ export async function runCollect(
     .bind(edition.id, snapshot.id)
     .first<{ id: string }>();
   if (existing !== null) {
-    await enqueueRebuild(message, env, snapshot);
-    return { kind: "succeeded", code: "EVIDENCE_UNCHANGED" };
+    const observation = await recordSourceObservation(
+      env.DB,
+      snapshot,
+      payload.retrievedAt,
+    );
+    if (observation.snapshotId !== snapshot.id)
+      return { kind: "succeeded", code: "EVIDENCE_UNCHANGED" };
+    await enqueueRebuild(message, env, {
+      sha256: snapshot.sha256,
+      retrievedAt: observation.observedAt,
+    });
+    return {
+      kind: "succeeded",
+      code: observation.changed ? "EVIDENCE_CHANGED" : "EVIDENCE_UNCHANGED",
+    };
   }
 
   let exportData: TabroomExport;
@@ -333,6 +347,17 @@ export async function runCollect(
     status: (prior?.count ?? 0) > 0 ? "corrected" : "final",
     discoveredFrom: edition.discoveredFrom,
   });
-  await enqueueRebuild(message, env, snapshot);
+  const observation = await recordSourceObservation(
+    env.DB,
+    snapshot,
+    payload.retrievedAt,
+  );
+  await enqueueRebuild(message, env, {
+    sha256: snapshot.sha256,
+    retrievedAt:
+      observation.snapshotId === snapshot.id
+        ? observation.observedAt
+        : snapshot.retrievedAt,
+  });
   return { kind: "succeeded", code: "EVIDENCE_CHANGED" };
 }

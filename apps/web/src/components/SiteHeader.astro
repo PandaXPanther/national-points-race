@@ -1,4 +1,7 @@
 ---
+import { currentSeasonId } from "../lib/seasons.js";
+interface Props { currentId?: string; }
+const { currentId = currentSeasonId() } = Astro.props;
 const { pathname } = Astro.url;
 const links = [
   ["Standings", "/"],
@@ -9,7 +12,7 @@ const links = [
 ] as const;
 
 function isCurrent(href: string): boolean {
-  return href === "/" ? pathname === href : pathname.startsWith(href);
+  return href === "/" ? pathname === href || pathname === "/current/" || pathname.startsWith(`/${currentId}/`) : pathname.startsWith(href);
 }
 ---
 
@@ -18,7 +21,7 @@ function isCurrent(href: string): boolean {
     <a class="wordmark" href="/" aria-label="National Points Race home">
       <span class="npr-mark" aria-hidden="true">NPR</span>
       <span class="publication-name">National Points Race</span>
-      <span class="edition">2026-27 edition</span>
+      <span class="edition">{currentId} edition</span>
     </a>
     <nav class="nav-scroll" aria-label="Primary navigation">
       <ul>

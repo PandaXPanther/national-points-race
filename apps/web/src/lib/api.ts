@@ -2,9 +2,11 @@ import type { ZodType } from "zod";
 
 import {
   CompetitorResponseSchema,
+  SeasonCatalogResponseSchema,
   StandingsResponseSchema,
   TournamentIndexResponseSchema,
   type CompetitorResponse,
+  type SeasonCatalogResponse,
   type StandingsResponse,
   type TournamentIndexResponse,
 } from "./contracts.js";
@@ -120,6 +122,12 @@ export function getStandings(
     StandingsResponseSchema,
     context,
   );
+}
+
+export function getSeasonCatalog(
+  context: ApiContext,
+): Promise<SeasonCatalogResponse> {
+  return request("v1/seasons", SeasonCatalogResponseSchema, context);
 }
 
 export function getTournamentIndex(

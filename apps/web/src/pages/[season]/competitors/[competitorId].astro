@@ -1,25 +1,32 @@
 ---
 import reconstruction from "../../../data/reconstruction/2025-26.json";
+import standings2024 from "../../../data/history/2024-25.json";
 import SiteLayout from "../../../layouts/SiteLayout.astro";
-import { getCompetitor, type ApiContext } from "../../../lib/api.js";
+import { getCompetitor, PublicApiError } from "../../../lib/api.js";
+import { loadSeasonCatalog, publicApiContext, resolveSeason } from "../../../lib/seasons.js";
 import { absoluteUrl } from "../../../lib/seo.js";
 
 const seasonId = Astro.params.season ?? "";
 const competitorId = Astro.params.competitorId ?? "";
-const apiBase = import.meta.env.PUBLIC_API_BASE_URL;
+const catalog = await loadSeasonCatalog();
+const record = resolveSeason(seasonId, catalog);
+Astro.response.headers.set("Cache-Control", "no-cache");
 let competitor = null;
-if (apiBase) {
-  const context: ApiContext = { baseUrl: apiBase };
-  competitor = await getCompetitor(seasonId, competitorId, context).catch(
-    () => null,
+let apiStatus = 503;
+if (record?.kind === "live") {
+  competitor = await getCompetitor(seasonId, competitorId, publicApiContext()).catch(
+    (error: unknown) => { if (error instanceof PublicApiError && error.status === 404) apiStatus = 404; return null; },
   );
+  if (competitor?.seasonId !== seasonId || competitor?.competitorId !== competitorId) competitor = null;
 }
 const reconstructedStanding =
-  seasonId === "2025-26" && /^\d+$/u.test(competitorId)
+  seasonId === "2025-26"
     ? reconstruction.standings.find(
-        ({ rank }) => rank === Number.parseInt(competitorId, 10),
+        (standing) => standing.competitorId === competitorId || (/^\d+$/u.test(competitorId) && standing.rank === Number(competitorId)),
       )
-    : undefined;
+    : seasonId === "2024-25" && /^\d+$/u.test(competitorId) ? standings2024.find((standing) => standing.rank === Number(competitorId)) : undefined;
+if (!record) Astro.response.status = 404;
+else if (!competitor && !reconstructedStanding) Astro.response.status = record.kind === "historical" ? 404 : apiStatus;
 const displayName = competitor?.name ?? reconstructedStanding?.name;
 const structuredData = displayName
   ? {
@@ -37,6 +44,7 @@ const structuredData = displayName
   description={displayName ? `Points and audit record for ${displayName} in the ${seasonId} National Points Race.` : "Award-level National Points Race competitor audit trail."}
   canonicalPath={`/${seasonId}/competitors/${competitorId}/`}
   {structuredData}
+  currentId={catalog.currentSeasonId}
 >
   {competitor ? (
     <>
@@ -75,7 +83,7 @@ const structuredData = displayName
     <>
       <header class="page-head competitor-head">
         <div class="shell">
-          <p class="label">Reconstructed record / {seasonId}</p>
+          <p class="label">{seasonId === "2025-26" ? "Reconstructed" : "Preserved"} record / {seasonId}</p>
           <h1>{reconstructedStanding.name}</h1>
           <p class="dek">{reconstructedStanding.school}</p>
         </div>
@@ -84,23 +92,23 @@ const structuredData = displayName
         <dl class="shell score-strip">
           <div><dt>Rank</dt><dd>{reconstructedStanding.rank}</dd></div>
           <div><dt>Points</dt><dd>{reconstructedStanding.points}</dd></div>
-          <div><dt>Wins</dt><dd>{reconstructedStanding.wins}</dd></div>
-          <div><dt>Finals</dt><dd>{reconstructedStanding.finals}</dd></div>
+          <div><dt>Wins</dt><dd>{reconstructedStanding.wins ?? "Not published"}</dd></div>
+          <div><dt>Finals</dt><dd>{reconstructedStanding.finals ?? "Not published"}</dd></div>
         </dl>
       </section>
       <section class="section">
         <div class="shell fallback-note">
           <p class="label">Published record</p>
-          <h2>Reconstructed total</h2>
+          <h2>{seasonId === "2025-26" ? "Reconstructed" : "Preserved"} total</h2>
           <p>This archive publishes the final total. Award-level evidence remains in the season source ledger.</p>
-          <a href="/2025-26/">Return to the Top 100</a>
+          <a href={seasonId === "2025-26" ? "/2025-26/" : `/archive/${seasonId}/`}>Return to the standings</a>
         </div>
       </section>
     </>
   ) : (
     <section class="shell hero">
       <p class="label">Competitor audit</p>
-      <h1>Audit record unavailable.</h1>
+      <h1>{Astro.response.status === 404 ? "Audit record not found." : "Audit record temporarily unavailable."}</h1>
       <p><a href={`/${seasonId}/`}>Return to the season</a></p>
     </section>
   )}

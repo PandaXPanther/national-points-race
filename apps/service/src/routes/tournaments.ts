@@ -80,7 +80,16 @@ export function registerTournamentRoutes(
   app.get("/v1/seasons/:seasonId/tournaments", async (context) => {
     const seasonId = context.req.param("seasonId");
     const response = await context.env.DB.prepare(
-      `SELECT e.id,
+      `WITH source_times AS (
+         SELECT s.*,
+           (SELECT instant FROM (
+             SELECT s.retrieved_at AS instant
+             UNION ALL SELECT o.observed_at FROM source_observations o WHERE o.snapshot_id = s.id
+           ) ORDER BY julianday(instant) DESC LIMIT 1) AS effective_retrieved_at
+         FROM source_snapshots s
+         WHERE s.edition_id IN (SELECT id FROM tournament_editions WHERE season_id = ?1)
+       )
+       SELECT e.id,
               e.lineage_id,
               l.canonical_name,
               l.tier,
@@ -88,13 +97,17 @@ export function registerTournamentRoutes(
               e.end_at,
               e.status,
               e.discovered_from,
-              (SELECT s.url FROM source_snapshots s WHERE s.edition_id = e.id ORDER BY julianday(s.retrieved_at) DESC, s.id DESC LIMIT 1) AS source_url,
-              (SELECT s.sha256 FROM source_snapshots s WHERE s.edition_id = e.id ORDER BY julianday(s.retrieved_at) DESC, s.id DESC LIMIT 1) AS source_sha256,
-              (SELECT s.retrieved_at FROM source_snapshots s WHERE s.edition_id = e.id ORDER BY julianday(s.retrieved_at) DESC, s.id DESC LIMIT 1) AS source_retrieved_at,
-              (SELECT s.parser_version FROM source_snapshots s WHERE s.edition_id = e.id ORDER BY julianday(s.retrieved_at) DESC, s.id DESC LIMIT 1) AS source_parser_version,
-              (SELECT s.permission FROM source_snapshots s WHERE s.edition_id = e.id ORDER BY julianday(s.retrieved_at) DESC, s.id DESC LIMIT 1) AS source_permission
+              s.url AS source_url,
+              s.sha256 AS source_sha256,
+              s.effective_retrieved_at AS source_retrieved_at,
+              s.parser_version AS source_parser_version,
+              s.permission AS source_permission
        FROM tournament_editions e
        JOIN tournament_lineages l ON l.id = e.lineage_id
+       LEFT JOIN source_times s ON s.id = (
+         SELECT latest.id FROM source_times latest WHERE latest.edition_id = e.id
+         ORDER BY julianday(latest.effective_retrieved_at) DESC, latest.id DESC LIMIT 1
+       )
        WHERE e.season_id = ?1
        ORDER BY l.tier, e.lineage_id, e.id`,
     )

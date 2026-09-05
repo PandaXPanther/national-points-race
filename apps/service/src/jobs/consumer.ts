@@ -149,7 +149,10 @@ async function processMessage(
     delivery.ack();
     return;
   }
-  const leaseKey = `job:${message.type}:${message.naturalKey}`;
+  // Distinct evidence and finalization jobs publish into the same season.
+  // Serialize their complete reads/rebuilds so stale evidence cannot publish
+  // after a newer version merely by receiving a later publication timestamp.
+  const leaseKey = `job:${message.type}:${message.type === "rebuild-season" ? message.seasonId : message.naturalKey}`;
   const ownerId = `${message.id}:${delivery.id}:${delivery.attempts}`;
   const leases = createLeaseRepository(env.DB);
   const lease = await leases.acquire({

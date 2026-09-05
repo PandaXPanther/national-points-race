@@ -1,30 +1,36 @@
 ---
 import TournamentStatusList from "../../../components/TournamentStatusList.astro";
 import SiteLayout from "../../../layouts/SiteLayout.astro";
-import { getPolicyView } from "../../../lib/policy.js";
+import report from "../../../data/reconstruction/2025-26.json";
+import { getTournamentIndex } from "../../../lib/api.js";
+import { loadSeasonCatalog, publicApiContext, resolveSeason } from "../../../lib/seasons.js";
 
-const seasonId = Astro.params.season ?? "unknown";
-const tournaments = getPolicyView().tournaments.map((tournament) => ({
-  name: tournament.canonicalName,
-  tier: tournament.tier,
-  status: seasonId === "2026-27" ? "discovering" : "source-unavailable",
-}));
+const seasonId = Astro.params.season ?? "";
+const catalog = await loadSeasonCatalog();
+const record = resolveSeason(seasonId, catalog);
+Astro.response.headers.set("Cache-Control", "no-cache");
+const index = record?.kind === "live" ? await getTournamentIndex(seasonId, publicApiContext()).catch(() => null) : null;
+const source = index?.seasonId === seasonId ? index.tournaments : seasonId === "2025-26" ? report.tournaments : null;
+const tournaments = source?.map((tournament) => ({ name: tournament.name, tier: tournament.tier, status: tournament.status, sourceUrl: tournament.source?.url ?? null }));
+if (!record) Astro.response.status = 404;
+else if (!tournaments && record.kind === "live") Astro.response.status = 503;
 ---
 
 <SiteLayout
   title={`${seasonId} Tournament Audit`}
   description={`Evidence status for every tournament tracked in the ${seasonId} National Points Race.`}
   canonicalPath={`/${seasonId}/tournaments/`}
+  currentId={catalog.currentSeasonId}
 >
   <header class="page-head audit-head">
     <div class="shell">
       <p class="label">Tournament audit / {seasonId}</p>
-      <h1>Twenty-one evidence lines.</h1>
+      <h1>{!record ? "Season not found." : tournaments ? "The tournament evidence." : "Tournament audit unavailable."}</h1>
       <p class="dek">Upcoming, unavailable, corrected, and not-held events remain visible.</p>
     </div>
   </header>
   <section class="section audit-register">
-    <div class="shell"><TournamentStatusList {tournaments} /></div>
+    <div class="shell">{tournaments ? <TournamentStatusList {tournaments} /> : <p role="status">{record?.kind === "historical" ? "Tournament evidence is preserved in the original season sources." : "Tournament evidence could not be loaded. Please try again later."}</p>}<p><a href={`/${seasonId}/`}>Return to the season</a></p></div>
   </section>
 </SiteLayout>
 

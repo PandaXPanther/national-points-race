@@ -1,28 +1,10 @@
-import { access, readFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const sourceRoot = fileURLToPath(new URL("../src/", import.meta.url));
 
-const requiredPages = [
-  "pages/index.astro",
-  "pages/history.astro",
-  "pages/methodology.astro",
-  "pages/archive/index.astro",
-  "pages/archive/[season].astro",
-  "pages/corrections.astro",
-  "pages/2025-26.astro",
-  "pages/2026-27.astro",
-  "pages/404.astro",
-] as const;
-
 describe("public information architecture", () => {
-  it("publishes every required route", async () => {
-    await expect(
-      Promise.all(requiredPages.map((page) => access(`${sourceRoot}${page}`))),
-    ).resolves.toHaveLength(requiredPages.length);
-  });
-
   it("labels the reconstructed and live seasons distinctly", async () => {
     const home = await readFile(`${sourceRoot}pages/index.astro`, "utf8");
     const reconstruction = await readFile(
@@ -90,15 +72,6 @@ describe("public information architecture", () => {
     );
   });
 
-  it("derives the homepage reconstruction record from canonical history", async () => {
-    const home = await readFile(`${sourceRoot}pages/index.astro`, "utf8");
-
-    expect(home).toContain('historicalSeason("2025-26")');
-    expect(home).toContain("reconstruction.winner.name");
-    expect(home).toContain("reconstruction.winner.points");
-    expect(home).not.toContain("619");
-  });
-
   it("credits the original race and describes independent stewardship", async () => {
     const history = await readFile(`${sourceRoot}pages/history.astro`, "utf8");
     expect(history).toContain("Extemp Central");
@@ -107,26 +80,5 @@ describe("public information architecture", () => {
       '<a href="https://sarastotey.com">Saras Totey</a>',
     );
     expect(history).toContain("independent");
-  });
-
-  it("publishes the reviewed current policy consistently", async () => {
-    const [current, methodology] = await Promise.all([
-      readFile(`${sourceRoot}pages/2026-27.astro`, "utf8"),
-      readFile(`${sourceRoot}pages/methodology.astro`, "utf8"),
-    ]);
-    expect(current).toContain("getPolicyView");
-    expect(current).toContain("policy.version");
-    expect(current).toContain("21");
-    for (const lineageId of [
-      "nietoc",
-      "stanford",
-      "james-logan-mlk",
-      "asu-hdshc-invitational",
-    ]) {
-      expect(current).toContain(lineageId);
-      expect(methodology).toContain(lineageId);
-    }
-    expect(current).not.toContain("npr-2026-27-v1");
-    expect(methodology).not.toContain("npr-2026-27-v1");
   });
 });

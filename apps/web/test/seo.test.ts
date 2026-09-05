@@ -47,16 +47,9 @@ describe("public discovery metadata", () => {
     ).resolves.toHaveLength(7);
   });
 
-  it("targets the apex in robots and sitemap implementations", async () => {
-    const [robots, sitemap] = await Promise.all([
-      readFile(`${sourceRoot}pages/robots.txt.ts`, "utf8"),
-      readFile(`${sourceRoot}pages/sitemap.xml.ts`, "utf8"),
-    ]);
-
+  it("targets the apex in robots", async () => {
+    const robots = await readFile(`${sourceRoot}pages/robots.txt.ts`, "utf8");
     expect(robots).toContain("https://extempcentral.org/sitemap.xml");
-    expect(sitemap).toContain("historicalSeasons");
-    expect(sitemap).toContain("reconstruction.standings");
-    expect(sitemap).toContain("absoluteUrl");
   });
 
   it("assigns structured data to the major editorial routes", async () => {

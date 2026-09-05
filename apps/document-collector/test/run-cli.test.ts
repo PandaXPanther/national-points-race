@@ -41,6 +41,7 @@ function runScheduledCli(input: {
   readonly secret?: string;
   readonly args?: readonly string[];
   readonly manifestDirectory?: string;
+  readonly networkScript?: string;
 }) {
   const env = { ...process.env };
   delete env.POINTS_RACE_SERVICE_URL;
@@ -52,7 +53,12 @@ function runScheduledCli(input: {
   env.POINTS_RACE_MANIFEST_DIR = input.manifestDirectory ?? invalidManifests;
   const result = spawnSync(
     process.execPath,
-    ["--import", NO_NETWORK, builtRunner, ...(input.args ?? [])],
+    [
+      "--import",
+      input.networkScript ?? NO_NETWORK,
+      builtRunner,
+      ...(input.args ?? []),
+    ],
     { env, encoding: "utf8", timeout: 10_000 },
   );
   if (result.error !== undefined) throw result.error;
@@ -105,6 +111,35 @@ describe.each([[], ["--check-config"]])(
 );
 
 describe("built scheduled runner configuration checks", () => {
+  it("runs the built CLI across the current and previous seasons", () => {
+    const networkScript = `data:text/javascript,${encodeURIComponent(`
+      const NativeDate = Date;
+      globalThis.Date = class extends NativeDate {
+        constructor(...args) { super(...(args.length ? args : ['2027-08-01T09:47:00.000Z'])); }
+        static now() { return NativeDate.parse('2027-08-01T09:47:00.000Z'); }
+      };
+      globalThis.fetch = async input => {
+        const url = new URL(typeof input === 'string' || input instanceof URL ? input : input.url);
+        if (url.pathname === '/v1/seasons') return Response.json({currentSeasonId:'2027-28', seasons:[{seasonId:'2027-28'},{seasonId:'2026-27'}]});
+        const match = /^\\/v1\\/seasons\\/(2027-28|2026-27)\\/tournaments$/.exec(url.pathname);
+        if (match) return Response.json({seasonId:match[1],version:'a'.repeat(64),tournaments:[]});
+        throw new Error('Unexpected network request');
+      };
+    `)}`;
+    const result = runScheduledCli({
+      serviceUrl: SERVICE_URL,
+      secret: SECRET,
+      manifestDirectory: emptyManifests,
+      networkScript,
+    });
+    expect(result).toEqual({
+      status: 0,
+      stderr: "",
+      stdout:
+        "DOCUMENT_COLLECTOR_OK season=2027-28 considered=0 submitted=0 duplicates=0 seasons=2027-28,2026-27\n",
+    });
+  });
+
   it.each([
     "private-invalid-url",
     "http://service.example.test",

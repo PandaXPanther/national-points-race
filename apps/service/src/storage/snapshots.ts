@@ -91,7 +91,12 @@ function sameSnapshot(
   left: SourceSnapshotRecord,
   right: SourceSnapshotRecord,
 ): boolean {
-  return canonicalJson(left) === canonicalJson(right);
+  // Re-observing identical content must not reset the stability clock. The
+  // persisted first-observation time wins; every other provenance field agrees.
+  return (
+    canonicalJson(left) ===
+    canonicalJson({ ...right, retrievedAt: left.retrievedAt })
+  );
 }
 
 function checksumSha256(object: R2Object): string | null {

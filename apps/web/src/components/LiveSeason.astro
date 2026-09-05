@@ -1,0 +1,108 @@
+---
+import MbaSubmissionForm from "./MbaSubmissionForm.astro";
+import SeasonBadge from "./SeasonBadge.astro";
+import StandingsTable from "./StandingsTable.astro";
+import SiteLayout from "../layouts/SiteLayout.astro";
+import { seasonStatusLabel, type LivePublication, type SeasonRecord } from "../lib/seasons.js";
+import { absoluteUrl } from "../lib/seo.js";
+
+interface Props { record: SeasonRecord; publication: LivePublication; currentId: string; archive?: boolean; }
+const { record, publication, currentId, archive = false } = Astro.props;
+const { seasonId, summary } = record;
+const isCurrent = seasonId === currentId;
+const standings = publication.standings;
+const status = publication.state === "unavailable" ? "unavailable" : standings?.status ?? record.status;
+const canonicalPath = archive ? `/archive/${seasonId}/` : `/${seasonId}/`;
+const description = `Published standings and tournament evidence for the ${record.displaySeason} National Points Race.`;
+const structuredData = {
+  "@context": "https://schema.org", "@type": "Dataset", name: `${seasonId} National Points Race`,
+  description, url: absoluteUrl(canonicalPath), creator: { "@type": "Person", name: "Saras Totey" },
+  temporalCoverage: `${seasonId.slice(0, 4)}/${Number(seasonId.slice(0, 4)) + 1}`,
+  ...(standings ? { dateModified: standings.publishedAt, version: standings.standingsVersion } : {}),
+};
+---
+
+<SiteLayout title={`${seasonId} ${isCurrent ? "Current Race" : "Season Archive"}`} {description} {canonicalPath} {structuredData} {currentId}>
+  <header class="current-head">
+    <div class="shell current-title">
+      <div>
+        <SeasonBadge classification={record.classification} />
+        <p class="label">{seasonId} / {isCurrent ? "Current edition" : "Season record"}</p>
+        <h1>{publication.state === "unavailable" ? "Standings temporarily unavailable." : publication.state === "unpublished" ? "The scorebook is open." : isCurrent ? "The race, in points." : "The season, on record."}</h1>
+      </div>
+      <p class="edition-number" aria-hidden="true">{seasonId.slice(-2)}</p>
+    </div>
+    <dl class="shell preseason-register" aria-label="Season summary">
+      <div><dt>Status</dt><dd>{seasonStatusLabel(status)}</dd></div>
+      <div><dt>Tournaments</dt><dd>{summary?.tournamentCount ?? "Unavailable"}</dd></div>
+      <div><dt>Scored</dt><dd>{summary?.scoredTournamentCount ?? "Unavailable"}</dd></div>
+      <div><dt>Competitors</dt><dd>{summary?.competitorCount ?? "Unavailable"}</dd></div>
+      <div><dt>Policy</dt><dd>{standings?.policyVersion ?? summary?.policyVersion ?? "Unavailable"}</dd></div>
+    </dl>
+  </header>
+
+  {publication.champions.length > 0 && (
+    <section class="section champion-section">
+      <div class="shell">
+        <p class="label">{publication.champions.length > 1 ? "Co-champions" : "Champion"}</p>
+        <ol class="champion-register">
+          {publication.champions.map((champion) => (
+            <li><h2><a href={`/${seasonId}/competitors/${encodeURIComponent(champion.competitorId)}/`}>{champion.name}</a></h2><p>{champion.school} / {champion.points} points</p></li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  )}
+
+  <section class="section publication-section">
+    <div class="shell">
+      {publication.state === "published" && standings ? (
+        <>
+          <div class="section-heading"><div><p class="label">{seasonStatusLabel(standings.status)}</p><h2>Published standings</h2></div><p><a href={`/${seasonId}/tournaments/`}>Tournament audit</a></p></div>
+          {standings.standings.length > 0 ? <StandingsTable standings={standings.standings} {seasonId} /> : <p>No competitor standings were included in this publication. No champion has been designated.</p>}
+          <dl class="publication-details"><div><dt>Published</dt><dd><time datetime={standings.publishedAt}>{standings.publishedAt}</time></dd></div><div><dt>Standings version</dt><dd>{standings.standingsVersion}</dd></div></dl>
+          {standings.status === "provisional" && <p>Results remain provisional. A champion is named only after season finalization.</p>}
+        </>
+      ) : publication.state === "unpublished" ? (
+        <div class="season-notes"><article><p class="label">Awaiting publication</p><h2>Verified results come first.</h2><p>No standings have been published for this season. Points appear after tracked tournaments publish verified results.</p></article><aside><a href={`/${seasonId}/tournaments/`}>Tournament audit</a><p><a href="/methodology/">Scoring rules and tracked tournaments</a></p></aside></div>
+      ) : (
+        <div class="season-notes" role="status"><article><p>The live publication could not be loaded. Its standings and champion cannot be verified right now. Please try again later.</p></article><aside><a href="/archive/">Browse preserved season records</a><p><a href={`/${seasonId}/tournaments/`}>Tournament audit</a></p></aside></div>
+      )}
+    </div>
+  </section>
+  {isCurrent && <section class="section mba-section"><div class="shell"><MbaSubmissionForm {seasonId} /></div></section>}
+</SiteLayout>
+
+<style>
+  .current-head { padding-top: clamp(3rem, 8vw, 7rem); }
+  .current-title { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2rem; align-items: end; }
+  .current-title .label { margin-top: 2.8rem; }
+  .current-title h1 { max-width: 14ch; }
+  .edition-number { margin: 0; color: var(--link); font-family: var(--serif); font-size: clamp(9rem, 25vw, 21rem); font-weight: 650; letter-spacing: -0.1em; line-height: 0.62; }
+  .preseason-register { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1.5fr; margin-top: clamp(3rem, 7vw, 7rem); border-top: 5px solid var(--ink); border-bottom: 1px solid var(--rule-dark); }
+  .preseason-register div { padding: 0.75rem 1rem 0.8rem 0; }
+  .preseason-register div + div { border-left: 1px solid var(--rule); padding-left: 1rem; }
+  .preseason-register dt, .publication-details dt { color: var(--ink-soft); font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+  .preseason-register dd { margin: 0.15rem 0 0; font-family: var(--serif); font-size: 1.25rem; overflow-wrap: anywhere; }
+  .publication-section, .champion-section { border-top: 0; }
+  .champion-register { margin: 0; padding: 0; list-style: none; }
+  .champion-register li { padding-block: 1rem; border-bottom: 1px solid var(--rule); }
+  .champion-register p { color: var(--ink-soft); }
+  .publication-details { margin-top: 1.5rem; }
+  .publication-details dd { margin: 0 0 0.75rem; font-size: 0.8rem; overflow-wrap: anywhere; }
+  .season-notes { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(16rem, 0.65fr); gap: clamp(3rem, 8vw, 8rem); }
+  .season-notes article { max-width: 43rem; }
+  .season-notes article h2 { font-size: clamp(2.4rem, 5vw, 4.7rem); }
+  .season-notes aside { align-self: end; border-top: 2px solid var(--ink); padding-top: 0.75rem; color: var(--ink-soft); font-size: 0.8rem; }
+  .mba-section { padding-bottom: 7rem; background: var(--paper-raised); }
+  @media (max-width: 52rem) {
+    .current-title, .season-notes { grid-template-columns: minmax(0, 1fr); }
+    .edition-number { justify-self: end; }
+    .preseason-register { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 34rem) {
+    .edition-number { font-size: 11rem; }
+    .preseason-register { grid-template-columns: minmax(0, 1fr); }
+    .preseason-register div + div { border-top: 1px solid var(--rule); border-left: 0; padding-left: 0; }
+  }
+</style>

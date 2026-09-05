@@ -1,37 +1,42 @@
 ---
 import SeasonBadge from "../../components/SeasonBadge.astro";
-import { HISTORICAL_SEASONS } from "../../data/history.js";
 import SiteLayout from "../../layouts/SiteLayout.astro";
+import { loadSeasonCatalog, seasonStatusLabel } from "../../lib/seasons.js";
+const catalog = await loadSeasonCatalog();
+Astro.response.headers.set("Cache-Control", "no-cache");
 ---
 
 <SiteLayout
   title="National Points Race Archive"
-  description="Every preserved, reconstructed, and current National Points Race season in one attributed archive."
+  description="Preserved historical records and the latest published results of previous autonomous National Points Race seasons."
   canonicalPath="/archive/"
+  currentId={catalog.currentSeasonId}
 >
   <header class="page-head">
     <div class="shell archive-head">
       <p class="label">Season archive</p>
-      <h1>Every published race.</h1>
-      <p class="dek">Original records, reconstructed proof, current edition.</p>
+      <h1>Every season, on record.</h1>
+      <p class="dek">Original records, reconstructed proof, completed and provisional past seasons.</p>
     </div>
   </header>
   <section class="section archive-section">
     <div class="shell">
+      {!catalog.available && <p role="status">Live season archive temporarily unavailable. The preserved historical records below remain accessible.</p>}
       <ol class="archive-register">
-        {HISTORICAL_SEASONS.map((season, index) => (
+        {catalog.archives.map((season, index) => (
           <li>
             <span class="issue">{String(index + 1).padStart(2, "0")}</span>
             <p class="season">{season.displaySeason}</p>
             <div class="record">
               <SeasonBadge classification={season.classification} />
-              {season.winner ? (
-                <p class="winner">
-                  <strong>{season.winner.name}</strong>
-                  <span>{season.winner.points} points</span>
-                </p>
+              {season.kind === "live" && <p class="muted">{seasonStatusLabel(season.status)}</p>}
+              {season.champions.length ? (
+                <>
+                  {season.kind === "live" && <p class="muted">{season.champions.length > 1 ? "Co-champions" : "Champion"}</p>}
+                  {season.champions.map((champion) => <p class="winner"><strong>{champion.name}</strong><span>{champion.points} points</span></p>)}
+                </>
               ) : (
-                <p class="muted">Standings begin after verified finals.</p>
+                <p class="muted">{season.status === "provisional" ? "Awaiting finalization. No champion designated." : season.status === "unpublished" ? "Awaiting publication. No champion designated." : "No champion designated in this publication."}</p>
               )}
             </div>
             <a href={`/archive/${season.seasonId}/`}>Open</a>
@@ -94,6 +99,7 @@ import SiteLayout from "../../layouts/SiteLayout.astro";
   .winner {
     display: flex;
     gap: 0.75rem;
+    flex-wrap: wrap;
     margin-top: 0.35rem;
   }
 

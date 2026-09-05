@@ -1,15 +1,14 @@
 ---
 import SeasonBadge from "../components/SeasonBadge.astro";
-import { historicalSeason } from "../data/history.js";
 import SiteLayout from "../layouts/SiteLayout.astro";
-import { getPolicyView } from "../lib/policy.js";
+import { loadSeasonCatalog, seasonStatusLabel } from "../lib/seasons.js";
 import { absoluteUrl, SITE_NAME } from "../lib/seo.js";
 
-const reconstruction = historicalSeason("2025-26");
-if (reconstruction?.winner === null || reconstruction?.winner === undefined) {
-  throw new Error("The 2025-26 reconstruction champion is unavailable.");
-}
-const policy = getPolicyView();
+const catalog = await loadSeasonCatalog();
+const currentId = catalog.currentSeasonId;
+const summary = catalog.current?.summary;
+const latestArchive = catalog.archives[0];
+Astro.response.headers.set("Cache-Control", "no-cache");
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "WebSite",
@@ -24,12 +23,13 @@ const structuredData = {
   title="National Points Race"
   description="The independent season-long scorebook for high school extemporaneous speaking, with current standings, history, and exact scoring rules."
   {structuredData}
+  {currentId}
 >
   <header class="cover">
     <div class="shell cover-grid">
       <div class="cover-title">
         <SeasonBadge classification="Current live race" />
-        <p class="edition-label">2026-27 / Volume 01</p>
+        <p class="edition-label">{currentId} / Current edition</p>
         <h1><span>N</span><span>P</span><span>R</span></h1>
         <p class="full-name">National Points Race</p>
       </div>
@@ -41,15 +41,15 @@ const structuredData = {
           Standings begin with verified final results.
         </p>
         <p class="cover-links">
-          <a href="/2026-27/">Open 2026-27</a>
+          <a href={`/${currentId}/`}>Open {currentId}</a>
           <a href="/methodology/">Read the rules</a>
         </p>
       </div>
       <dl class="cover-status" aria-label="Current season status">
-        <div><dt>Status</dt><dd>Preseason</dd></div>
-        <div><dt>Policy</dt><dd>{policy.version}</dd></div>
-        <div><dt>Field</dt><dd>21 tournaments</dd></div>
-        <div><dt>Depth</dt><dd>Top 100</dd></div>
+        <div><dt>Status</dt><dd>{seasonStatusLabel(catalog.current?.status ?? "unavailable")}</dd></div>
+        <div><dt>Policy</dt><dd>{summary?.policyVersion ?? "Unavailable"}</dd></div>
+        <div><dt>Field</dt><dd>{summary ? `${summary.tournamentCount} tournaments` : "Unavailable"}</dd></div>
+        <div><dt>Scored</dt><dd>{summary ? `${summary.scoredTournamentCount} tournaments` : "Unavailable"}</dd></div>
       </dl>
     </div>
   </header>
@@ -60,6 +60,7 @@ const structuredData = {
         <p class="label">Season register</p>
         <p>Original archive, reconstructed proof, current race.</p>
       </div>
+      {!catalog.available && <p role="status">Live standings and recent autonomous archive records are temporarily unavailable. Preserved historical records remain accessible below.</p>}
       <ol class="season-register">
         <li>
           <span class="issue">01</span>
@@ -71,25 +72,25 @@ const structuredData = {
           </div>
           <a href="/archive/">Archive</a>
         </li>
-        <li>
+        {latestArchive && <li>
           <span class="issue">02</span>
-          <span class="years">2025-26</span>
+          <span class="years">{latestArchive.seasonId}</span>
           <div>
-            <SeasonBadge classification="Automated reconstruction" />
-            <h2>{reconstruction.winner.name}</h2>
-            <p>Reconstructed champion, {reconstruction.winner.points} points.</p>
+            <SeasonBadge classification={latestArchive.classification} />
+            <h2>{latestArchive.champions.length ? latestArchive.champions.map((champion) => champion.name).join(" & ") : "Awaiting finalization"}</h2>
+            {latestArchive.champions.length ? latestArchive.champions.map((champion) => <p>{champion.name}: {champion.points} points.</p>) : <p>{seasonStatusLabel(latestArchive.status)}. No champion has been designated.</p>}
           </div>
-          <a href="/2025-26/">Top 100</a>
-        </li>
+          <a href={`/archive/${latestArchive.seasonId}/`}>Season record</a>
+        </li>}
         <li>
           <span class="issue">03</span>
-          <span class="years">2026-27</span>
+          <span class="years">{currentId}</span>
           <div>
             <SeasonBadge classification="Current live race" />
             <h2>The autonomous race</h2>
-            <p>Now tracking ASU and 20 returning tournaments.</p>
+            <p>{summary ? `${summary.competitorCount} competitors across ${summary.scoredTournamentCount} scored tournaments.` : "The current publication is temporarily unavailable."}</p>
           </div>
-          <a href="/2026-27/">Current</a>
+          <a href={`/${currentId}/`}>Current</a>
         </li>
       </ol>
       <p class="method-line">

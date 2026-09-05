@@ -85,6 +85,44 @@ function validSignature(request: Request, body: Uint8Array): boolean {
 }
 
 describe("scheduled official document collector", () => {
+  it("continues with healthy documents after one source fails while keeping the run failed", async () => {
+    const brokenManifest = {
+      ...MANIFEST,
+      id: "missing-document-v1",
+      sourcePath: "missing.csv",
+      manifest: {
+        ...MANIFEST.manifest,
+        id: "missing-document-v1",
+        sourcePath: "missing.csv",
+      },
+    };
+    let submitted = 0;
+    const fetchImpl: typeof fetch = async (input, init) => {
+      const request = new Request(input, init);
+      if (request.url.endsWith("/tournaments"))
+        return responseJson(tournamentIndex());
+      if (request.url.endsWith("/missing.csv"))
+        return new Response(null, { status: 404 });
+      if (request.url === DOCUMENT_URL)
+        return new Response(CSV, { headers: { "content-type": "text/csv" } });
+      if (request.url.endsWith("/internal/document-ingest")) {
+        submitted += 1;
+        return new Response(null, { status: 202 });
+      }
+      throw new Error("Unexpected request");
+    };
+    await expect(
+      runCollector({
+        serviceUrl: SERVICE_URL,
+        secret: SECRET,
+        manifests: [brokenManifest, MANIFEST],
+        now: () => new Date("2027-02-17T09:47:00.000Z"),
+        fetchImpl,
+      }),
+    ).rejects.toThrow();
+    expect(submitted).toBe(1);
+  });
+
   it.each([
     { serviceUrl: "", secret: SECRET, key: "POINTS_RACE_SERVICE_URL" },
     { serviceUrl: " \t ", secret: SECRET, key: "POINTS_RACE_SERVICE_URL" },

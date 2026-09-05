@@ -301,6 +301,55 @@ describe("per-message Queue outcomes", () => {
     });
   });
 
+  it("defers a different rebuild natural key while its season is leased", async () => {
+    const body = message("rebuild-season", {
+      id: "12".repeat(32),
+      naturalKey: "2120-21:changed-evidence",
+      seasonId: "2120-21",
+    });
+    await insertJob(body);
+    const leases = createLeaseRepository(env.DB);
+    const leaseKey = "job:rebuild-season:2120-21";
+    await leases.acquire({
+      leaseKey,
+      ownerId: "2120-21:finalization:other-delivery",
+      now: FIXED_NOW,
+      expiresAt: "2060-02-20T08:32:00.000Z",
+    });
+    const batch = createMessageBatch("points-race-jobs", [delivery(body)]);
+    const ctx = createExecutionContext();
+    await consumeJobs(batch, env, ctx, { now: () => new Date(FIXED_NOW) });
+    const result = await getQueueResult(batch, ctx);
+    expect(result.retryMessages).toEqual([{ msgId: delivery(body).id }]);
+    expect(result.explicitAcks).toEqual([]);
+    const waiting = await env.DB.prepare(
+      "SELECT state, diagnostic_json FROM job_runs WHERE id = ?1",
+    )
+      .bind(body.id)
+      .first<{ state: string; diagnostic_json: string | null }>();
+    expect(waiting).toEqual({ state: "queued", diagnostic_json: null });
+
+    await leases.release(leaseKey, "2120-21:finalization:other-delivery");
+    const retryBatch = createMessageBatch("points-race-jobs", [
+      delivery(body, 2),
+    ]);
+    const retryCtx = createExecutionContext();
+    await consumeJobs(retryBatch, env, retryCtx, {
+      now: () => new Date(FIXED_NOW),
+    });
+    const retryResult = await getQueueResult(retryBatch, retryCtx);
+    expect(retryResult.explicitAcks).toEqual([delivery(body, 2).id]);
+    const executed = await env.DB.prepare(
+      "SELECT state, diagnostic_json FROM job_runs WHERE id = ?1",
+    )
+      .bind(body.id)
+      .first<{ state: string; diagnostic_json: string | null }>();
+    expect(executed).toEqual({
+      state: "failed",
+      diagnostic_json: JSON.stringify({ code: "NO_SEASON_EVIDENCE" }),
+    });
+  });
+
   it("does not execute an already-succeeded duplicate or a contended lease", async () => {
     const duplicate = message("collect-results", { id: "b".repeat(64) });
     const contended = message("verify-stability", { id: "c".repeat(64) });

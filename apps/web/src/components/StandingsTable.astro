@@ -1,6 +1,7 @@
 ---
 interface Standing {
   readonly rank: number;
+  readonly competitorId?: string;
   readonly name: string;
   readonly school: string;
   readonly points: number;
@@ -36,7 +37,7 @@ const { standings, seasonId } = Astro.props;
           <td class="rank" data-label="Rank">{standing.rank}</td>
           <td data-label="Competitor">
             {seasonId ? (
-              <a href={`/${seasonId}/competitors/${standing.rank}/`}>
+              <a href={`/${seasonId}/competitors/${encodeURIComponent(standing.competitorId ?? String(standing.rank))}/`}>
                 <strong>{standing.name}</strong>
               </a>
             ) : (

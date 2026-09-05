@@ -3,7 +3,8 @@ interface Props {
   classification:
     | "Extemp Central official archive"
     | "Automated reconstruction"
-    | "Current live race";
+    | "Current live race"
+    | "Autonomous season archive";
 }
 const { classification } = Astro.props;
 const kind = classification.startsWith("Extemp")

@@ -1,4 +1,4 @@
-import { access, readFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
@@ -6,15 +6,6 @@ import { describe, expect, it } from "vitest";
 const sourceRoot = fileURLToPath(new URL("../src/", import.meta.url));
 
 describe("public MBA results form", () => {
-  it("publishes the form on the current season page", async () => {
-    await expect(
-      access(`${sourceRoot}components/MbaSubmissionForm.astro`),
-    ).resolves.toBeUndefined();
-    const page = await readFile(`${sourceRoot}pages/2026-27.astro`, "utf8");
-    expect(page).toContain("MbaSubmissionForm");
-    expect(page).toContain('seasonId="2026-27"');
-  });
-
   it("requires submitter identity, one evidence source, six placements, and attestation", async () => {
     const form = await readFile(
       `${sourceRoot}components/MbaSubmissionForm.astro`,

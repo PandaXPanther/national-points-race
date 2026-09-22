@@ -97,7 +97,12 @@ describe("multi-season scheduled document collection", () => {
   it("still attempts previous-year corrections when the current-season source fails", async () => {
     const network = fixture(["2027-28", "2026-27"]);
     const fetchImpl: typeof fetch = async (input, init) => {
-      if (new Request(input, init).url.endsWith("/2027-28/tournaments"))
+      if (
+        new Request(
+          input instanceof Request ? input.clone() : input,
+          init,
+        ).url.endsWith("/2027-28/tournaments")
+      )
         return new Response("private-source-error", { status: 503 });
       return network.fetchImpl(input, init);
     };
@@ -229,6 +234,6 @@ describe("multi-season scheduled document collection", () => {
         fetchImpl,
       }),
     ).rejects.toThrow();
-    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
   });
 });

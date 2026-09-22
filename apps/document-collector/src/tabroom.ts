@@ -10,6 +10,13 @@ import {
 import { z } from "zod";
 import { fetchTournamentIndex, type TournamentRecord } from "./discover.js";
 import { signDocumentPacket } from "./sign.js";
+import { collectorFetch, RequestFailureError } from "./retry.js";
+import {
+  CollectorRunError,
+  collectorFailure,
+  type CollectorFailure,
+  type CollectorStage,
+} from "./diagnostics.js";
 
 // The runner has enough memory for bounded whole exports. The Worker receives
 // only normalized results, never the large multi-event provider response.
@@ -169,16 +176,28 @@ export async function runTabroomCollector(input: {
   readonly fetchImpl?: typeof fetch;
 }): Promise<{ considered: number; submitted: number; duplicates: number }> {
   const now = input.now ?? (() => new Date());
-  const fetchImpl = input.fetchImpl ?? fetch;
-  const index = await fetchTournamentIndex(input);
+  const fetchImpl = collectorFetch(input.fetchImpl);
+  let index;
+  try {
+    index = await fetchTournamentIndex({ ...input, fetchImpl });
+  } catch (error) {
+    throw new CollectorRunError([
+      collectorFailure(error, {
+        stage: "tournament-index",
+        collector: "tabroom",
+        seasonId: input.seasonId,
+      }),
+    ]);
+  }
   let considered = 0,
     submitted = 0,
     duplicates = 0;
-  const failures: string[] = [];
+  const failures: CollectorFailure[] = [];
   for (const tournament of index.tournaments) {
     const providerId = tournamentId(tournament, now());
     if (providerId === null) continue;
     considered += 1;
+    let stage: CollectorStage = "source-download";
     try {
       const source = await fetchBounded({
         url: new URL(
@@ -194,6 +213,7 @@ export async function runTabroomCollector(input: {
         fetchImpl: (url, init) =>
           fetchImpl(url, { ...init, headers: { "user-agent": USER_AGENT } }),
       });
+      stage = "parse";
       const resultSets = normalizePublicTabroomExport(
         JSON.parse(
           new TextDecoder("utf-8", { fatal: true }).decode(source.body),
@@ -211,6 +231,7 @@ export async function runTabroomCollector(input: {
           throw new Error("TABROOM_FINAL_RESULTS_OVERDUE");
         continue;
       }
+      stage = "ingest";
       const signed = signDocumentPacket(
         {
           schemaVersion: 1,
@@ -240,14 +261,25 @@ export async function runTabroomCollector(input: {
       );
       await response.body?.cancel();
       if (response.status !== 200 && response.status !== 202)
-        throw new Error("TABROOM_INGEST_REJECTED");
+        throw new RequestFailureError("HTTP_REJECTED", 1, response.status);
       submitted += 1;
       duplicates += response.status === 200 ? 1 : 0;
-    } catch {
-      failures.push(tournament.editionId);
+    } catch (error) {
+      failures.push(
+        collectorFailure(error, {
+          stage,
+          collector: "tabroom",
+          seasonId: input.seasonId,
+          editionId: tournament.editionId,
+        }),
+      );
     }
   }
   if (failures.length > 0)
-    throw new Error(`TABROOM_COLLECTION_FAILED: ${failures.join(", ")}`);
+    throw new CollectorRunError(failures, {
+      considered,
+      submitted,
+      duplicates,
+    });
   return { considered, submitted, duplicates };
 }

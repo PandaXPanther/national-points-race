@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import {
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   rmdirSync,
   unlinkSync,
   writeFileSync,
@@ -16,6 +17,7 @@ const builtRunner = fileURLToPath(new URL("../dist/run.js", import.meta.url));
 const scratch = mkdtempSync(join(tmpdir(), "points-race-run-cli-"));
 const invalidManifests = join(scratch, "invalid-manifests");
 const emptyManifests = join(scratch, "empty-manifests");
+const summaryFile = join(scratch, "summary.md");
 mkdirSync(invalidManifests);
 mkdirSync(emptyManifests);
 writeFileSync(
@@ -30,6 +32,11 @@ const NO_NETWORK = `data:text/javascript,${encodeURIComponent(
 )}`;
 
 afterAll(() => {
+  try {
+    unlinkSync(summaryFile);
+  } catch {
+    /* A failing test may not write it. */
+  }
   unlinkSync(join(invalidManifests, "invalid.json"));
   rmdirSync(invalidManifests);
   rmdirSync(emptyManifests);
@@ -42,11 +49,15 @@ function runScheduledCli(input: {
   readonly args?: readonly string[];
   readonly manifestDirectory?: string;
   readonly networkScript?: string;
+  readonly summaryFile?: string;
 }) {
   const env = { ...process.env };
   delete env.POINTS_RACE_SERVICE_URL;
   delete env.DOCUMENT_INGEST_SECRET;
   delete env.NODE_OPTIONS;
+  delete env.GITHUB_STEP_SUMMARY;
+  if (input.summaryFile !== undefined)
+    env.GITHUB_STEP_SUMMARY = input.summaryFile;
   if (input.serviceUrl !== undefined)
     env.POINTS_RACE_SERVICE_URL = input.serviceUrl;
   if (input.secret !== undefined) env.DOCUMENT_INGEST_SECRET = input.secret;
@@ -179,20 +190,37 @@ describe("built scheduled runner configuration checks", () => {
   });
 
   it.each(["manifest", "network"])(
-    "keeps arbitrary %s errors generic",
+    "reports the %s failure stage in JSON and Actions without exposing arbitrary error text",
     (failure) => {
       const result = runScheduledCli({
         serviceUrl: SERVICE_URL,
         secret: SECRET,
         manifestDirectory:
           failure === "manifest" ? invalidManifests : emptyManifests,
+        summaryFile,
       });
 
-      expect(result).toEqual({
-        status: 1,
-        stdout: "",
-        stderr: "DOCUMENT_COLLECTOR_FAILED\n",
+      expect(result.status).toBe(1);
+      expect(result.stdout).toBe("");
+      expect(result.stderr).toContain("DOCUMENT_COLLECTOR_FAILED");
+      const report = JSON.parse(
+        result.stderr.trim().slice("DOCUMENT_COLLECTOR_FAILED ".length),
+      );
+      expect(report).toMatchObject({
+        failed: 1,
+        failures: [
+          {
+            stage: failure === "manifest" ? "manifest-load" : "season-catalog",
+          },
+        ],
       });
+      const summary = readFileSync(summaryFile, "utf8");
+      expect(summary).toContain(
+        failure === "manifest" ? "manifest-load" : "season-catalog",
+      );
+      expect(result.stderr + summary).not.toMatch(
+        /private-|test-only-signing-key|\n\s+at /,
+      );
     },
   );
 });

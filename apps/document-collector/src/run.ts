@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { appendFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -18,6 +19,15 @@ import { parseOfficialDocument } from "./index.js";
 import { signDocumentPacket } from "./sign.js";
 import { CollectionSeasonIdSchema, collectionSeasons } from "./seasons.js";
 import { runTabroomCollector } from "./tabroom.js";
+import { collectorFetch, RequestFailureError } from "./retry.js";
+import {
+  CollectorRunError,
+  collectorFailure,
+  failureReport,
+  failureSummary,
+  type CollectorFailure,
+  type CollectorStage,
+} from "./diagnostics.js";
 
 const DOCUMENT_MAX_BYTES = 25 * 1_024 * 1_024;
 const DOCUMENT_TIMEOUT_MS = 45_000;
@@ -135,20 +145,42 @@ export async function runCollector(
   const seasonId = CollectionSeasonIdSchema.parse(
     input.seasonId ?? seasonIdFor(observedNow),
   );
-  const index = await fetchTournamentIndex({
-    serviceUrl: input.serviceUrl,
-    seasonId,
-    ...(input.fetchImpl === undefined ? {} : { fetchImpl: input.fetchImpl }),
-    now,
-  });
-  const documents = discoverDocuments(index, input.manifests);
-  const fetchImpl = input.fetchImpl ?? fetch;
+  const fetchImpl = collectorFetch(input.fetchImpl);
+  let index;
+  try {
+    index = await fetchTournamentIndex({
+      serviceUrl: input.serviceUrl,
+      seasonId,
+      fetchImpl,
+      now,
+    });
+  } catch (error) {
+    throw new CollectorRunError([
+      collectorFailure(error, {
+        stage: "tournament-index",
+        collector: "document",
+        seasonId,
+      }),
+    ]);
+  }
+  let documents;
+  try {
+    documents = discoverDocuments(index, input.manifests);
+  } catch (error) {
+    throw new CollectorRunError([
+      collectorFailure(error, {
+        stage: "discovery",
+        collector: "document",
+        seasonId,
+      }),
+    ]);
+  }
   let submitted = 0;
   let duplicates = 0;
-  let failed = false;
-  let firstFailure: unknown;
+  const failures: CollectorFailure[] = [];
 
   for (const document of documents) {
+    let stage: CollectorStage = "source-download";
     try {
       const source = await fetchBounded({
         url: document.sourceUrl,
@@ -163,6 +195,7 @@ export async function runCollector(
         ...document.manifest,
         publishedAt: source.retrievedAt,
       };
+      stage = "parse";
       const resultSets = withStableDocumentPeople(
         await parseOfficialDocument({
           manifest,
@@ -183,6 +216,7 @@ export async function runCollector(
         },
         resultSets,
       };
+      stage = "ingest";
       const signed = signDocumentPacket(
         packet,
         input.secret,
@@ -196,19 +230,28 @@ export async function runCollector(
       });
       if (response.status !== 200 && response.status !== 202) {
         await response.body?.cancel();
-        throw new Error(
-          "Points Race service rejected a signed document packet.",
-        );
+        throw new RequestFailureError("HTTP_REJECTED", 1, response.status);
       }
       duplicates += response.status === 200 ? 1 : 0;
       submitted += 1;
       await response.body?.cancel();
     } catch (error) {
-      if (!failed) firstFailure = error;
-      failed = true;
+      failures.push(
+        collectorFailure(error, {
+          stage,
+          collector: "document",
+          seasonId,
+          editionId: document.tournament.editionId,
+        }),
+      );
     }
   }
-  if (failed) throw firstFailure;
+  if (failures.length > 0)
+    throw new CollectorRunError(failures, {
+      considered: documents.length,
+      submitted,
+      duplicates,
+    });
   return { seasonId, considered: documents.length, submitted, duplicates };
 }
 
@@ -219,45 +262,79 @@ export async function runScheduledCollector(
   const now = input.now ?? (() => new Date());
   const observedNow = now();
   const seasonId = seasonIdFor(observedNow);
-  const seasonIds = await collectionSeasons({
-    serviceUrl: input.serviceUrl,
-    currentSeasonId: seasonId,
-    date: observedNow,
-    ...(input.fetchImpl === undefined ? {} : { fetchImpl: input.fetchImpl }),
-  });
+  const fetchImpl = collectorFetch(input.fetchImpl);
+  let seasonIds;
+  try {
+    seasonIds = await collectionSeasons({
+      serviceUrl: input.serviceUrl,
+      currentSeasonId: seasonId,
+      date: observedNow,
+      fetchImpl,
+    });
+  } catch (error) {
+    throw new CollectorRunError([
+      collectorFailure(error, { stage: "season-catalog", seasonId }),
+    ]);
+  }
   let considered = 0;
   let submitted = 0;
   let duplicates = 0;
-  let failed = false;
+  const failures: CollectorFailure[] = [];
+  function recordFailure(
+    error: unknown,
+    selectedSeason: string,
+    collector: "document" | "tabroom",
+  ) {
+    if (error instanceof CollectorRunError) {
+      failures.push(...error.failures);
+      considered += error.counts.considered;
+      submitted += error.counts.submitted;
+      duplicates += error.counts.duplicates;
+    } else
+      failures.push(
+        collectorFailure(error, {
+          stage: "collection",
+          seasonId: selectedSeason,
+          collector,
+        }),
+      );
+  }
   for (const selectedSeason of seasonIds) {
     if (input.includeTabroom === true) {
       try {
         const output = await runTabroomCollector({
           ...input,
+          fetchImpl,
           now,
           seasonId: selectedSeason,
         });
         considered += output.considered;
         submitted += output.submitted;
         duplicates += output.duplicates;
-      } catch {
-        failed = true;
+      } catch (error) {
+        recordFailure(error, selectedSeason, "tabroom");
       }
     }
     try {
       const output = await runCollector({
         ...input,
+        fetchImpl,
         now,
         seasonId: selectedSeason,
       });
       considered += output.considered;
       submitted += output.submitted;
       duplicates += output.duplicates;
-    } catch {
-      failed = true;
+    } catch (error) {
+      recordFailure(error, selectedSeason, "document");
     }
   }
-  if (failed) throw new Error("Scheduled season collection failed.");
+  if (failures.length > 0)
+    throw new CollectorRunError(failures, {
+      considered,
+      submitted,
+      duplicates,
+    });
   return { seasonId, seasonIds, considered, submitted, duplicates };
 }
 
@@ -274,9 +351,16 @@ async function main(): Promise<void> {
     dirname(fileURLToPath(import.meta.url)),
     "../manifests",
   );
-  const manifests = await loadCollectorManifests(
-    process.env.POINTS_RACE_MANIFEST_DIR ?? defaultManifestDirectory,
-  );
+  let manifests;
+  try {
+    manifests = await loadCollectorManifests(
+      process.env.POINTS_RACE_MANIFEST_DIR ?? defaultManifestDirectory,
+    );
+  } catch (error) {
+    throw new CollectorRunError([
+      collectorFailure(error, { stage: "manifest-load" }),
+    ]);
+  }
   const output = await runScheduledCollector({
     serviceUrl,
     secret,
@@ -293,12 +377,22 @@ if (
   invokedPath !== undefined &&
   resolve(invokedPath) === fileURLToPath(import.meta.url)
 ) {
-  main().catch((error: unknown) => {
+  main().catch(async (error: unknown) => {
     const diagnostic =
       error instanceof CollectorConfigurationError
         ? CONFIGURATION_DIAGNOSTICS[error.code]
-        : "DOCUMENT_COLLECTOR_FAILED";
+        : `DOCUMENT_COLLECTOR_FAILED ${JSON.stringify(failureReport(error))}`;
     process.stderr.write(`${diagnostic}\n`);
+    if (process.env.GITHUB_STEP_SUMMARY !== undefined) {
+      try {
+        await appendFile(
+          process.env.GITHUB_STEP_SUMMARY,
+          failureSummary(error),
+        );
+      } catch {
+        // Keep the original safe failure even if the Actions summary is unavailable.
+      }
+    }
     process.exitCode = 1;
   });
 }

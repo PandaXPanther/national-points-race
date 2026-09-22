@@ -2,6 +2,7 @@ import { fetchBounded, type SourceDescriptor } from "@points-race/pipeline";
 
 import {
   TOURNAMENT_FINGERPRINTS,
+  matchesTabroomLineageTitle,
   normalizeExactKey,
   type TournamentFingerprint,
 } from "./registry.js";
@@ -37,6 +38,14 @@ export interface TabroomCalendarEntry {
 export interface ParseTabroomDetailInput {
   readonly seasonId: string;
   readonly entry: TabroomCalendarEntry;
+  readonly verifiedPastEdition?: VerifiedPastEdition;
+}
+
+interface VerifiedPastEdition {
+  readonly fingerprint: TournamentFingerprint;
+  readonly platformLineageKey: string;
+  readonly startAt: string;
+  readonly endAt: string;
 }
 
 export interface DiscoverTabroomCandidatesInput {
@@ -354,10 +363,42 @@ export function parseTabroomDetail(
   const dates =
     oneAttribute(html, "data-tournament-dates") ??
     labeledSpanValue(html, "Tournament Dates");
-  if (dates === null || dates.length === 0)
-    throw new TypeError("Missing tournament dates.");
+  const platformLineageKey =
+    oneAttribute(html, "data-platform-lineage-key") ??
+    pastYearsLineageKey(html, detailUrl);
+  const verified = input.verifiedPastEdition;
+  if (
+    verified !== undefined &&
+    (platformLineageKey === null ||
+      normalizeExactKey(platformLineageKey) !==
+        normalizeExactKey(verified.platformLineageKey) ||
+      !verified.fingerprint.verifiedPlatformLineageKeys.some(
+        (key) =>
+          normalizeExactKey(key) ===
+          normalizeExactKey(verified.platformLineageKey),
+      ) ||
+      !matchesTabroomLineageTitle(title, verified.fingerprint))
+  ) {
+    throw new TypeError("Detail contradicts verified Tabroom history.");
+  }
+  const range =
+    dates === null || dates.length === 0
+      ? verified === undefined
+        ? null
+        : ([verified.startAt, verified.endAt] as const)
+      : parseDateRange(dates, input.seasonId);
+  if (range === null) throw new TypeError("Missing tournament dates.");
+  const [startAt, endAt] = range;
+  // The index and detail can differ by a day (provider date boundaries).
+  // Prefer explicit detail dates, but reject a contradictory date interval.
+  if (
+    verified !== undefined &&
+    (Date.parse(startAt) > Date.parse(verified.endAt) ||
+      Date.parse(endAt) < Date.parse(verified.startAt))
+  ) {
+    throw new TypeError("Detail dates contradict verified Tabroom history.");
+  }
   const organizer = oneAttribute(html, "data-organizer");
-  const [startAt, endAt] = parseDateRange(dates, input.seasonId);
   const embeddedLabels = embeddedEventLabels(html);
   const labels =
     embeddedLabels.length > 0
@@ -365,9 +406,6 @@ export function parseTabroomDetail(
       : eventsHtml === undefined
         ? Object.freeze([])
         : actualEventLabels(eventsHtml, detailUrl, input.entry.tournamentId);
-  const platformLineageKey =
-    oneAttribute(html, "data-platform-lineage-key") ??
-    pastYearsLineageKey(html, detailUrl);
   const officialPastEditionKey = oneAttribute(
     html,
     "data-official-past-edition-key",
@@ -436,6 +474,38 @@ const POLICY_TITLES = Object.freeze(
   ),
 );
 
+function pastEditionDateRange(
+  cells: readonly string[],
+  seasonStart: number,
+  seasonEnd: number,
+): readonly [string, string] | null {
+  const parse = (value: string, end: boolean): Date | null => {
+    const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/u.exec(value);
+    if (match === null) return null;
+    try {
+      return exactUtc(
+        Number(match[3]),
+        Number(match[1]),
+        Number(match[2]),
+        end,
+      );
+    } catch {
+      return null;
+    }
+  };
+  const start = parse(cells[2] ?? "", false);
+  const end = parse(cells[3] ?? "", true);
+  if (
+    start === null ||
+    end === null ||
+    end < start ||
+    start.getTime() < seasonStart ||
+    end.getTime() >= seasonEnd
+  )
+    return null;
+  return [start.toISOString(), end.toISOString()];
+}
+
 export async function discoverTabroomCandidates(
   input: DiscoverTabroomCandidatesInput,
 ): Promise<readonly DiscoveryCandidate[]> {
@@ -460,6 +530,7 @@ export async function discoverTabroomCandidates(
   const year = parseSeasonStart(input.seasonId);
   const seasonStart = Date.UTC(year, 7, 1);
   const seasonEnd = Date.UTC(year + 1, 7, 1);
+  const verifiedPastEditions = new Map<string, VerifiedPastEdition>();
   for (const key of input.fingerprint?.verifiedPlatformLineageKeys ?? []) {
     const webname = /^tabroom:webname:([a-z0-9_-]+)$/u.exec(key)?.[1];
     if (webname === undefined) continue;
@@ -472,16 +543,28 @@ export async function discoverTabroomCandidates(
       const cells = [
         ...(row[1] ?? "").matchAll(/<td\b[^>]*>([\s\S]*?)<\/td\s*>/giu),
       ].map((cell) => plainText(cell[1] ?? ""));
-      const date = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/u.exec(cells[2] ?? "");
-      if (date === null) continue;
-      const start = exactUtc(
-        Number(date[3]),
-        Number(date[1]),
-        Number(date[2]),
-        false,
-      ).getTime();
-      if (start < seasonStart || start >= seasonEnd) continue;
-      entries.push(...parseTabroomCalendar(row[1] ?? "", pastUrl));
+      const range = pastEditionDateRange(cells, seasonStart, seasonEnd);
+      if (range === null || input.fingerprint === undefined) continue;
+      for (const entry of parseTabroomCalendar(row[1] ?? "", pastUrl)) {
+        if (!matchesTabroomLineageTitle(entry.title, input.fingerprint))
+          continue;
+        const verified = {
+          fingerprint: input.fingerprint,
+          platformLineageKey: key,
+          startAt: range[0],
+          endAt: range[1],
+        };
+        const previous = verifiedPastEditions.get(entry.tournamentId);
+        if (
+          previous !== undefined &&
+          (previous.platformLineageKey !== key ||
+            previous.startAt !== verified.startAt ||
+            previous.endAt !== verified.endAt)
+        )
+          throw new TypeError("Ambiguous Tabroom past-edition dates.");
+        verifiedPastEditions.set(entry.tournamentId, verified);
+        entries.push(entry);
+      }
     }
   }
   const uniqueEntries = [
@@ -495,10 +578,13 @@ export async function discoverTabroomCandidates(
       input,
     );
     const detailUrl = new URL(entry.detailUrl);
-    const dated = parseTabroomDetail(detailHtml, {
+    const verifiedPastEdition = verifiedPastEditions.get(entry.tournamentId);
+    const parseInput = {
       seasonId: input.seasonId,
       entry,
-    });
+      ...(verifiedPastEdition === undefined ? {} : { verifiedPastEdition }),
+    };
+    const dated = parseTabroomDetail(detailHtml, parseInput);
     if (
       Date.parse(dated.startAt) < seasonStart ||
       Date.parse(dated.startAt) >= seasonEnd
@@ -512,13 +598,7 @@ export async function discoverTabroomCandidates(
       eventsUrl === null
         ? undefined
         : await getHtml(eventsUrl, TABROOM_DETAIL_DESCRIPTOR, input);
-    candidates.push(
-      parseTabroomDetail(
-        detailHtml,
-        { seasonId: input.seasonId, entry },
-        eventsHtml,
-      ),
-    );
+    candidates.push(parseTabroomDetail(detailHtml, parseInput, eventsHtml));
   }
   return Object.freeze(candidates);
 }

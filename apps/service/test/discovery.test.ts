@@ -88,8 +88,6 @@ describe("frozen tournament registry", () => {
         aliases: fingerprint.aliases,
         tier: fingerprint.tier,
         window: [fingerprint.window.startMonth, fingerprint.window.endMonth],
-        platform: fingerprint.verifiedPlatformLineageKeys,
-        past: fingerprint.verifiedOfficialPastEditionKeys,
       })),
     ).toEqual(
       CURRENT_POLICY.tournaments.map((lineage) => ({
@@ -98,16 +96,6 @@ describe("frozen tournament registry", () => {
         aliases: lineage.aliases,
         tier: lineage.tier,
         window: [...EXPECTED_WINDOWS[lineage.id]],
-        platform:
-          lineage.id === "asu-hdshc-invitational"
-            ? ["tabroom:tourn:37484"]
-            : lineage.id === "uk-season-opener"
-              ? ["tabroom:webname:ukso"]
-              : [],
-        past:
-          lineage.id === "asu-hdshc-invitational"
-            ? ["tabroom:edition:37484"]
-            : [],
       })),
     );
     expect(ELIGIBLE_EVENT_LABELS).toEqual([
@@ -131,7 +119,10 @@ describe("frozen tournament registry", () => {
         tier: 4,
         window: { startMonth: 1, endMonth: 2 },
         organizerKeys: ["Arizona State University"],
-        verifiedPlatformLineageKeys: ["tabroom:tourn:37484"],
+        verifiedPlatformLineageKeys: [
+          "tabroom:webname:asu",
+          "tabroom:tourn:37484",
+        ],
         verifiedOfficialPastEditionKeys: ["tabroom:edition:37484"],
       }),
     );

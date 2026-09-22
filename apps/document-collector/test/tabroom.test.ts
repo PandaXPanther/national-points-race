@@ -77,6 +77,79 @@ const tournament = {
 };
 
 describe("scheduled public Tabroom exports", () => {
+  it("retries the public export and signed submission while preserving duplicate semantics", async () => {
+    const attempts = { source: 0, ingest: 0 };
+    const submittedBodies: string[] = [];
+    const result = await runTabroomCollector({
+      serviceUrl: "https://service.example.test",
+      secret: "test-only-secret",
+      seasonId: "2026-27",
+      now: () => new Date("2026-09-21T00:00:00Z"),
+      fetchImpl: async (input, init) => {
+        const request = new Request(input, init);
+        if (request.url.endsWith("/tournaments"))
+          return Response.json({
+            seasonId: "2026-27",
+            version: "a".repeat(64),
+            tournaments: [tournament],
+          });
+        if (request.url.includes("download_data.mhtml")) {
+          attempts.source += 1;
+          expect(request.headers.get("user-agent")).toContain(
+            "official-public-export-collector",
+          );
+          if (attempts.source === 1) return new Response(null, { status: 503 });
+          return Response.json(payload);
+        }
+        attempts.ingest += 1;
+        submittedBodies.push(await request.text());
+        if (attempts.ingest === 1)
+          throw new TypeError("fetch failed", {
+            cause: { code: "ECONNRESET" },
+          });
+        return new Response(null, { status: 200 });
+      },
+    });
+    expect(result).toEqual({ considered: 1, submitted: 1, duplicates: 1 });
+    expect(attempts).toEqual({ source: 2, ingest: 2 });
+    expect(submittedBodies[0]).toBe(submittedBodies[1]);
+  });
+
+  it("retains edition and parse-stage diagnostics without retrying malformed provider data", async () => {
+    let downloads = 0;
+    const operation = runTabroomCollector({
+      serviceUrl: "https://service.example.test",
+      secret: "test-only-secret",
+      seasonId: "2026-27",
+      now: () => new Date("2026-09-21T00:00:00Z"),
+      fetchImpl: async (input, init) => {
+        if (new Request(input, init).url.endsWith("/tournaments"))
+          return Response.json({
+            seasonId: "2026-27",
+            version: "a".repeat(64),
+            tournaments: [tournament],
+          });
+        downloads += 1;
+        return new Response("private-provider-text", {
+          headers: { "content-type": "application/json" },
+        });
+      },
+    });
+    await expect(operation).rejects.toMatchObject({
+      failures: [
+        {
+          code: "PARSE_FAILED",
+          stage: "parse",
+          collector: "tabroom",
+          seasonId: "2026-27",
+          editionId: "2026-27:uk-season-opener",
+        },
+      ],
+    });
+    await expect(operation).rejects.not.toThrow("private-provider-text");
+    expect(downloads).toBe(1);
+  });
+
   it("normalizes only published extemp finals despite incomplete unrelated records", () => {
     const sets = normalizePublicTabroomExport(
       payload,

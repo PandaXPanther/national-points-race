@@ -469,6 +469,11 @@ export async function runScheduledTick(
       await editionStates(input.env.DB, historicalSeasonId),
     );
   }
+  await input.env.DB.prepare(
+    "INSERT INTO pipeline_heartbeats (name, completed_at) VALUES ('scheduler', ?1) ON CONFLICT(name) DO UPDATE SET completed_at = CASE WHEN completed_at IS NULL OR julianday(excluded.completed_at) > julianday(completed_at) THEN excluded.completed_at ELSE completed_at END",
+  )
+    .bind(scheduledAt)
+    .run();
   return Object.freeze({
     diagnosticCode: "SCHEDULED_JOBS_ENQUEUED",
     seasonId,

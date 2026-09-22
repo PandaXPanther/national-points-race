@@ -87,15 +87,120 @@ const ORGANIZERS: Readonly<Record<TournamentLineageId, readonly string[]>> = {
 const VERIFIED_HISTORY: Readonly<
   Partial<Record<TournamentLineageId, VerifiedLineageHistory>>
 > = {
-  // Verified via https://www.tabroom.com/index/tourn/past.mhtml?webname=ukso
+  // Verified 2026-09-21: each historical detail page links to
+  // https://www.tabroom.com/index/tourn/past.mhtml?webname=<key>,
+  // and that index links back to the known edition ID listed below.
+  // Historical IDs are verification evidence, never future-edition guesses.
   "uk-season-opener": {
     verifiedPlatformLineageKeys: ["tabroom:webname:ukso"],
   },
+  yale: { verifiedPlatformLineageKeys: ["tabroom:webname:yale"] }, // 35805
+  "nyc-invitational": {
+    verifiedPlatformLineageKeys: ["tabroom:webname:nyc"], // 35754
+  },
+  "florida-blue-key": {
+    verifiedPlatformLineageKeys: ["tabroom:webname:flbluekey"], // 36201
+  },
+  glenbrooks: {
+    verifiedPlatformLineageKeys: ["tabroom:webname:glenbrooks"], // 35020
+  },
+  "longhorn-classic": {
+    verifiedPlatformLineageKeys: ["tabroom:webname:lhc"], // 35025
+  },
+  "princeton-classic": {
+    verifiedPlatformLineageKeys: ["tabroom:webname:princetonclassic"], // 37048
+  },
+  "mba-round-robin": {
+    verifiedPlatformLineageKeys: ["tabroom:webname:mbasbf"], // 38655
+  },
+  "james-logan-mlk": {
+    verifiedPlatformLineageKeys: ["tabroom:webname:mlk"], // 36275
+  },
+  "barkley-forum": {
+    verifiedPlatformLineageKeys: ["tabroom:webname:bfhs"], // 35556
+  },
+  harvard: {
+    verifiedPlatformLineageKeys: ["tabroom:webname:harvard"], // 36222
+  },
+  stanford: {
+    verifiedPlatformLineageKeys: ["tabroom:webname:stanford"], // 35262
+  },
+  "california-invitational": {
+    verifiedPlatformLineageKeys: ["tabroom:webname:berkeley"], // 35299
+  },
+  "uk-toc": {
+    verifiedPlatformLineageKeys: ["tabroom:webname:toc"], // 36156
+  },
+  "ncfl-nationals": {
+    verifiedPlatformLineageKeys: ["tabroom:webname:ncfl"], // 39322
+  },
+  "nsda-nationals": {
+    verifiedPlatformLineageKeys: ["tabroom:webname:nationals"], // 37602
+  },
+  "apple-valley-minneapple": {
+    // The known debate edition has no eligible extemp event. Its index is
+    // only a discovery lead; title and event eligibility remain mandatory.
+    verifiedPlatformLineageKeys: ["tabroom:webname:minneapple"], // 36266
+  },
   "asu-hdshc-invitational": {
-    verifiedPlatformLineageKeys: ["tabroom:tourn:37484"],
+    verifiedPlatformLineageKeys: ["tabroom:webname:asu", "tabroom:tourn:37484"],
     verifiedOfficialPastEditionKeys: ["tabroom:edition:37484"],
   },
 };
+
+// Provider titles verified from the same public sources as the history above.
+// These supplement identity checks for recurring indexes only; policy aliases
+// and organizer-based exact-fact matching are intentionally unchanged.
+const VERIFIED_TABROOM_TITLES: Readonly<
+  Partial<Record<TournamentLineageId, readonly string[]>>
+> = {
+  "uk-season-opener": ["National Speech and Debate Season Opener"],
+  yale: ["Yale University Invitational"],
+  "nyc-invitational": [
+    "New York City Invitational Debate and Speech Tournament",
+  ],
+  "florida-blue-key": ["Florida Blue Key Speech and Debate Tournament"],
+  glenbrooks: ["Glenbrooks Speech and Debate Tournament"],
+  "longhorn-classic": ["The Longhorn Classic"],
+  "princeton-classic": ["The Princeton Classic"],
+  "mba-round-robin": [
+    "MBA Extemporaneous Speaking Round Robin",
+    "MBA Extemporaneous Round Robin",
+  ],
+  "james-logan-mlk": ["James Logan Martin Luther King Jr Invitational"],
+  "barkley-forum": ["Barkley Forum for High Schools"],
+  "california-invitational": ["Cal Invitational UC Berkeley"],
+  "uk-toc": ["Tournament of Champions"],
+  "nsda-nationals": ["National Speech and Debate Tournament"],
+  "apple-valley-minneapple": ["Apple Valley MinneApple Debate Tournament"],
+};
+
+// Only these verified naming forms vary by annual ordinal. Anchors keep copied,
+// practice, round-robin, and other suffixed tournaments from inheriting identity.
+const TABROOM_ANNUAL_TITLE_FORMS: Readonly<
+  Partial<Record<TournamentLineageId, RegExp>>
+> = {
+  stanford: /^[1-9]\d{0,2}(?:st|nd|rd|th) annual stanford invitational$/u,
+  "uk-toc": /^[1-9]\d{0,2}(?:st|nd|rd|th) annual tournament of champions$/u,
+  "california-invitational":
+    /^[1-9]\d{0,2}(?:st|nd|rd|th) cal invitational uc berkeley$/u,
+};
+
+export function matchesTabroomLineageTitle(
+  title: string,
+  fingerprint: TournamentFingerprint,
+): boolean {
+  const normalized = normalizeExactKey(title);
+  return (
+    [
+      fingerprint.canonicalName,
+      ...fingerprint.aliases,
+      ...(VERIFIED_TABROOM_TITLES[fingerprint.lineageId] ?? []),
+    ].some((known) => normalizeExactKey(known) === normalized) ||
+    (TABROOM_ANNUAL_TITLE_FORMS[fingerprint.lineageId]?.test(normalized) ??
+      false)
+  );
+}
 
 export function normalizeExactKey(value: string): string {
   return value

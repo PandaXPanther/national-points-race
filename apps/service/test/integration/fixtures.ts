@@ -111,7 +111,14 @@ export function discoveryFixture(
       if (url === detailUrl) return html(detail);
       if (url === "https://www.tabroom.com/index/index.mhtml")
         return html(calendar);
-      if (url === "https://www.tabroom.com/index/tourn/past.mhtml?webname=ukso")
+      if (
+        fingerprint.verifiedPlatformLineageKeys.some(
+          (key) =>
+            key.startsWith("tabroom:webname:") &&
+            url ===
+              `https://www.tabroom.com/index/tourn/past.mhtml?webname=${key.slice("tabroom:webname:".length)}`,
+        )
+      )
         return html("");
       throw new Error("Unexpected discovery fixture URL.");
     },

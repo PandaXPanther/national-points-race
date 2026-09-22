@@ -1,5 +1,6 @@
 import {
   normalizeExactKey,
+  matchesTabroomLineageTitle,
   windowBoundsForSeason,
   type TournamentFingerprint,
 } from "./registry.js";
@@ -127,7 +128,14 @@ export function matchLineage(
         includesExact(
           fingerprint.verifiedPlatformLineageKeys,
           candidate.platformLineageKey,
-        ),
+        ) &&
+        // Copied Tabroom tournaments can retain another tournament's webname.
+        // Require its reviewed title as well; stronger non-webname keys keep
+        // their existing identity semantics.
+        (!normalizeExactKey(candidate.platformLineageKey).startsWith(
+          "tabroom webname ",
+        ) ||
+          matchesTabroomLineageTitle(candidate.title, fingerprint)),
       matchedReason: "MATCHED_VERIFIED_PLATFORM_KEY",
       ambiguousReason: "AMBIGUOUS_VERIFIED_PLATFORM_KEY",
     },

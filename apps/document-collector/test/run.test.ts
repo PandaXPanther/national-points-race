@@ -2,7 +2,7 @@ import { createHash, createHmac } from "node:crypto";
 
 import { describe, expect, it, vi } from "vitest";
 
-import { runCollector } from "../src/run.js";
+import { runCollector, runScheduledCollector } from "../src/run.js";
 
 const SECRET = "test-only-collector-secret";
 const SERVICE_URL = "https://service.example.test";
@@ -85,6 +85,43 @@ function validSignature(request: Request, body: Uint8Array): boolean {
 }
 
 describe("scheduled official document collector", () => {
+  it("recovers catalog, index, source, and signed ingest requests from transient failures", async () => {
+    const attempts = new Map<string, number>();
+    const fetchImpl: typeof fetch = async (input, init) => {
+      const request = new Request(input, init);
+      const path = new URL(request.url).pathname;
+      const attempt = (attempts.get(path) ?? 0) + 1;
+      attempts.set(path, attempt);
+      if (attempt === 1)
+        return new Response("private-provider-response", { status: 503 });
+      if (path === "/v1/seasons")
+        return responseJson({
+          currentSeasonId: SEASON_ID,
+          seasons: [{ seasonId: SEASON_ID }],
+        });
+      if (path.endsWith("/tournaments")) return responseJson(tournamentIndex());
+      if (request.url === DOCUMENT_URL)
+        return new Response(CSV, { headers: { "content-type": "text/csv" } });
+      expect(
+        validSignature(request, new Uint8Array(await request.arrayBuffer())),
+      ).toBe(true);
+      return new Response(null, { status: 200 });
+    };
+    const result = await runScheduledCollector({
+      serviceUrl: SERVICE_URL,
+      secret: SECRET,
+      manifests: [MANIFEST],
+      fetchImpl,
+      now: () => new Date("2027-02-17T09:47:00.000Z"),
+    });
+    expect(result).toMatchObject({
+      considered: 1,
+      submitted: 1,
+      duplicates: 1,
+    });
+    expect([...attempts.values()]).toEqual([2, 2, 2, 2]);
+  });
+
   it("continues with healthy documents after one source fails while keeping the run failed", async () => {
     const brokenManifest = {
       ...MANIFEST,
@@ -119,7 +156,20 @@ describe("scheduled official document collector", () => {
         now: () => new Date("2027-02-17T09:47:00.000Z"),
         fetchImpl,
       }),
-    ).rejects.toThrow();
+    ).rejects.toMatchObject({
+      counts: { considered: 2, submitted: 1, duplicates: 0 },
+      failures: [
+        {
+          stage: "source-download",
+          collector: "document",
+          seasonId: SEASON_ID,
+          editionId: EDITION_ID,
+          code: "HTTP_REJECTED",
+          status: 404,
+          attempts: 1,
+        },
+      ],
+    });
     expect(submitted).toBe(1);
   });
 

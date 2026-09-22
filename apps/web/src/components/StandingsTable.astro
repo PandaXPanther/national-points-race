@@ -17,6 +17,7 @@ interface Props {
 const { standings, seasonId } = Astro.props;
 ---
 
+{seasonId && <p class="record-hint">Select a competitor's name to view their points record.</p>}
 <div class="table-wrap" role="region" aria-label="Standings table" tabindex="0">
   <table class="responsive-table">
     <caption class="sr-only">National Points Race standings</caption>
@@ -56,6 +57,12 @@ const { standings, seasonId } = Astro.props;
 </div>
 
 <style>
+  .record-hint {
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+    margin: 0 0 1rem;
+  }
+
   tbody td:nth-child(2) strong {
     font-family: var(--serif);
     font-size: 1.03rem;

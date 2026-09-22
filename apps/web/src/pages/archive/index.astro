@@ -33,7 +33,7 @@ Astro.response.headers.set("Cache-Control", "no-cache");
               {season.champions.length ? (
                 <>
                   {season.kind === "live" && <p class="muted">{season.champions.length > 1 ? "Co-champions" : "Champion"}</p>}
-                  {season.champions.map((champion) => <p class="winner"><strong>{champion.name}</strong><span>{champion.points} points</span></p>)}
+                  {season.champions.map((champion) => <p class="winner">{champion.competitorId ? <a href={`/${season.seasonId}/competitors/${encodeURIComponent(champion.competitorId)}/`}><strong>{champion.name}</strong></a> : <strong>{champion.name}</strong>}<span>{champion.points} points</span></p>)}
                 </>
               ) : (
                 <p class="muted">{season.status === "provisional" ? "Awaiting finalization. No champion designated." : season.status === "unpublished" ? "Awaiting publication. No champion designated." : "No champion designated in this publication."}</p>

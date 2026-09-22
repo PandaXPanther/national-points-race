@@ -1,0 +1,145 @@
+---
+import { CURRENT_POLICY } from "@points-race/policy";
+import type { CompetitorResponse } from "../lib/contracts.js";
+
+interface Props {
+  awards: CompetitorResponse["awards"];
+  totalPoints: number;
+}
+const { awards, totalPoints } = Astro.props;
+const divisions = { combined: "Combined extemp", ix: "International extemp", usx: "United States extemp" };
+const stages = { final: "Finalist", semifinal: "Semifinalist", quarterfinal: "Quarterfinalist", octafinal: "Octafinalist" };
+function ordinal(value: number): string {
+  const lastTwo = value % 100;
+  const suffix = lastTwo >= 11 && lastTwo <= 13 ? "th" : ({ 1: "st", 2: "nd", 3: "rd" }[value % 10] ?? "th");
+  return `${value}${suffix}`;
+}
+// Names are presentation metadata only. All points and placements come from the published awards.
+const results = awards.map((award) => ({
+  ...award,
+  tournamentName: CURRENT_POLICY.tournaments.find(({ id }) => id === award.lineageId)?.canonicalName
+    ?? award.lineageId.replaceAll("-", " "),
+})).sort((left, right) => right.points - left.points || left.tournamentName.localeCompare(right.tournamentName) || left.division.localeCompare(right.division));
+const countedPoints = awards.reduce((sum, award) => sum + award.points, 0);
+const complete = countedPoints === totalPoints;
+---
+
+<section class="section" aria-labelledby="placement-heading">
+  <div class="shell">
+    <div class="section-heading">
+      <div><p class="label">Points breakdown</p><h2 id="placement-heading">Counted results</h2></div>
+      <p>These are the results counted toward this season's total, shown by points earned. They are not a complete tournament attendance history.</p>
+    </div>
+    {results.length ? <>
+      <p class="record-total">{countedPoints} points from {results.length} counted {results.length === 1 ? "result" : "results"}</p>
+      {!complete && <p role="status">These records account for {countedPoints} of the {totalPoints} published points. The breakdown is incomplete or awaiting a correction.</p>}
+      <ol class="placement-register" aria-label="Tournament placements and points">
+        {results.map((result) => (
+          <li>
+            <div class="tournament">
+              <h3>{result.tournamentName}</h3>
+              <p>{divisions[result.division]}</p>
+              <a href={result.source.url} aria-label={`Official results for ${result.tournamentName}, ${divisions[result.division]}`}>Official results</a>
+            </div>
+            <dl class="result-score">
+              <div>
+                <dt>Placement</dt>
+                <dd>{result.placement === null ? stages[result.furthestStage] : `${ordinal(result.placement)} place`}</dd>
+                {result.placement === null
+                  ? <dd class="result-note">Exact placement not published</dd>
+                  : result.furthestStage !== "final" && <dd class="result-note">{stages[result.furthestStage]}</dd>}
+              </div>
+              <div><dt>Points earned</dt><dd>{result.points}</dd></div>
+            </dl>
+            {result.lineageId === "nsda-nationals" && (result.ruleId.startsWith("nsda-strong-field") || result.wonFinalRound) && <p class="bonus-note">
+              {result.ruleId.startsWith("nsda-strong-field") && <span>Includes the NSDA strong-field adjustment. </span>}
+              {result.wonFinalRound && <span>Includes the final-round winner bonus.</span>}
+            </p>}
+          </li>
+        ))}
+      </ol>
+      <p class="counting-note">Only awarded points appear here. Where a tournament has multiple extemp divisions, the scoring policy determines which result counts. <a href="/methodology/">Read the scoring rules</a>.</p>
+    </> : <p role="status">Placement records are temporarily unavailable. The published season total is shown above.</p>}
+  </div>
+</section>
+
+<style>
+  .record-total {
+    margin-bottom: 1.2rem;
+    font-weight: 650;
+  }
+
+  .placement-register {
+    margin: 0;
+    padding: 0;
+    border-top: 5px solid var(--ink);
+    list-style: none;
+  }
+
+  .placement-register li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.75fr);
+    gap: 1rem 2rem;
+    padding-block: 1.5rem;
+    border-bottom: 1px solid var(--rule-dark);
+    overflow-wrap: anywhere;
+  }
+
+  .tournament p {
+    margin: 0.5rem 0;
+    color: var(--ink-soft);
+  }
+
+  .tournament a, .counting-note, .bonus-note {
+    font-size: 0.85rem;
+  }
+
+  .result-score {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 1.25rem;
+    margin: 0;
+  }
+
+  .result-score dt {
+    margin-bottom: 0.6rem;
+    color: var(--ink-soft);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .result-score dd {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: clamp(1.4rem, 2.5vw, 2rem);
+    line-height: 1.2;
+  }
+
+  .result-score .result-note {
+    margin-top: 0.4rem;
+    color: var(--ink-soft);
+    font-family: var(--sans);
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .bonus-note {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+
+  .counting-note {
+    max-width: 52rem;
+    margin-top: 1.25rem;
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 48rem) {
+    .placement-register li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.5rem;
+    }
+  }
+</style>

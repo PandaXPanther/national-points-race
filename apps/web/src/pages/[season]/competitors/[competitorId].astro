@@ -1,19 +1,22 @@
 ---
 import reconstruction from "../../../data/reconstruction/2025-26.json";
 import standings2024 from "../../../data/history/2024-25.json";
+import PlacementRecord from "../../../components/PlacementRecord.astro";
 import SiteLayout from "../../../layouts/SiteLayout.astro";
 import { getCompetitor, PublicApiError } from "../../../lib/api.js";
 import { loadSeasonCatalog, publicApiContext, resolveSeason } from "../../../lib/seasons.js";
 import { absoluteUrl } from "../../../lib/seo.js";
 
 const seasonId = Astro.params.season ?? "";
-const competitorId = Astro.params.competitorId ?? "";
+// Astro route parameters retain URL escapes; the API client encodes a decoded ID.
+let competitorId = "";
+try { competitorId = decodeURIComponent(Astro.params.competitorId ?? ""); } catch { /* Malformed identities receive a 404 below. */ }
 const catalog = await loadSeasonCatalog();
 const record = resolveSeason(seasonId, catalog);
 Astro.response.headers.set("Cache-Control", "no-cache");
 let competitor = null;
-let apiStatus = 503;
-if (record?.kind === "live") {
+let apiStatus = competitorId ? 503 : 404;
+if (record?.kind === "live" && competitorId) {
   competitor = await getCompetitor(seasonId, competitorId, publicApiContext()).catch(
     (error: unknown) => { if (error instanceof PublicApiError && error.status === 404) apiStatus = 404; return null; },
   );
@@ -28,21 +31,23 @@ const reconstructedStanding =
 if (!record) Astro.response.status = 404;
 else if (!competitor && !reconstructedStanding) Astro.response.status = record.kind === "historical" ? 404 : apiStatus;
 const displayName = competitor?.name ?? reconstructedStanding?.name;
+const standingsPath = seasonId === catalog.currentSeasonId ? `/${seasonId}/` : `/archive/${seasonId}/`;
+const canonicalPath = `/${seasonId}/competitors/${encodeURIComponent(competitorId)}/`;
 const structuredData = displayName
   ? {
       "@context": "https://schema.org",
       "@type": "Dataset",
-      name: `${displayName}, ${seasonId} NPR audit`,
+      name: `${displayName}, ${seasonId} NPR record`,
       description: `National Points Race score record for ${displayName}.`,
-      url: absoluteUrl(`/${seasonId}/competitors/${competitorId}/`),
+      url: absoluteUrl(canonicalPath),
     }
   : undefined;
 ---
 
 <SiteLayout
-  title={displayName ? `${displayName} NPR Record` : "Competitor audit"}
-  description={displayName ? `Points and audit record for ${displayName} in the ${seasonId} National Points Race.` : "Award-level National Points Race competitor audit trail."}
-  canonicalPath={`/${seasonId}/competitors/${competitorId}/`}
+  title={displayName ? `${displayName} NPR Record` : "Competitor record"}
+  description={displayName ? `Tournament placements and points for ${displayName} in the ${seasonId} National Points Race.` : "National Points Race competitor results and points."}
+  {canonicalPath}
   {structuredData}
   currentId={catalog.currentSeasonId}
 >
@@ -53,6 +58,7 @@ const structuredData = displayName
           <p class="label">Competitor record / {seasonId}</p>
           <h1>{competitor.name}</h1>
           <p class="dek">{competitor.school}</p>
+          <p class="back-link"><a href={standingsPath}>Return to the standings</a></p>
         </div>
       </header>
       <section class="score-strip-section">
@@ -63,21 +69,7 @@ const structuredData = displayName
           <div><dt>Finals</dt><dd>{competitor.total.finals}</dd></div>
         </dl>
       </section>
-      <section class="section">
-        <div class="shell">
-          <div class="section-heading"><div><p class="label">Award provenance</p><h2>Counted results</h2></div></div>
-          <ol class="award-register">
-            {competitor.awards.map((award, index) => (
-              <li>
-                <span class="award-number">{String(index + 1).padStart(2, "0")}</span>
-                <span>{award.division} extemp</span>
-                <div><h3>{award.editionId}</h3><p><strong>{award.points} points</strong> / {award.ruleId}</p></div>
-                <p class="source-note"><a href={award.source.url}>Official source</a><br />SHA-256 {award.source.sha256.slice(0, 12)}...</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
+      <PlacementRecord awards={competitor.awards} totalPoints={competitor.total.points} />
     </>
   ) : reconstructedStanding ? (
     <>
@@ -86,6 +78,7 @@ const structuredData = displayName
           <p class="label">{seasonId === "2025-26" ? "Reconstructed" : "Preserved"} record / {seasonId}</p>
           <h1>{reconstructedStanding.name}</h1>
           <p class="dek">{reconstructedStanding.school}</p>
+          <p class="back-link"><a href={standingsPath}>Return to the standings</a></p>
         </div>
       </header>
       <section class="score-strip-section">
@@ -100,16 +93,16 @@ const structuredData = displayName
         <div class="shell fallback-note">
           <p class="label">Published record</p>
           <h2>{seasonId === "2025-26" ? "Reconstructed" : "Preserved"} total</h2>
-          <p>This archive publishes the final total. Award-level evidence remains in the season source ledger.</p>
-          <a href={seasonId === "2025-26" ? "/2025-26/" : `/archive/${seasonId}/`}>Return to the standings</a>
+          <p>This archive preserves the season total. Individual placement records are not available in this archive.</p>
+          {seasonId === "2025-26" ? <a href="/2025-26/">View the season's published sources</a> : <a href={`/archive/${seasonId}/`}>View the preserved season standings</a>}
         </div>
       </section>
     </>
   ) : (
     <section class="shell hero">
-      <p class="label">Competitor audit</p>
+      <p class="label">Competitor record</p>
       <h1>{Astro.response.status === 404 ? "Audit record not found." : "Audit record temporarily unavailable."}</h1>
-      <p><a href={`/${seasonId}/`}>Return to the season</a></p>
+      <p><a href={standingsPath}>Return to the season</a></p>
     </section>
   )}
 </SiteLayout>
@@ -117,7 +110,10 @@ const structuredData = displayName
 <style>
   .competitor-head h1 {
     max-width: 14ch;
+    overflow-wrap: anywhere;
   }
+
+  .back-link { margin: 1.5rem 0 0; font-size: 0.85rem; }
 
   .score-strip-section {
     padding-top: 2rem;
@@ -154,33 +150,6 @@ const structuredData = displayName
     line-height: 1;
   }
 
-  .award-register {
-    margin: 0;
-    padding: 0;
-    border-top: 5px solid var(--ink);
-    list-style: none;
-  }
-
-  .award-register li {
-    display: grid;
-    grid-template-columns: 2.5rem 8rem minmax(0, 1fr) 13rem;
-    gap: 1.25rem;
-    padding-block: 1rem;
-    border-bottom: 1px solid var(--rule-dark);
-  }
-
-  .award-register h3,
-  .award-register p {
-    margin: 0;
-  }
-
-  .award-number,
-  .award-register li > span:nth-child(2) {
-    color: var(--ink-soft);
-    font-size: 0.7rem;
-    text-transform: capitalize;
-  }
-
   .fallback-note {
     max-width: 42rem;
   }
@@ -188,15 +157,6 @@ const structuredData = displayName
   @media (max-width: 48rem) {
     .score-strip {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .award-register li {
-      grid-template-columns: 2rem minmax(0, 1fr);
-    }
-
-    .award-register li > div,
-    .award-register .source-note {
-      grid-column: 2;
     }
   }
 

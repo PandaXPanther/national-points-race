@@ -31,11 +31,33 @@ const DocumentSourceSchema = z
   })
   .strict()
   .superRefine((source, context) => {
-    if (source.descriptor.permission !== "official-public-document") {
+    const descriptor = source.descriptor;
+    const exportUrl = new URL(source.url);
+    const tabroomExport =
+      descriptor.permission === "official-public-export" &&
+      descriptor.id === "tabroom-public-export" &&
+      descriptor.sourceClass === "structured-official-export" &&
+      descriptor.allowlistedHostnames.length === 1 &&
+      descriptor.allowlistedHostnames[0] === "www.tabroom.com" &&
+      descriptor.allowedMediaTypes.length === 1 &&
+      descriptor.allowedMediaTypes[0] === "application/json" &&
+      source.mediaType === "application/json" &&
+      exportUrl.origin === "https://www.tabroom.com" &&
+      exportUrl.username === "" &&
+      exportUrl.password === "" &&
+      exportUrl.hash === "" &&
+      exportUrl.pathname === "/api/download_data.mhtml" &&
+      [...exportUrl.searchParams].length === 1 &&
+      /^[1-9]\d*$/u.test(exportUrl.searchParams.get("tourn_id") ?? "");
+    if (
+      descriptor.permission !== "official-public-document" &&
+      !tabroomExport
+    ) {
       context.addIssue({
         code: "custom",
         path: ["descriptor", "permission"],
-        message: "Only official public documents may be ingested.",
+        message:
+          "Only official public documents or the public Tabroom export may be ingested.",
       });
     }
     if (!source.descriptor.allowedMediaTypes.includes(source.mediaType)) {
@@ -96,6 +118,7 @@ function json(body: object, status: number): Response {
 
 function sourcePeopleFrom(
   resultSets: readonly NormalizedResultSet[],
+  provider: "document" | "tabroom",
 ): readonly SourcePerson[] {
   const people = new Map<string, SourcePerson>();
   for (const resultSet of resultSets) {
@@ -105,7 +128,7 @@ function sourcePeopleFrom(
         eventId: resultSet.event.id,
         division: result.division,
         sourceSnapshotId: resultSet.sourceSnapshotId,
-        provider: "document",
+        provider,
         sourcePersonId: result.sourcePersonId,
         sourceEntryId: result.sourceEntryId,
         publishedName: result.publishedName,
@@ -210,6 +233,29 @@ export function registerIngestRoute(
         404,
       );
     }
+    const isTabroom =
+      packet.source.descriptor.permission === "official-public-export";
+    if (isTabroom) {
+      const sourceId = new URL(packet.source.url).searchParams.get("tourn_id");
+      const discovered =
+        edition.discoveredFrom === null
+          ? null
+          : new URL(edition.discoveredFrom);
+      if (
+        discovered === null ||
+        discovered.origin !== "https://www.tabroom.com" ||
+        discovered.pathname !== "/index/tourn/index.mhtml" ||
+        discovered.searchParams.get("tourn_id") !== sourceId
+      ) {
+        return json(
+          {
+            error: "invalid_request",
+            diagnosticCode: "INGEST_TOURNAMENT_CONFLICT",
+          },
+          400,
+        );
+      }
+    }
     if (
       packet.resultSets.some(
         (resultSet) => resultSet.lineageId !== edition.lineageId,
@@ -225,7 +271,7 @@ export function registerIngestRoute(
     }
 
     const descriptorId = `signed-packet:${packet.source.descriptor.id}`;
-    const contentHash = await documentContentHash(packet);
+    const contentHash = await documentContentHash(packet, isTabroom);
     const receipt = await context.env.DB.prepare(
       "SELECT r.content_sha256, s.sha256 FROM document_ingest_receipts r JOIN source_snapshots s ON s.id = r.snapshot_id WHERE r.edition_id = ?1 AND r.descriptor_id = ?2 AND r.source_url = ?3",
     )
@@ -257,13 +303,13 @@ export function registerIngestRoute(
         sourceClass: packet.source.descriptor.sourceClass,
         allowlistedHostnames: packet.source.descriptor.allowlistedHostnames,
         allowedMediaTypes: [PACKET_MEDIA_TYPE],
-        permission: "official-public-document",
+        permission: packet.source.descriptor.permission,
       },
       url: packet.source.url,
       retrievedAt: packet.source.retrievedAt,
       mediaType: PACKET_MEDIA_TYPE,
       parserVersion: `${packet.source.parserVersion}+signed-packet-v1`,
-      permission: "official-public-document",
+      permission: packet.source.descriptor.permission,
       bytes,
       sha256: auth.contentSha256,
     });
@@ -273,7 +319,10 @@ export function registerIngestRoute(
       editionId: packet.editionId,
       sourceSnapshotId: snapshot.id,
       resultSets,
-      sourcePeople: sourcePeopleFrom(resultSets),
+      sourcePeople: sourcePeopleFrom(
+        resultSets,
+        isTabroom ? "tabroom" : "document",
+      ),
       explicitIdentityEdges: [],
     });
     const evidence = await context.env.DB.prepare(

@@ -14,19 +14,36 @@ function canonicalJson(value: unknown): string {
 
 // The signed request authenticates every field, including its observation time.
 // This separate key detects unchanged source content without resetting stability.
-export async function documentContentHash(packet: {
-  readonly editionId: string;
-  readonly source: Readonly<Record<string, unknown>> & {
-    readonly retrievedAt: string;
-  };
-  readonly resultSets: readonly NormalizedResultSet[];
-}): Promise<string> {
+export async function documentContentHash(
+  packet: {
+    readonly editionId: string;
+    readonly source: Readonly<Record<string, unknown>> & {
+      readonly retrievedAt: string;
+    };
+    readonly resultSets: readonly NormalizedResultSet[];
+  },
+  normalizedExport = false,
+): Promise<string> {
   const content = canonicalJson({
     editionId: packet.editionId,
-    source: { ...packet.source, retrievedAt: null },
+    // Public exports include changing backup timestamps and unrelated events.
+    // Keep the original hash in the signed snapshot, but deduplicate by results.
+    source: {
+      ...packet.source,
+      retrievedAt: null,
+      ...(normalizedExport ? { sha256: null } : {}),
+    },
     resultSets: packet.resultSets.map((resultSet) => ({
       ...resultSet,
       publishedAt: null,
+      ...(normalizedExport
+        ? {
+            sourceSnapshotId: null,
+            parserDiagnostics: resultSet.parserDiagnostics.map(
+              (diagnostic) => ({ ...diagnostic, sourceSnapshotId: null }),
+            ),
+          }
+        : {}),
     })),
   });
   const digest = await crypto.subtle.digest(

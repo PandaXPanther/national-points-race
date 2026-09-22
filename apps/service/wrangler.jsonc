@@ -33,6 +33,7 @@
   "triggers": { "crons": ["17 8 * * *"] },
   "vars": {
     "APP_ENV": "production",
+    "TABROOM_COLLECTION_MODE": "signed-runner",
     "PUBLIC_ORIGIN": "https://national-points-race.pages.dev",
   },
 }

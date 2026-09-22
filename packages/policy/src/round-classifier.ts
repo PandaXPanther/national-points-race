@@ -17,6 +17,7 @@ const aliases: Readonly<Record<string, RoundStage>> = {
   qtr: "quarterfinal",
   qtrs: "quarterfinal",
   quarter: "quarterfinal",
+  quart: "quarterfinal",
   quarterfinal: "quarterfinal",
   quarterfinals: "quarterfinal",
   quarters: "quarterfinal",

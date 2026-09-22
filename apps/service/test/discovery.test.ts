@@ -101,7 +101,9 @@ describe("frozen tournament registry", () => {
         platform:
           lineage.id === "asu-hdshc-invitational"
             ? ["tabroom:tourn:37484"]
-            : [],
+            : lineage.id === "uk-season-opener"
+              ? ["tabroom:webname:ukso"]
+              : [],
         past:
           lineage.id === "asu-hdshc-invitational"
             ? ["tabroom:edition:37484"]
@@ -110,6 +112,7 @@ describe("frozen tournament registry", () => {
     );
     expect(ELIGIBLE_EVENT_LABELS).toEqual([
       "Extemporaneous Speaking",
+      "Extemporaneous - TOC Bid Event",
       "Extemp",
       "International Extemporaneous Speaking",
       "International Extemp",

@@ -8,6 +8,7 @@ describe("round label classification", () => {
     ["Octa 1", "octafinal"],
     ["Octas", "octafinal"],
     ["Quarter", "quarterfinal"],
+    ["Quart", "quarterfinal"],
     ["QF", "quarterfinal"],
     ["Qrt", "quarterfinal"],
     ["Qrts", "quarterfinal"],

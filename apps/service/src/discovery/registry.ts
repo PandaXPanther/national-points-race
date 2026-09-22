@@ -2,6 +2,7 @@ import { CURRENT_POLICY, type TournamentLineageId } from "@points-race/policy";
 
 export const ELIGIBLE_EVENT_LABELS = Object.freeze([
   "Extemporaneous Speaking",
+  "Extemporaneous - TOC Bid Event",
   "Extemp",
   "International Extemporaneous Speaking",
   "International Extemp",
@@ -86,6 +87,10 @@ const ORGANIZERS: Readonly<Record<TournamentLineageId, readonly string[]>> = {
 const VERIFIED_HISTORY: Readonly<
   Partial<Record<TournamentLineageId, VerifiedLineageHistory>>
 > = {
+  // Verified via https://www.tabroom.com/index/tourn/past.mhtml?webname=ukso
+  "uk-season-opener": {
+    verifiedPlatformLineageKeys: ["tabroom:webname:ukso"],
+  },
   "asu-hdshc-invitational": {
     verifiedPlatformLineageKeys: ["tabroom:tourn:37484"],
     verifiedOfficialPastEditionKeys: ["tabroom:edition:37484"],

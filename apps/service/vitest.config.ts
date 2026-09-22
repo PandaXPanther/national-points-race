@@ -17,6 +17,7 @@ export default defineConfig(async () => {
         wrangler: { configPath: "./wrangler.jsonc" },
         miniflare: {
           bindings: {
+            TABROOM_COLLECTION_MODE: "worker",
             TEST_MIGRATIONS: migrations,
             DOCUMENT_INGEST_SECRET: "test-only-document-ingest-secret",
             MBA_SUBMITTER_HMAC_KEY: "test-only-mba-submitter-secret",

@@ -111,6 +111,8 @@ export function discoveryFixture(
       if (url === detailUrl) return html(detail);
       if (url === "https://www.tabroom.com/index/index.mhtml")
         return html(calendar);
+      if (url === "https://www.tabroom.com/index/tourn/past.mhtml?webname=ukso")
+        return html("");
       throw new Error("Unexpected discovery fixture URL.");
     },
     expectedStartAt: dates.startAt,

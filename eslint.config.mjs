@@ -12,7 +12,7 @@ export default [
       "**/dist-pages/",
       "coverage/",
       "**/.astro/",
-      ".wrangler/",
+      "**/.wrangler/",
       ".dev.vars*",
       "playwright-report/",
       "work/**",

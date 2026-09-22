@@ -227,6 +227,7 @@ export async function runDiscover(
   const lineageId = TournamentLineageIdSchema.parse(edition.lineageId);
   try {
     const candidates = await discoverTabroomCandidates({
+      fingerprint: fingerprintFor(lineageId),
       seasonId: message.seasonId,
       calendarUrl: TABROOM_CALENDAR_URL,
       fetchImpl: dependencies.fetchImpl ?? fetch,
@@ -261,6 +262,13 @@ export async function runCollect(
     return permanent("EDITION_SOURCE_NOT_DISCOVERED");
   const tournamentId = tabroomTournamentId(edition.discoveredFrom);
   if (tournamentId === null) return permanent("SOURCE_PERMISSION_REQUIRED");
+  // Normalize large exports on the scheduled Node runner, then use signed ingest.
+  if (
+    (env as CloudflareBindings & { TABROOM_COLLECTION_MODE?: string })
+      .TABROOM_COLLECTION_MODE === "signed-runner"
+  ) {
+    return { kind: "succeeded", code: "COLLECTION_ASSIGNED_TO_SIGNED_RUNNER" };
+  }
 
   let payload;
   try {

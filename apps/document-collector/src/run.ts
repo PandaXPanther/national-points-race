@@ -17,6 +17,7 @@ import {
 import { parseOfficialDocument } from "./index.js";
 import { signDocumentPacket } from "./sign.js";
 import { CollectionSeasonIdSchema, collectionSeasons } from "./seasons.js";
+import { runTabroomCollector } from "./tabroom.js";
 
 const DOCUMENT_MAX_BYTES = 25 * 1_024 * 1_024;
 const DOCUMENT_TIMEOUT_MS = 45_000;
@@ -37,6 +38,7 @@ class CollectorConfigurationError extends Error {
 }
 
 export interface RunCollectorInput {
+  readonly includeTabroom?: boolean;
   readonly serviceUrl: string;
   readonly secret: string;
   readonly manifests: readonly unknown[];
@@ -228,6 +230,20 @@ export async function runScheduledCollector(
   let duplicates = 0;
   let failed = false;
   for (const selectedSeason of seasonIds) {
+    if (input.includeTabroom === true) {
+      try {
+        const output = await runTabroomCollector({
+          ...input,
+          now,
+          seasonId: selectedSeason,
+        });
+        considered += output.considered;
+        submitted += output.submitted;
+        duplicates += output.duplicates;
+      } catch {
+        failed = true;
+      }
+    }
     try {
       const output = await runCollector({
         ...input,
@@ -261,7 +277,12 @@ async function main(): Promise<void> {
   const manifests = await loadCollectorManifests(
     process.env.POINTS_RACE_MANIFEST_DIR ?? defaultManifestDirectory,
   );
-  const output = await runScheduledCollector({ serviceUrl, secret, manifests });
+  const output = await runScheduledCollector({
+    serviceUrl,
+    secret,
+    manifests,
+    includeTabroom: true,
+  });
   process.stdout.write(
     `DOCUMENT_COLLECTOR_OK season=${output.seasonId} considered=${String(output.considered)} submitted=${String(output.submitted)} duplicates=${String(output.duplicates)} seasons=${output.seasonIds.join(",")}\n`,
   );

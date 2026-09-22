@@ -130,6 +130,56 @@ beforeAll(async () => {
 });
 
 describe("signed document ingestion", () => {
+  it("accepts only an export bound to the discovered Tabroom edition and deduplicates export metadata changes", async () => {
+    await runScheduledTick({ scheduledAt: "2200-08-01T08:17:00.000Z", env });
+    const editionId = "2200-01:uk-season-opener";
+    await env.DB.prepare(
+      "UPDATE tournament_editions SET discovered_from = ?1, start_at = '2200-09-11T00:00:00.000Z', end_at = '2200-09-14T23:59:59.999Z' WHERE id = ?2",
+    )
+      .bind(
+        "https://www.tabroom.com/index/tourn/index.mhtml?tourn_id=40313",
+        editionId,
+      )
+      .run();
+    function body(tournId: number, hash: string, placement = 1) {
+      return new TextEncoder().encode(
+        JSON.stringify({
+          ...INGEST_PAYLOAD,
+          editionId,
+          source: {
+            ...INGEST_PAYLOAD.source,
+            descriptor: {
+              id: "tabroom-public-export",
+              sourceClass: "structured-official-export",
+              allowlistedHostnames: ["www.tabroom.com"],
+              allowedMediaTypes: ["application/json"],
+              permission: "official-public-export",
+            },
+            url: `https://www.tabroom.com/api/download_data.mhtml?tourn_id=${tournId}`,
+            mediaType: "application/json",
+            sha256: hash,
+            parserVersion: "tabroom-selected-v1",
+            retrievedAt: "2200-09-21T00:00:00.000Z",
+          },
+          resultSets: INGEST_PAYLOAD.resultSets.map((set) => ({
+            ...set,
+            editionId,
+            lineageId: "uk-season-opener",
+            sourceSnapshotId: `sha256:${hash}`,
+            results: set.results.map((result) => ({
+              ...result,
+              placement,
+              wonFinalRound: placement === 1,
+            })),
+          })),
+        }),
+      );
+    }
+    expect((await postPacket(body(999, "d".repeat(64)))).status).toBe(400);
+    expect((await postPacket(body(40313, "d".repeat(64)))).status).toBe(202);
+    expect((await postPacket(body(40313, "e".repeat(64)))).status).toBe(200);
+    expect((await postPacket(body(40313, "f".repeat(64), 2))).status).toBe(202);
+  });
   it("accepts changed and reverted source content while deduplicating each unchanged daily fetch", async () => {
     const editionId = "2072-73:harvard";
     await runScheduledTick({ scheduledAt: "2072-08-01T08:17:00.000Z", env });

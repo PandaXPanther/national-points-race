@@ -1,6 +1,10 @@
 import { fetchBounded, type SourceDescriptor } from "@points-race/pipeline";
 
-import { TOURNAMENT_FINGERPRINTS, normalizeExactKey } from "./registry.js";
+import {
+  TOURNAMENT_FINGERPRINTS,
+  normalizeExactKey,
+  type TournamentFingerprint,
+} from "./registry.js";
 import type { DiscoveryCandidate } from "./match-lineage.js";
 
 const TABROOM_HOST = "www.tabroom.com";
@@ -36,6 +40,7 @@ export interface ParseTabroomDetailInput {
 }
 
 export interface DiscoverTabroomCandidatesInput {
+  readonly fingerprint?: TournamentFingerprint;
   readonly seasonId: string;
   readonly calendarUrl: URL;
   readonly fetchImpl: typeof fetch;
@@ -187,7 +192,11 @@ function parseDateRange(
   const seasonStart = parseSeasonStart(seasonId);
   const inferredStartYear = startMonth >= 8 ? seasonStart : seasonStart + 1;
   const startYear =
-    match[3] === undefined ? inferredStartYear : Number(match[3]);
+    match[3] === undefined
+      ? match[6] === undefined
+        ? inferredStartYear
+        : Number(match[6]) - (endMonth < startMonth ? 1 : 0)
+      : Number(match[3]);
   const endYear =
     match[6] === undefined
       ? startYear + (endMonth < startMonth ? 1 : 0)
@@ -363,7 +372,7 @@ export function parseTabroomDetail(
     html,
     "data-official-past-edition-key",
   );
-  const lower = normalizeExactKey(`${title} ${labels.join(" ")}`);
+  const lower = normalizeExactKey(title);
   return Object.freeze({
     candidateId: `tabroom:${input.entry.tournamentId}`,
     tournamentId: input.entry.tournamentId,
@@ -435,17 +444,66 @@ export async function discoverTabroomCandidates(
     TABROOM_CALENDAR_DESCRIPTOR,
     input,
   );
-  const entries = parseTabroomCalendar(calendarHtml, input.calendarUrl).filter(
-    (entry) => POLICY_TITLES.has(normalizeExactKey(entry.title)),
-  );
+  const titles =
+    input.fingerprint === undefined
+      ? POLICY_TITLES
+      : new Set(
+          [input.fingerprint.canonicalName, ...input.fingerprint.aliases].map(
+            normalizeExactKey,
+          ),
+        );
+  const entries = [
+    ...parseTabroomCalendar(calendarHtml, input.calendarUrl).filter((entry) =>
+      titles.has(normalizeExactKey(entry.title)),
+    ),
+  ];
+  const year = parseSeasonStart(input.seasonId);
+  const seasonStart = Date.UTC(year, 7, 1);
+  const seasonEnd = Date.UTC(year + 1, 7, 1);
+  for (const key of input.fingerprint?.verifiedPlatformLineageKeys ?? []) {
+    const webname = /^tabroom:webname:([a-z0-9_-]+)$/u.exec(key)?.[1];
+    if (webname === undefined) continue;
+    const pastUrl = new URL(
+      `/index/tourn/past.mhtml?webname=${webname}`,
+      input.calendarUrl,
+    );
+    const pastHtml = await getHtml(pastUrl, TABROOM_DETAIL_DESCRIPTOR, input);
+    for (const row of pastHtml.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr\s*>/giu)) {
+      const cells = [
+        ...(row[1] ?? "").matchAll(/<td\b[^>]*>([\s\S]*?)<\/td\s*>/giu),
+      ].map((cell) => plainText(cell[1] ?? ""));
+      const date = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/u.exec(cells[2] ?? "");
+      if (date === null) continue;
+      const start = exactUtc(
+        Number(date[3]),
+        Number(date[1]),
+        Number(date[2]),
+        false,
+      ).getTime();
+      if (start < seasonStart || start >= seasonEnd) continue;
+      entries.push(...parseTabroomCalendar(row[1] ?? "", pastUrl));
+    }
+  }
+  const uniqueEntries = [
+    ...new Map(entries.map((entry) => [entry.tournamentId, entry])).values(),
+  ];
   const candidates: DiscoveryCandidate[] = [];
-  for (const entry of entries) {
+  for (const entry of uniqueEntries) {
     const detailHtml = await getHtml(
       new URL(entry.detailUrl),
       TABROOM_DETAIL_DESCRIPTOR,
       input,
     );
     const detailUrl = new URL(entry.detailUrl);
+    const dated = parseTabroomDetail(detailHtml, {
+      seasonId: input.seasonId,
+      entry,
+    });
+    if (
+      Date.parse(dated.startAt) < seasonStart ||
+      Date.parse(dated.startAt) >= seasonEnd
+    )
+      continue;
     const eventsUrl =
       embeddedEventLabels(detailHtml).length === 0
         ? eventsPageUrl(detailHtml, detailUrl, entry.tournamentId)

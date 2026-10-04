@@ -18,7 +18,7 @@ import {
 import { parseOfficialDocument } from "./index.js";
 import { signDocumentPacket } from "./sign.js";
 import { CollectionSeasonIdSchema, collectionSeasons } from "./seasons.js";
-import { runTabroomCollector } from "./tabroom.js";
+import { runTabroomCollector, type TabroomSourceWarning } from "./tabroom.js";
 import { collectorFetch, RequestFailureError } from "./retry.js";
 import {
   CollectorRunError,
@@ -62,6 +62,7 @@ export interface RunCollectorOutput {
   readonly considered: number;
   readonly submitted: number;
   readonly duplicates: number;
+  readonly warnings?: readonly TabroomSourceWarning[];
 }
 
 function documentEntryPersonId(
@@ -299,6 +300,7 @@ export async function runScheduledCollector(
         }),
       );
   }
+  const warnings: TabroomSourceWarning[] = [];
   for (const selectedSeason of seasonIds) {
     if (input.includeTabroom === true) {
       try {
@@ -311,6 +313,7 @@ export async function runScheduledCollector(
         considered += output.considered;
         submitted += output.submitted;
         duplicates += output.duplicates;
+        warnings.push(...(output.warnings ?? []));
       } catch (error) {
         recordFailure(error, selectedSeason, "tabroom");
       }
@@ -335,7 +338,14 @@ export async function runScheduledCollector(
       submitted,
       duplicates,
     });
-  return { seasonId, seasonIds, considered, submitted, duplicates };
+  return {
+    seasonId,
+    seasonIds,
+    considered,
+    submitted,
+    duplicates,
+    ...(warnings.length > 0 ? { warnings } : {}),
+  };
 }
 
 async function main(): Promise<void> {
@@ -367,6 +377,24 @@ async function main(): Promise<void> {
     manifests,
     includeTabroom: true,
   });
+  for (const warning of output.warnings ?? []) {
+    process.stdout.write(
+      `::warning title=Archived finals retained::${warning.code}: ${warning.editionId}. The official export no longer publishes finals; keeping verified archived standings and checking again on the next run.\n`,
+    );
+  }
+  if (process.env.GITHUB_STEP_SUMMARY && output.warnings?.length) {
+    await appendFile(
+      process.env.GITHUB_STEP_SUMMARY,
+      "## Archived finals retained\n\n" +
+        output.warnings
+          .map(
+            (warning) =>
+              `- ${warning.editionId}: the provider removed final results. Verified archived points remain published; corrections will be collected if finals return.`,
+          )
+          .join("\n") +
+        "\n",
+    );
+  }
   process.stdout.write(
     `DOCUMENT_COLLECTOR_OK season=${output.seasonId} considered=${String(output.considered)} submitted=${String(output.submitted)} duplicates=${String(output.duplicates)} seasons=${output.seasonIds.join(",")}\n`,
   );

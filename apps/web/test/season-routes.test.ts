@@ -209,6 +209,26 @@ describe("live season pages", () => {
     expect(html).not.toContain("Preseason");
   });
 
+  it("shows current competitors directly on the homepage before the archive, with obvious tournament and rules links", async () => {
+    const html = await (await render(Home, "/")).text();
+    expect(html).toContain('href="/2030-31/competitors/ada-123/"');
+    expect(html).toContain('href="/2030-31/tournaments/"');
+    expect(html).toContain('href="/methodology/"');
+    expect(html.match(/<th\b/gu)).toHaveLength(3);
+    expect(html.indexOf('aria-label="Standings table"')).toBeGreaterThan(0);
+    expect(html.indexOf('aria-label="Standings table"')).toBeLessThan(
+      html.indexOf('href="/archive/2029-30/"'),
+    );
+  });
+
+  it("keeps tournament navigation available when current standings fail, without presenting archive competitors as current", async () => {
+    publication = { invalid: true };
+    const html = await (await render(Home, "/")).text();
+    expect(html).toContain("Standings temporarily unavailable");
+    expect(html).toContain('href="/2030-31/tournaments/"');
+    expect(html).not.toContain('href="/2030-31/competitors/ada-123/"');
+  });
+
   it("renders any current year with stable audit links, dynamic metadata and scored counts", async () => {
     const html = await (
       await render(CurrentSeason, "/2030-31/", "2030-31")

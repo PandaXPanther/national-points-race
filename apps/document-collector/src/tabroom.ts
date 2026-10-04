@@ -50,6 +50,11 @@ const id = z
   .union([z.string().min(1), z.number().int().safe()])
   .transform(String);
 const record = z.record(z.string(), z.unknown());
+export interface TabroomSourceWarning {
+  readonly code: "TABROOM_FINAL_RESULTS_REMOVED";
+  readonly seasonId: string;
+  readonly editionId: string;
+}
 const envelope = z.object({
   id,
   categories: z.array(
@@ -174,7 +179,12 @@ export async function runTabroomCollector(input: {
   readonly seasonId: string;
   readonly now?: () => Date;
   readonly fetchImpl?: typeof fetch;
-}): Promise<{ considered: number; submitted: number; duplicates: number }> {
+}): Promise<{
+  considered: number;
+  submitted: number;
+  duplicates: number;
+  warnings?: readonly TabroomSourceWarning[];
+}> {
   const now = input.now ?? (() => new Date());
   const fetchImpl = collectorFetch(input.fetchImpl);
   let index;
@@ -193,6 +203,7 @@ export async function runTabroomCollector(input: {
     submitted = 0,
     duplicates = 0;
   const failures: CollectorFailure[] = [];
+  const warnings: TabroomSourceWarning[] = [];
   for (const tournament of index.tournaments) {
     const providerId = tournamentId(tournament, now());
     if (providerId === null) continue;
@@ -225,6 +236,21 @@ export async function runTabroomCollector(input: {
         providerId,
       );
       if (resultSets.length === 0) {
+        // A publisher can remove finals after we have verified and archived them.
+        // Preserve that evidence; qualifier lists are not placement corrections.
+        // Only the same official export behind a finalized edition qualifies.
+        if (
+          ["final", "corrected"].includes(tournament.status) &&
+          tournament.source?.permission === "official-public-export" &&
+          tournament.source.url === source.finalUrl
+        ) {
+          warnings.push({
+            code: "TABROOM_FINAL_RESULTS_REMOVED",
+            seasonId: input.seasonId,
+            editionId: tournament.editionId,
+          });
+          continue;
+        }
         // No finals immediately after a tournament can be normal. After a week,
         // make stalled publication visible as a failed scheduled run.
         if (now().getTime() - Date.parse(tournament.endAt!) > 7 * 86_400_000)
@@ -281,5 +307,10 @@ export async function runTabroomCollector(input: {
       submitted,
       duplicates,
     });
-  return { considered, submitted, duplicates };
+  return {
+    considered,
+    submitted,
+    duplicates,
+    ...(warnings.length > 0 ? { warnings } : {}),
+  };
 }

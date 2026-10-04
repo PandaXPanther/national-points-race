@@ -87,6 +87,8 @@ Deploy the updated Worker before running this collector version; the previous in
 
 ## Corrections
 
+If a Tabroom publisher removes final placements after an edition is finalized, the collector retains the verified archived evidence and emits `TABROOM_FINAL_RESULTS_REMOVED` as an Actions warning and summary. This applies only to finalized or corrected editions whose archived official export URL matches the source being checked. Qualifier lists never replace placements. Daily checks continue, so republished finals and corrections are still ingested. An edition with no verified archive still fails if finals are absent more than seven days after it ends; malformed exports and download failures still fail normally.
+
 If anything in the National Points Race looks wrong, join the [Discord server](https://discord.gg/8RFTvCWPPv) and ping `@PandaXPanther`. Include the season, tournament, competitor, and official source if possible.
 
 Historical articles and the original concept remain the work of Extemp Central and Logan Scisco. This repository provides independent software, source attribution, and new automated standings.

@@ -5,14 +5,15 @@ const { currentId = currentSeasonId() } = Astro.props;
 const { pathname } = Astro.url;
 const links = [
   ["Standings", "/"],
-  ["History", "/history/"],
-  ["Method", "/methodology/"],
-  ["Archive", "/archive/"],
+  ["Tournaments", `/${currentId}/tournaments/`],
+  ["Scoring rules", "/methodology/"],
+  ["Past seasons", "/archive/"],
+  ["About", "/history/"],
   ["Corrections", "/corrections/"],
 ] as const;
 
 function isCurrent(href: string): boolean {
-  return href === "/" ? pathname === href || pathname === "/current/" || pathname.startsWith(`/${currentId}/`) : pathname.startsWith(href);
+  return href === "/" ? pathname === href || pathname === "/current/" || pathname === `/${currentId}/` || pathname.startsWith(`/${currentId}/competitors/`) : pathname.startsWith(href);
 }
 ---
 
@@ -26,10 +27,9 @@ function isCurrent(href: string): boolean {
     <nav class="nav-scroll" aria-label="Primary navigation">
       <ul>
         {
-          links.map(([label, href], index) => (
+          links.map(([label, href]) => (
             <li>
               <a href={href} aria-current={isCurrent(href) ? "page" : undefined}>
-                <span aria-hidden="true">0{index + 1}</span>
                 {label}
               </a>
             </li>
@@ -59,7 +59,7 @@ function isCurrent(href: string): boolean {
     grid-template-columns: auto auto;
     gap: 0 0.75rem;
     align-content: center;
-    min-height: 5.3rem;
+    min-height: 4.5rem;
     color: var(--ink);
     text-decoration: none;
   }
@@ -98,7 +98,7 @@ function isCurrent(href: string): boolean {
   nav ul {
     display: flex;
     justify-content: flex-end;
-    width: max-content;
+    flex-wrap: wrap;
     min-width: 100%;
     height: 100%;
     margin: 0;
@@ -109,7 +109,7 @@ function isCurrent(href: string): boolean {
   nav a {
     display: grid;
     align-content: center;
-    min-height: 5.3rem;
+    min-height: 4.5rem;
     border-left: 1px solid var(--rule);
     color: var(--ink);
     padding: 0.7rem clamp(0.7rem, 1.8vw, 1.25rem);
@@ -143,12 +143,12 @@ function isCurrent(href: string): boolean {
 
     nav ul {
       justify-content: flex-start;
-      min-width: max-content;
+      min-width: 0;
       border-top: 1px solid var(--rule);
     }
 
     nav a {
-      min-height: 3.2rem;
+      min-height: 2.75rem;
       border-left: 0;
       border-right: 1px solid var(--rule);
     }

@@ -77,6 +77,94 @@ const tournament = {
 };
 
 describe("scheduled public Tabroom exports", () => {
+  const archivedSource = {
+    url: "https://www.tabroom.com/api/download_data.mhtml?tourn_id=40313",
+    sha256: "b".repeat(64),
+    retrievedAt: "2026-09-22T00:17:37.066Z",
+    parserVersion: "tabroom-selected-v1+signed-packet-v1",
+    permission: "official-public-export",
+  };
+  const withdrawn = structuredClone(payload);
+  const withdrawnEvent = withdrawn.categories[1]!.events[0]!;
+  if (!("result_sets" in withdrawnEvent))
+    throw new Error("Fixture needs result sets");
+  withdrawnEvent.result_sets = [
+    {
+      label: "TOC Qualifying Bids",
+      tag: "qualifier",
+      bracket: 0,
+      published: 1,
+      results: [{ entry: 14, place: "1st", round: 12 }],
+    },
+  ];
+  const collectWithdrawn = (
+    status: string,
+    source: typeof archivedSource | null,
+  ) =>
+    runTabroomCollector({
+      serviceUrl: "https://service.example.test",
+      secret: "test-only-secret",
+      seasonId: "2026-27",
+      now: () => new Date("2026-10-04T15:00:00Z"),
+      fetchImpl: async (input, init) => {
+        const url = new Request(input, init).url;
+        if (url.endsWith("/tournaments"))
+          return Response.json({
+            seasonId: "2026-27",
+            version: "a".repeat(64),
+            tournaments: [{ ...tournament, status, source }],
+          });
+        if (url.includes("download_data.mhtml"))
+          return Response.json(withdrawn);
+        throw new Error(
+          "Withdrawn finals must never be submitted as a correction",
+        );
+      },
+    });
+
+  it.each(["final", "corrected"])(
+    "preserves verified %s standings when the provider removes finals, with a visible warning",
+    async (status) => {
+      await expect(collectWithdrawn(status, archivedSource)).resolves.toEqual({
+        considered: 1,
+        submitted: 0,
+        duplicates: 0,
+        warnings: [
+          {
+            code: "TABROOM_FINAL_RESULTS_REMOVED",
+            seasonId: "2026-27",
+            editionId: tournament.editionId,
+          },
+        ],
+      });
+    },
+  );
+
+  it.each(["upcoming", "awaiting-results", "final"])(
+    "still fails overdue missing finals without archived evidence (%s)",
+    async (status) => {
+      await expect(collectWithdrawn(status, null)).rejects.toMatchObject({
+        failures: [
+          {
+            code: "TABROOM_FINAL_RESULTS_OVERDUE",
+            editionId: tournament.editionId,
+          },
+        ],
+      });
+    },
+  );
+
+  it("does not treat another provider edition's archive as verified finals", async () => {
+    await expect(
+      collectWithdrawn("final", {
+        ...archivedSource,
+        url: "https://www.tabroom.com/api/download_data.mhtml?tourn_id=999",
+      }),
+    ).rejects.toMatchObject({
+      failures: [{ code: "TABROOM_FINAL_RESULTS_OVERDUE" }],
+    });
+  });
+
   it("retries the public export and signed submission while preserving duplicate semantics", async () => {
     const attempts = { source: 0, ingest: 0 };
     const submittedBodies: string[] = [];

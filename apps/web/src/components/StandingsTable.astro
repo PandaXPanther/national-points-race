@@ -13,23 +13,22 @@ interface Standing {
 interface Props {
   standings: readonly Standing[];
   seasonId?: string;
+  compact?: boolean;
 }
-const { standings, seasonId } = Astro.props;
+const { standings, seasonId, compact = false } = Astro.props;
 ---
 
 {seasonId && <p class="record-hint">Select a competitor's name to view their points record.</p>}
-<div class="table-wrap" role="region" aria-label="Standings table" tabindex="0">
-  <table class="responsive-table">
+<div class:list={["table-wrap", { compact }]} role="region" aria-label="Standings table" tabindex="0">
+  <table class:list={["responsive-table", { "compact-table": compact }]}>
     <caption class="sr-only">National Points Race standings</caption>
     <thead>
       <tr>
         <th scope="col">Rank</th>
         <th scope="col">Competitor</th>
-        <th scope="col">School</th>
+        {!compact && <th scope="col">School</th>}
         <th class="numeric" scope="col">Points</th>
-        <th class="numeric" scope="col">Wins</th>
-        <th class="numeric" scope="col">Top 3</th>
-        <th class="numeric" scope="col">Finals</th>
+        {!compact && <><th class="numeric" scope="col">Wins</th><th class="numeric" scope="col">Top 3</th><th class="numeric" scope="col">Finals</th></>}
       </tr>
     </thead>
     <tbody>
@@ -44,12 +43,11 @@ const { standings, seasonId } = Astro.props;
             ) : (
               <strong>{standing.name}</strong>
             )}
+            {compact && <span class="school-name">{standing.school}</span>}
           </td>
-          <td data-label="School">{standing.school}</td>
+          {!compact && <td data-label="School">{standing.school}</td>}
           <td class="numeric" data-label="Points"><strong>{standing.points}</strong></td>
-          <td class="numeric" data-label="Wins">{standing.wins ?? "Not published"}</td>
-          <td class="numeric" data-label="Top 3">{standing.topThrees ?? "Not published"}</td>
-          <td class="numeric" data-label="Finals">{standing.finals ?? "Not published"}</td>
+          {!compact && <><td class="numeric" data-label="Wins">{standing.wins ?? "Not published"}</td><td class="numeric" data-label="Top 3">{standing.topThrees ?? "Not published"}</td><td class="numeric" data-label="Finals">{standing.finals ?? "Not published"}</td></>}
         </tr>
       ))}
     </tbody>
@@ -57,6 +55,13 @@ const { standings, seasonId } = Astro.props;
 </div>
 
 <style>
+  .compact::before { display: none; }
+  .compact-table { min-width: 0; table-layout: fixed; }
+  .compact-table th:first-child { width: 3.5rem; }
+  .compact-table th:last-child { width: 4.5rem; }
+  .compact-table td { overflow-wrap: anywhere; }
+  .compact-table td.numeric { color: var(--ink); }
+  .school-name { display: block; margin-top: 0.25rem; color: var(--ink-soft); font-size: 0.78rem; line-height: 1.4; }
   .record-hint {
     color: var(--ink-soft);
     font-size: 0.85rem;

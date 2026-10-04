@@ -122,6 +122,46 @@ describe.each([[], ["--check-config"]])(
 );
 
 describe("built scheduled runner configuration checks", () => {
+  it("finishes successfully and publishes an Actions warning when already archived finals disappear", () => {
+    const networkScript = `data:text/javascript,${encodeURIComponent(`
+      const NativeDate = Date;
+      globalThis.Date = class extends NativeDate {
+        constructor(...args) { super(...(args.length ? args : ['2026-10-04T15:00:00.000Z'])); }
+        static now() { return NativeDate.parse('2026-10-04T15:00:00.000Z'); }
+      };
+      globalThis.fetch = async input => {
+        const url = new URL(typeof input === 'string' || input instanceof URL ? input : input.url);
+        if (url.pathname === '/v1/seasons') return Response.json({currentSeasonId:'2026-27',seasons:[{seasonId:'2026-27'}]});
+        if (url.pathname.endsWith('/tournaments')) return Response.json({seasonId:'2026-27',version:'a'.repeat(64),tournaments:[{
+          editionId:'2026-27:uk-season-opener',lineageId:'uk-season-opener',name:'UKSO',tier:5,
+          startAt:'2026-09-11T00:00:00.000Z',endAt:'2026-09-14T23:59:59.999Z',status:'final',
+          discoveredFrom:'https://www.tabroom.com/index/tourn/index.mhtml?tourn_id=40313',
+          source:{url:'https://www.tabroom.com/api/download_data.mhtml?tourn_id=40313',sha256:'b'.repeat(64),retrievedAt:'2026-09-22T00:17:37.066Z',parserVersion:'tabroom-selected-v1+signed-packet-v1',permission:'official-public-export'}
+        }]});
+        if (url.pathname === '/api/download_data.mhtml') return Response.json({id:40313,categories:[{id:1,events:[{id:11,name:'Extemporaneous - TOC Bid Event',rounds:[],result_sets:[]}]}],schools:[]});
+        throw new Error('No correction may be submitted for withdrawn finals');
+      };
+    `)}`;
+    const result = runScheduledCli({
+      serviceUrl: SERVICE_URL,
+      secret: SECRET,
+      manifestDirectory: emptyManifests,
+      networkScript,
+      summaryFile,
+    });
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain(
+      "::warning title=Archived finals retained::TABROOM_FINAL_RESULTS_REMOVED: 2026-27:uk-season-opener",
+    );
+    expect(result.stdout).toContain(
+      "DOCUMENT_COLLECTOR_OK season=2026-27 considered=1 submitted=0 duplicates=0",
+    );
+    expect(readFileSync(summaryFile, "utf8")).toContain(
+      "Verified archived points remain published",
+    );
+    expect(result.stderr).toBe("");
+  });
+
   it("runs the built CLI across the current and previous seasons", () => {
     const networkScript = `data:text/javascript,${encodeURIComponent(`
       const NativeDate = Date;

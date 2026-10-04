@@ -131,8 +131,8 @@ async function pageMetrics(client) {
     expression: `(() => {
       const root = document.documentElement;
       const heading = document.querySelector("h1");
-      const heroTitle = document.querySelector(".cover h1");
-      const editionLabel = document.querySelector(".edition-label");
+      const heroTitle = document.querySelector(".home-intro h1");
+      const editionLabel = document.querySelector("#current-standings");
       const rect = (element) => {
         if (!element) return null;
         const { top, right, bottom, left } = element.getBoundingClientRect();

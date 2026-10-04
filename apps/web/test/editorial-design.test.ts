@@ -64,18 +64,4 @@ describe("editorial frontend", () => {
     expect(script).toContain("heroOverlap");
     expect(script).toContain("captureBeyondViewport");
   });
-
-  it("uses a collision-free mobile cover composition", async () => {
-    const home = await readFile(`${sourceRoot}pages/index.astro`, "utf8");
-
-    expect(home).toMatch(
-      /@media \(max-width: 34rem\)[\s\S]*\.cover-title\s*\{[\s\S]*display:\s*grid/u,
-    );
-    expect(home).toMatch(
-      /@media \(max-width: 34rem\)[\s\S]*\.edition-label\s*\{[\s\S]*position:\s*static[\s\S]*writing-mode:\s*horizontal-tb/u,
-    );
-    expect(home).toMatch(
-      /@media \(max-width: 34rem\)[\s\S]*\.cover h1\s*\{[\s\S]*grid-column:\s*1 \/ -1/u,
-    );
-  });
 });
